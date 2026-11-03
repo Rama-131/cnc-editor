@@ -22,6 +22,11 @@ import {
 } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 import { codeInfo, type Machine } from "../lib/codes";
+import {
+  followSimulationLine,
+  setSimulationLine,
+  simulationLineField,
+} from "../lib/editorSimulation";
 export type Palette = {
   g: string;
   m: string;
@@ -84,12 +89,16 @@ export function Editor({
   onCursor,
   machine,
   palette,
+  simulationLine,
+  followSimulation,
 }: {
   value: string;
   onChange: (v: string) => void;
   onCursor: (line: number, col: number) => void;
   machine: Machine;
   palette: Palette;
+  simulationLine: number | null;
+  followSimulation: boolean;
 }) {
   const root = useRef<HTMLDivElement>(null),
     view = useRef<EditorView | null>(null),
@@ -149,6 +158,7 @@ export function Editor({
           drawSelection(),
           highlightActiveLine(),
           highlightActiveLineGutter(),
+          simulationLineField,
           keymap.of([indentWithTab, ...defaultKeymap, ...historyKeymap]),
           language,
           colorConfig.current.of(colors(palette)),
@@ -182,6 +192,15 @@ export function Editor({
               ".cm-activeLineGutter": {
                 backgroundColor: "transparent",
                 color: "#cad6e3",
+              },
+              ".cm-line.cm-simulationLine": {
+                backgroundColor: "#254b3a99",
+                boxShadow: "inset 3px 0 #8ee5b8",
+              },
+              ".cm-gutterElement.cm-simulationLineGutter": {
+                backgroundColor: "#254b3a99",
+                color: "#aaf3cb",
+                fontWeight: "700",
               },
               ".cm-cursor": { borderLeftColor: "#7ae5b4" },
               "&.cm-focused .cm-selectionBackground, .cm-selectionBackground": {
@@ -228,5 +247,11 @@ export function Editor({
       effects: tooltipConfig.current.reconfigure(tooltip(machine)),
     });
   }, [machine]);
+  useEffect(() => {
+    const v = view.current;
+    if (!v) return;
+    v.dispatch({ effects: setSimulationLine.of(simulationLine) });
+    if (followSimulation && simulationLine !== null) followSimulationLine(v);
+  }, [simulationLine, followSimulation, value]);
   return <div className="editor-mount" ref={root} />;
 }

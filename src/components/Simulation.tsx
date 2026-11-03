@@ -26,7 +26,7 @@ export function Simulation({
 }: {
   result: Result;
   machine: Machine;
-  onLine: (n: number) => void;
+  onLine: (n: number | null) => void;
 }) {
   const [view, setView] = useState<View>(machine === "lathe" ? "XZ" : "ISO"),
     [progress, setProgress] = useState(100),
@@ -34,12 +34,14 @@ export function Simulation({
     [speed, setSpeed] = useState(1),
     [zoom, setZoom] = useState(1),
     [rapids, setRapids] = useState(true);
+  const [trackedResult, setTrackedResult] = useState<Result | null>(null);
   useEffect(() => {
     setView(machine === "lathe" ? "XZ" : "ISO");
   }, [machine]);
   useEffect(() => {
     setPlaying(false);
     setProgress(100);
+    setTrackedResult(null);
   }, [result]);
   useEffect(() => {
     if (!playing) return;
@@ -57,9 +59,10 @@ export function Simulation({
   const count = Math.round((result.segments.length * progress) / 100),
     segment = result.segments[Math.max(0, count - 1)];
   const currentPoint = count > 0 ? segment?.to : segment?.from;
+  const currentLine = trackedResult === result ? (segment?.line ?? null) : null;
   useEffect(() => {
-    if (segment) onLine(segment.line);
-  }, [segment, onLine]);
+    onLine(currentLine);
+  }, [currentLine, onLine]);
   const drawing = useMemo(() => {
     const points = result.segments.flatMap((s) => [
       project(s.from, view),
@@ -271,6 +274,7 @@ export function Simulation({
           disabled={!result.segments.length}
           aria-label={playing ? "Pausa simulazione" : "Avvia simulazione"}
           onClick={() => {
+            setTrackedResult(result);
             if (progress >= 100) setProgress(0);
             setPlaying(!playing);
           }}
@@ -286,6 +290,7 @@ export function Simulation({
           title="Riavvolgi"
           aria-label="Riavvolgi simulazione"
           onClick={() => {
+            setTrackedResult(result);
             setProgress(0);
             setPlaying(false);
           }}
@@ -300,6 +305,7 @@ export function Simulation({
           step=".1"
           value={progress}
           onChange={(e) => {
+            setTrackedResult(result);
             setPlaying(false);
             setProgress(+e.target.value);
           }}

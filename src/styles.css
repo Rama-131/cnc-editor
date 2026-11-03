@@ -391,6 +391,38 @@ h1 {
   background: #eccb82;
   border-radius: 50%;
 }
+.execution-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  flex-shrink: 0;
+  background: #18221f;
+  border-bottom: 1px solid #2c3b34;
+  font-size: 10px;
+  color: #8caa9a;
+}
+.execution-bar.tracking .execution-position {
+  color: #aaf3cb;
+}
+.execution-position {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.execution-bar label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.execution-bar input {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+}
 .editor-mount {
   min-height: 0;
   flex: 1;

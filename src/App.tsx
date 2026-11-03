@@ -62,7 +62,8 @@ export default function App() {
     [showColors, setShowColors] = useState(false),
     [showGuide, setShowGuide] = useState(false),
     [cursor, setCursor] = useState({ line: 1, col: 1 }),
-    [activeLine, setActiveLine] = useState(1),
+    [activeLine, setActiveLine] = useState<number | null>(null),
+    [followSimulation, setFollowSimulation] = useState(true),
     [search, setSearch] = useState(""),
     [notice, setNotice] = useState(""),
     [tab, setTab] = useState<"workspace" | "serial">("workspace");
@@ -101,7 +102,7 @@ export default function App() {
       (line: number, col: number) => setCursor({ line, col }),
       [],
     ),
-    onLine = useCallback((line: number) => setActiveLine(line), []);
+    onLine = useCallback((line: number | null) => setActiveLine(line), []);
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
@@ -455,12 +456,31 @@ export default function App() {
                     )}
                   </div>
                 )}
+                <div
+                  className={`execution-bar ${activeLine !== null ? "tracking" : ""}`}
+                >
+                  <span className="execution-position">
+                    {activeLine === null
+                      ? "Avvia la simulazione per seguire il codice"
+                      : `Riga in simulazione: ${activeLine}`}
+                  </span>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={followSimulation}
+                      onChange={(e) => setFollowSimulation(e.target.checked)}
+                    />
+                    Segui riga
+                  </label>
+                </div>
                 <Editor
                   value={source}
                   onChange={setSource}
                   machine={machine}
                   palette={palette}
                   onCursor={onCursor}
+                  simulationLine={activeLine}
+                  followSimulation={followSimulation}
                 />
                 <div className="editor-status">
                   <span>
@@ -501,7 +521,9 @@ export default function App() {
               <div className="preview-caption">
                 <Check size={14} />
                 <span>Aggiornamento automatico durante la scrittura</span>
-                <span>Riga {activeLine}</span>
+                <span>
+                  {activeLine === null ? "Pronto" : `Riga ${activeLine}`}
+                </span>
               </div>
             </div>
             <div className="serial-column">
