@@ -12,19 +12,24 @@ import {
   RotateCcw,
   Settings2,
   Space,
+  Undo2,
+  Redo2,
   X,
 } from "lucide-react";
 import {
   Editor,
   defaultPalette,
   type EditorHandle,
+  type EditorHistory,
   type Palette,
 } from "./components/Editor";
 import { Simulation } from "./components/Simulation";
 import { SerialPanel } from "./components/SerialPanel";
 import { ReceivedDocument } from "./components/ReceivedDocument";
+import { ProgramTabs } from "./components/ProgramTabs";
 import { downloadText } from "./lib/files";
 import { useReceivedDocument } from "./lib/useReceivedDocument";
+import { useProgramDocuments } from "./lib/useProgramDocuments";
 import { simulate } from "./lib/simulator";
 import { codeInfo, type Machine } from "./lib/codes";
 import { millSample, latheSample } from "./lib/samples";
@@ -36,14 +41,6 @@ const colorNames: Record<keyof Palette, string> = {
   comment: "Commenti",
   tool: "Utensili e correttori",
 };
-function readDraft() {
-  try {
-    const d = JSON.parse(localStorage.getItem("cnc.draft") ?? "null");
-    if (typeof d?.source === "string" && typeof d?.name === "string")
-      return d as { source: string; name: string; machine: Machine };
-  } catch {}
-  return null;
-}
 function readPalette(): Palette {
   try {
     const p = JSON.parse(localStorage.getItem("cnc.palette") ?? "null");
@@ -55,7 +52,6 @@ function readPalette(): Palette {
   } catch {}
   return defaultPalette;
 }
-const initial = readDraft();
 function currentPage(): "workspace" | "serial" | "receive" {
   if (window.location.hash === "#ricezione") return "receive";
   return window.location.hash === "#trasmissione" ? "serial" : "workspace";
@@ -67,14 +63,7 @@ const pageTitle = {
 };
 
 export default function App() {
-  const [source, setSource] = useState(initial?.source ?? millSample),
-    [saved, setSaved] = useState(initial?.source ?? millSample),
-    [filename, setFilename] = useState(initial?.name ?? "O1001_piastra.nc"),
-    [machine, setMachine] = useState<Machine>(
-      initial?.machine === "lathe" ? "lathe" : "mill",
-    ),
-    [diameter, setDiameter] = useState(true),
-    [palette, setPalette] = useState(readPalette),
+  const [palette, setPalette] = useState(readPalette),
     [showColors, setShowColors] = useState(false),
     [showExamples, setShowExamples] = useState(false),
     [showGuide, setShowGuide] = useState(false),
@@ -84,11 +73,38 @@ export default function App() {
     [search, setSearch] = useState(""),
     [notice, setNotice] = useState(""),
     [receiving, setReceiving] = useState(false),
+    [history, setHistory] = useState<EditorHistory>({
+      canUndo: false,
+      canRedo: false,
+    }),
     [tab, setTab] = useState(currentPage);
+  const programs = useProgramDocuments(setNotice);
+  const { active, machine, diameter } = programs;
+  const source = active?.source ?? "";
+  const filename = active?.name ?? "programma.nc";
+  const setSource = (source: string) => {
+    if (active) programs.update(active.id, { source });
+  };
+  const setFilename = (name: string) => {
+    if (active) programs.update(active.id, { name });
+  };
+  const setMachine = (machine: Machine) => programs.configure({ machine });
+  const setDiameter = (diameter: boolean) => programs.configure({ diameter });
   const reception = useReceivedDocument(setNotice);
   const fileInput = useRef<HTMLInputElement>(null);
   const programEditor = useRef<EditorHandle>(null);
-  const dirty = source !== saved;
+  const dirty = !!active && source !== active.savedSource;
+  const simulationVisible =
+    tab === "workspace" && programs.previewVisible && !!active;
+  const onHistoryChange = useCallback(
+    (next: EditorHistory) =>
+      setHistory((current) =>
+        current.canUndo === next.canUndo && current.canRedo === next.canRedo
+          ? current
+          : next,
+      ),
+    [],
+  );
   const result = useMemo(
     () => simulate(source, machine, diameter),
     [source, machine, diameter],
@@ -103,29 +119,19 @@ export default function App() {
   }, []);
   useEffect(() => {
     try {
-      localStorage.setItem(
-        "cnc.draft",
-        JSON.stringify({ source, name: filename, machine }),
-      );
-    } catch {
-      setNotice("Spazio locale esaurito: salva il programma su file.");
-    }
-  }, [source, filename, machine]);
-  useEffect(() => {
-    try {
       localStorage.setItem("cnc.palette", JSON.stringify(palette));
     } catch {}
   }, [palette]);
   useEffect(() => {
     const listener = (e: BeforeUnloadEvent) => {
-      if (dirty || reception.dirty || receiving) {
+      if (programs.dirty || reception.dirty || receiving) {
         e.preventDefault();
         e.returnValue = "";
       }
     };
     window.addEventListener("beforeunload", listener);
     return () => window.removeEventListener("beforeunload", listener);
-  }, [dirty, reception.dirty, receiving]);
+  }, [programs.dirty, reception.dirty, receiving]);
   const onCursor = useCallback(
       (line: number, col: number) => setCursor({ line, col }),
       [],
@@ -136,11 +142,7 @@ export default function App() {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
         event.preventDefault();
         if (tab === "receive") reception.save();
-        else {
-          downloadText(source, filename);
-          setSaved(source);
-          setNotice("Download del programma avviato.");
-        }
+        else saveFile();
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "o") {
         event.preventDefault();
@@ -153,7 +155,7 @@ export default function App() {
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [source, filename, tab, reception.save]);
+  }, [active, tab, reception.save, programs.update]);
   useEffect(() => {
     if (!showExamples) return;
     const closeOutside = (event: PointerEvent) => {
@@ -201,46 +203,77 @@ export default function App() {
       previous?.focus();
     };
   }, [showGuide]);
-  function canReplace() {
-    return (
-      !dirty ||
-      window.confirm(
-        "Hai modifiche non salvate su file. Vuoi sostituire il programma aperto?",
-      )
-    );
+  function selectProgram(id: string) {
+    if (id !== programs.activeId) setActiveLine(null);
+    setShowExamples(false);
+    setShowColors(false);
+    programs.select(id);
+  }
+  function closeProgram(id: string) {
+    if (programs.close(id) && active?.id === id) setActiveLine(null);
+  }
+  function newProgram() {
+    let name = "nuovo_programma.nc",
+      number = 1;
+    while (programs.documents.some((doc) => doc.name === name))
+      name = `nuovo_programma_${++number}.nc`;
+    setActiveLine(null);
+    programs.open([
+      { name, source: "%\nO0001\n\nM30\n%", machine, diameter, saved: false },
+    ]);
   }
   function example(kind: Machine) {
-    if (!canReplace()) return;
     const text = kind === "mill" ? millSample : latheSample;
-    setMachine(kind);
-    setSource(text);
-    setSaved(text);
-    setFilename(kind === "mill" ? "O1001_piastra.nc" : "O2001_albero.nc");
+    setActiveLine(null);
+    programs.open([
+      {
+        name: kind === "mill" ? "O1001_piastra.nc" : "O2001_albero.nc",
+        source: text,
+        machine: kind,
+        diameter,
+        saved: true,
+      },
+    ]);
     setShowExamples(false);
   }
-  async function openFile(file: File) {
-    if (!canReplace()) return;
-    if (file.size > 2 * 1024 * 1024) {
-      setNotice("Il file supera il limite di 2 MB.");
-      return;
+  async function openFiles(files: File[]) {
+    const loaded = await Promise.all(
+      files.map(async (file) => {
+        if (file.size > 2 * 1024 * 1024)
+          return { error: `${file.name}: supera il limite di 2 MB.` };
+        try {
+          return {
+            program: {
+              source: await file.text(),
+              name: file.name,
+              machine,
+              diameter,
+              saved: true,
+            },
+          };
+        } catch {
+          return { error: `Impossibile leggere ${file.name}.` };
+        }
+      }),
+    );
+    const opened = loaded.flatMap((item) =>
+      item.program ? [item.program] : [],
+    );
+    if (opened.length) {
+      setActiveLine(null);
+      programs.open(opened);
     }
-    try {
-      const text = await file.text();
-      setSource(text);
-      setSaved(text);
-      setFilename(file.name);
-      setNotice(
-        tab === "workspace"
-          ? "File aperto. Seleziona Fresatrice o Tornio prima di simulare."
-          : "File aperto. Controlla il programma e i parametri prima dell’invio.",
-      );
-    } catch {
-      setNotice("Impossibile leggere il file.");
-    }
+    const errors = loaded.flatMap((item) => (item.error ? [item.error] : []));
+    setNotice(
+      errors.length
+        ? errors.join(" ")
+        : `${opened.length === 1 ? "File aperto" : `${opened.length} file aperti`}. Seleziona Fresatrice o Tornio prima di simulare o inviare.`,
+    );
   }
   function saveFile() {
+    if (!active) return;
     downloadText(source, filename);
-    setSaved(source);
+    programs.update(active.id, { savedSource: source });
     setNotice("Download del programma avviato.");
   }
   const codes = [
@@ -389,11 +422,12 @@ export default function App() {
             <input
               hidden
               type="file"
+              multiple
               ref={fileInput}
               accept=".nc,.cnc,.tap,.txt,.iso,.mpf,.gcode"
               onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) void openFile(file);
+                const files = [...(e.target.files ?? [])];
+                if (files.length) void openFiles(files);
                 e.target.value = "";
               }}
             />
@@ -412,6 +446,7 @@ export default function App() {
               aria-label="Salva file"
               title="Salva file"
               onClick={saveFile}
+              disabled={!active}
               hidden={tab === "receive"}
             >
               <ArrowDownToLine size={16} />
@@ -469,176 +504,214 @@ export default function App() {
               </button>
             </div>
           )}
+          {tab !== "receive" && (
+            <ProgramTabs
+              documents={programs.documents}
+              activeId={programs.activeId}
+              onSelect={selectProgram}
+              onClose={closeProgram}
+              onNew={newProgram}
+              previewVisible={programs.previewVisible}
+              onTogglePreview={programs.togglePreview}
+              showPreviewToggle={tab === "workspace" && !!active}
+            />
+          )}
           <div
-            className={`workspace ${tab === "workspace" ? "simulation-page" : "transmission-page"}`}
+            className={`workspace ${tab === "workspace" ? `simulation-page${simulationVisible ? "" : " editor-only"}` : "transmission-page"}`}
           >
             <div className="editor-column" hidden={tab === "receive"}>
-              <section className="editor panel">
-                <div className="panel-head editor-head">
-                  <div className="file-tab">
-                    <FileCode2 size={16} />
-                    <input
-                      aria-label="Nome file"
-                      value={filename}
-                      onChange={(e) =>
-                        setFilename(
-                          e.target.value.replace(/[\\/:*?"<>|]/g, "_") ||
-                            "programma.nc",
-                        )
-                      }
-                    />
-                    {dirty && (
-                      <i
-                        className="unsaved"
-                        title="Modifiche da salvare su file"
-                      />
-                    )}
-                  </div>
-                  <div className="icon-group">
-                    <button
-                      className="examples-toggle spacing-button"
-                      title="Inserisci spazi tra i codici"
-                      aria-label="Inserisci spazi"
-                      onClick={() => {
-                        setShowExamples(false);
-                        setShowColors(false);
-                        programEditor.current?.insertSpaces();
-                      }}
-                    >
-                      <Space size={15} />
-                      <span>Spazi</span>
-                    </button>
-                    <button
-                      className="examples-toggle"
-                      hidden={tab !== "workspace"}
-                      aria-label="Esempi di programma"
-                      aria-expanded={showExamples}
-                      onClick={() => {
-                        setShowExamples(!showExamples);
-                        setShowColors(false);
-                      }}
-                    >
-                      <FileCode2 size={13} />
-                      Esempi
-                    </button>
-                    <button
-                      className={`icon-button ${showColors ? "active" : ""}`}
-                      title="Personalizza colori"
-                      aria-label="Personalizza colori"
-                      onClick={() => {
-                        setShowColors(!showColors);
-                        setShowExamples(false);
-                      }}
-                    >
-                      <PaletteIcon size={16} />
-                    </button>
-                    <button
-                      className="icon-button"
-                      title="Nuovo programma"
-                      aria-label="Nuovo programma"
-                      onClick={() => {
-                        if (canReplace()) {
-                          setSource("%\nO0001\n\nM30\n%");
-                          setSaved("");
-                          setFilename("nuovo_programma.nc");
+              {active ? (
+                <section
+                  className="editor panel"
+                  role="tabpanel"
+                  id="program-panel"
+                  aria-labelledby={`program-tab-${active.id}`}
+                >
+                  <div className="panel-head editor-head">
+                    <div className="file-tab">
+                      <FileCode2 size={16} />
+                      <input
+                        aria-label="Nome file"
+                        value={filename}
+                        onChange={(e) =>
+                          setFilename(
+                            e.target.value.replace(/[\\/:*?"<>|]/g, "_") ||
+                              "programma.nc",
+                          )
                         }
-                      }}
-                    >
-                      <Plus size={17} />
-                    </button>
-                  </div>
-                </div>
-                {showExamples && tab === "workspace" && (
-                  <div
-                    className="examples editor-examples"
-                    role="group"
-                    aria-label="Programmi di esempio"
-                  >
-                    <span>PROGRAMMI DI ESEMPIO</span>
-                    <button onClick={() => example("mill")}>
-                      <FileCode2 size={14} />
-                      Profilo fresatura
-                    </button>
-                    <button onClick={() => example("lathe")}>
-                      <FileCode2 size={14} />
-                      Profilo tornitura
-                    </button>
-                    <p>
-                      Passa il mouse sui codici G e M per visualizzarne il
-                      significato. La guida completa è disponibile dalla barra
-                      di sinistra.
-                    </p>
-                  </div>
-                )}
-                {showColors && (
-                  <div className="color-settings">
-                    <div className="color-settings-head">
-                      <strong>Colori dell’editor</strong>
+                      />
+                      {dirty && (
+                        <i
+                          className="unsaved"
+                          title="Modifiche da salvare su file"
+                        />
+                      )}
+                    </div>
+                    <div className="icon-group">
                       <button
-                        className="text-button"
-                        onClick={() => setPalette(defaultPalette)}
+                        className="icon-button"
+                        aria-label="Annulla modifica"
+                        title="Annulla (Ctrl+Z)"
+                        disabled={!history.canUndo}
+                        onClick={() => programEditor.current?.undo()}
                       >
-                        <RotateCcw size={12} />
-                        Ripristina
+                        <Undo2 size={16} />
+                      </button>
+                      <button
+                        className="icon-button"
+                        aria-label="Ripristina modifica"
+                        title="Ripristina (Ctrl+Y)"
+                        disabled={!history.canRedo}
+                        onClick={() => programEditor.current?.redo()}
+                      >
+                        <Redo2 size={16} />
+                      </button>
+                      <button
+                        className="examples-toggle spacing-button"
+                        title="Inserisci spazi tra i codici"
+                        aria-label="Inserisci spazi"
+                        onClick={() => {
+                          setShowExamples(false);
+                          setShowColors(false);
+                          programEditor.current?.insertSpaces();
+                        }}
+                      >
+                        <Space size={15} />
+                        <span>Spazi</span>
+                      </button>
+                      <button
+                        className="examples-toggle"
+                        hidden={tab !== "workspace"}
+                        aria-label="Esempi di programma"
+                        aria-expanded={showExamples}
+                        onClick={() => {
+                          setShowExamples(!showExamples);
+                          setShowColors(false);
+                        }}
+                      >
+                        <FileCode2 size={13} />
+                        Esempi
+                      </button>
+                      <button
+                        className={`icon-button ${showColors ? "active" : ""}`}
+                        title="Personalizza colori"
+                        aria-label="Personalizza colori"
+                        onClick={() => {
+                          setShowColors(!showColors);
+                          setShowExamples(false);
+                        }}
+                      >
+                        <PaletteIcon size={16} />
                       </button>
                     </div>
-                    {(Object.keys(defaultPalette) as (keyof Palette)[]).map(
-                      (key) => (
-                        <label key={key}>
-                          <input
-                            aria-label={`Colore ${colorNames[key]}`}
-                            type="color"
-                            value={palette[key]}
-                            onChange={(e) =>
-                              setPalette((p) => ({
-                                ...p,
-                                [key]: e.target.value,
-                              }))
-                            }
-                          />
-                          {colorNames[key]}
-                        </label>
-                      ),
-                    )}
                   </div>
-                )}
-                <div
-                  className={`execution-bar ${activeLine !== null ? "tracking" : ""}`}
-                  hidden={tab !== "workspace"}
+                  {showExamples && tab === "workspace" && (
+                    <div
+                      className="examples editor-examples"
+                      role="group"
+                      aria-label="Programmi di esempio"
+                    >
+                      <span>PROGRAMMI DI ESEMPIO</span>
+                      <button onClick={() => example("mill")}>
+                        <FileCode2 size={14} />
+                        Profilo fresatura
+                      </button>
+                      <button onClick={() => example("lathe")}>
+                        <FileCode2 size={14} />
+                        Profilo tornitura
+                      </button>
+                      <p>
+                        Passa il mouse sui codici G e M per visualizzarne il
+                        significato. La guida completa è disponibile dalla barra
+                        di sinistra.
+                      </p>
+                    </div>
+                  )}
+                  {showColors && (
+                    <div className="color-settings">
+                      <div className="color-settings-head">
+                        <strong>Colori dell’editor</strong>
+                        <button
+                          className="text-button"
+                          onClick={() => setPalette(defaultPalette)}
+                        >
+                          <RotateCcw size={12} />
+                          Ripristina
+                        </button>
+                      </div>
+                      {(Object.keys(defaultPalette) as (keyof Palette)[]).map(
+                        (key) => (
+                          <label key={key}>
+                            <input
+                              aria-label={`Colore ${colorNames[key]}`}
+                              type="color"
+                              value={palette[key]}
+                              onChange={(e) =>
+                                setPalette((p) => ({
+                                  ...p,
+                                  [key]: e.target.value,
+                                }))
+                              }
+                            />
+                            {colorNames[key]}
+                          </label>
+                        ),
+                      )}
+                    </div>
+                  )}
+                  <div
+                    className={`execution-bar ${activeLine !== null ? "tracking" : ""}`}
+                    hidden={!simulationVisible}
+                  >
+                    <span className="execution-position">
+                      {activeLine === null
+                        ? "Avvia la simulazione per seguire il codice"
+                        : `Riga in simulazione: ${activeLine}`}
+                    </span>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={followSimulation}
+                        onChange={(e) => setFollowSimulation(e.target.checked)}
+                      />
+                      Segui riga
+                    </label>
+                  </div>
+                  <Editor
+                    ref={programEditor}
+                    documentId={active.id}
+                    openDocumentIds={programs.documents.map((doc) => doc.id)}
+                    onHistoryChange={onHistoryChange}
+                    value={source}
+                    onChange={setSource}
+                    machine={machine}
+                    palette={palette}
+                    onCursor={onCursor}
+                    simulationLine={simulationVisible ? activeLine : null}
+                    followSimulation={simulationVisible && followSimulation}
+                  />
+                  <div className="editor-status">
+                    <span>
+                      Ln {cursor.line}, Col {cursor.col}
+                    </span>
+                    <span>{source.split("\n").length} righe</span>
+                    <span>G-code / ISO</span>
+                    <span>UTF-8</span>
+                  </div>
+                </section>
+              ) : (
+                <section
+                  className="editor panel empty-programs"
+                  id="program-panel"
                 >
-                  <span className="execution-position">
-                    {activeLine === null
-                      ? "Avvia la simulazione per seguire il codice"
-                      : `Riga in simulazione: ${activeLine}`}
-                  </span>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={followSimulation}
-                      onChange={(e) => setFollowSimulation(e.target.checked)}
-                    />
-                    Segui riga
-                  </label>
-                </div>
-                <Editor
-                  ref={programEditor}
-                  value={source}
-                  onChange={setSource}
-                  machine={machine}
-                  palette={palette}
-                  onCursor={onCursor}
-                  simulationLine={tab === "workspace" ? activeLine : null}
-                  followSimulation={tab === "workspace" && followSimulation}
-                />
-                <div className="editor-status">
-                  <span>
-                    Ln {cursor.line}, Col {cursor.col}
-                  </span>
-                  <span>{source.split("\n").length} righe</span>
-                  <span>G-code / ISO</span>
-                  <span>UTF-8</span>
-                </div>
-              </section>
+                  <FileCode2 size={32} />
+                  <h2>Nessun programma aperto</h2>
+                  <p>
+                    Usa Apri per scegliere i file oppure + per creare un
+                    programma.
+                  </p>
+                </section>
+              )}
             </div>
             <ReceivedDocument
               file={reception}
@@ -647,12 +720,17 @@ export default function App() {
               receiving={receiving}
               visible={tab === "receive"}
             />
-            <div className="preview-column" hidden={tab !== "workspace"}>
+            <div
+              className="preview-column"
+              id="simulation-panel"
+              hidden={!simulationVisible}
+            >
               <Simulation
+                key={active?.id ?? "empty"}
                 result={result}
                 machine={machine}
                 onLine={onLine}
-                active={tab === "workspace"}
+                active={simulationVisible}
               />
             </div>
             <div className="serial-column" hidden={tab === "workspace"}>

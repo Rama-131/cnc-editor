@@ -430,7 +430,13 @@ export function SerialPanel({
           <>
             <button
               className={`button ${sending ? "danger" : "primary"} send-button`}
-              disabled={!connected || busy || receiving || fault}
+              disabled={
+                !connected ||
+                busy ||
+                receiving ||
+                fault ||
+                (!sending && !source.trim())
+              }
               onClick={
                 sending
                   ? () => {
