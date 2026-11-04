@@ -161,7 +161,7 @@ const turning: Record<string, [string, string]> = {
   ],
   G70: [
     "Ciclo di finitura",
-    "Ripete il profilo definito da P e Q. Non simulato.",
+    "Ripercorre il profilo P/Q già definito per il G71 supportato, alle quote nominali e senza i sovrametalli U/W. L’anteprima segue le righe del profilo G0/G1 con angoli A e raccordi R e rappresenta il ritorno rapido al punto iniziale. Non calcola tempi, compensazioni utensile o collisioni.",
   ],
   G71: [
     "Sgrossatura longitudinale",

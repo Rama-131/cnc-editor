@@ -1,5 +1,10 @@
 import type { Machine } from "./codes";
-import { planG71, RoughingError, type RoughingHeader } from "./turningRoughing";
+import {
+  planG70,
+  planG71,
+  RoughingError,
+  type RoughingHeader,
+} from "./turningRoughing";
 export type Point = { x: number; y: number; z: number };
 export type WorkOrigin = `G${54 | 55 | 56 | 57 | 58 | 59}`;
 export type Segment = {
@@ -224,6 +229,53 @@ export function simulate(
         fail(error.line, error.message);
       }
       roughing = null;
+      if (issues.length) break;
+      continue;
+    }
+    if (gs.includes(70)) {
+      const addresses = words.map((w) => w[1]);
+      if (
+        machine !== "lathe" ||
+        plane !== 18 ||
+        gs.length !== 1 ||
+        ms.length ||
+        new Set(addresses).size !== addresses.length ||
+        Object.keys(vals).some((k) => !["N", "P", "Q"].includes(k)) ||
+        Object.values(vals).some((v) => !Number.isFinite(v))
+      ) {
+        fail(
+          line,
+          "G70 non simulato: richiesti Tornio, piano G18 e un blocco separato G70 P... Q... con parametri univoci.",
+        );
+        break;
+      }
+      try {
+        const moves = planG70({
+          lines,
+          callIndex: n,
+          start: pos,
+          unit,
+          diameter,
+          p: vals.P,
+          q: vals.Q,
+        });
+        if (segments.length + moves.length > 100000)
+          throw new RoughingError(
+            line,
+            "limite di 100.000 segmenti raggiunto.",
+            "G70",
+          );
+        recordState("auxiliary", line, "G70 · richiamo profilo di finitura");
+        for (const move of moves)
+          add(move.to, move.rapid, move.line, move.action);
+        recordState("auxiliary", line, "G70 · finitura completata");
+        notes.add(
+          "G70: profilo nominale senza sovrametalli G71; ritorno rapido rappresentato geometricamente.",
+        );
+      } catch (error) {
+        if (!(error instanceof RoughingError)) throw error;
+        fail(error.line, error.message);
+      }
       if (issues.length) break;
       continue;
     }

@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useId,
   useMemo,
@@ -114,16 +115,16 @@ export function Simulation({
     [progress, setProgress] = useState(100),
     [playing, setPlaying] = useState(false),
     [speed, setSpeed] = useState(1),
-    [zoom, setZoom] = useState(1),
-    [pan, setPan] = useState({ x: 0, y: 0 }),
+    [camera, setCamera] = useState({ zoom: 1, pan: { x: 0, y: 0 } }),
     [dragging, setDragging] = useState(false),
     [rapids, setRapids] = useState(true);
   const [trackedResult, setTrackedResult] = useState<Result | null>(null);
+  const { zoom, pan } = camera;
+  const plot = useRef<SVGSVGElement>(null);
   const drag = useRef<{
     pointerId: number;
     inverse: DOMMatrix;
-    start: DOMPoint;
-    pan: { x: number; y: number };
+    last: DOMPoint;
   } | null>(null);
   function startPan(event: PointerEvent<SVGSVGElement>) {
     if (event.button !== 0 || !event.isPrimary || drag.current) return;
@@ -133,10 +134,7 @@ export function Simulation({
     drag.current = {
       pointerId: event.pointerId,
       inverse,
-      start: new DOMPoint(event.clientX, event.clientY).matrixTransform(
-        inverse,
-      ),
-      pan,
+      last: new DOMPoint(event.clientX, event.clientY).matrixTransform(inverse),
     };
     event.currentTarget.setPointerCapture(event.pointerId);
     event.preventDefault();
@@ -148,10 +146,13 @@ export function Simulation({
     const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(
       current.inverse,
     );
-    setPan({
-      x: current.pan.x + point.x - current.start.x,
-      y: current.pan.y + point.y - current.start.y,
-    });
+    const dx = point.x - current.last.x,
+      dy = point.y - current.last.y;
+    current.last = point;
+    setCamera((value) => ({
+      ...value,
+      pan: { x: value.pan.x + dx, y: value.pan.y + dy },
+    }));
   }
   function endPan(event: PointerEvent<SVGSVGElement>) {
     if (drag.current?.pointerId !== event.pointerId) return;
@@ -161,11 +162,47 @@ export function Simulation({
       event.currentTarget.releasePointerCapture(event.pointerId);
   }
   function fitView() {
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
+    setCamera({ zoom: 1, pan: { x: 0, y: 0 } });
   }
+  const zoomAt = useCallback((factor: number, anchor = { x: 320, y: 205 }) => {
+    setCamera((current) => {
+      const next = Math.min(8, Math.max(0.25, current.zoom * factor));
+      if (next === current.zoom) return current;
+      const ratio = next / current.zoom;
+      return {
+        zoom: next,
+        pan: {
+          x: anchor.x - 320 - ratio * (anchor.x - 320 - current.pan.x),
+          y: anchor.y - 205 - ratio * (anchor.y - 205 - current.pan.y),
+        },
+      };
+    });
+  }, []);
   useEffect(() => {
-    setPan({ x: 0, y: 0 });
+    const svg = plot.current;
+    if (!svg) return;
+    const wheel = (event: WheelEvent) => {
+      if (!event.deltaY || event.ctrlKey || event.metaKey) return;
+      const matrix = svg.getScreenCTM();
+      if (!matrix) return;
+      event.preventDefault();
+      const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(
+        matrix.inverse(),
+      );
+      const pixels =
+        event.deltaY *
+        (event.deltaMode === 1
+          ? 16
+          : event.deltaMode === 2
+            ? svg.clientHeight
+            : 1);
+      zoomAt(Math.exp(-Math.min(240, Math.max(-240, pixels)) * 0.002), point);
+    };
+    svg.addEventListener("wheel", wheel, { passive: false });
+    return () => svg.removeEventListener("wheel", wheel);
+  }, [zoomAt]);
+  useEffect(() => {
+    setCamera((current) => ({ ...current, pan: { x: 0, y: 0 } }));
   }, [view, result]);
   useEffect(() => {
     if (!active) setPlaying(false);
@@ -301,7 +338,7 @@ export function Simulation({
             className="icon-button"
             title="Riduci"
             aria-label="Riduci vista"
-            onClick={() => setZoom((z) => Math.max(0.25, z / 1.3))}
+            onClick={() => zoomAt(1 / 1.3)}
           >
             <Minus size={15} />
           </button>
@@ -309,7 +346,7 @@ export function Simulation({
             className="icon-button"
             title="Ingrandisci"
             aria-label="Ingrandisci vista"
-            onClick={() => setZoom((z) => Math.min(8, z * 1.3))}
+            onClick={() => zoomAt(1.3)}
           >
             <Plus size={15} />
           </button>
@@ -342,6 +379,7 @@ export function Simulation({
           )}
         </div>
         <svg
+          ref={plot}
           className="toolpath-plot"
           data-dragging={dragging}
           viewBox="0 0 640 410"
@@ -355,8 +393,8 @@ export function Simulation({
           onDoubleClick={fitView}
         >
           <title>
-            Trascina con il tasto sinistro per spostare il disegno. Doppio clic
-            per ricentrare.
+            Trascina con il tasto sinistro per spostare il disegno. Usa la
+            rotella per lo zoom sul punto del mouse. Doppio clic per ricentrare.
           </title>
           <defs>
             <pattern

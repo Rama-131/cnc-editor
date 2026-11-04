@@ -26,3 +26,8 @@ N180 G71 P190 Q310 U1 W0.1 F0.27
 ${fanucG71Profile}
 N320 G0 Z5
 M30`;
+
+export const fanucG70Program = fanucG71Program.replace(
+  "N320 G0 Z5\nM30",
+  "N320 G0 Z1\nN330 G70 P190 Q310\nN340 G0 X80 Z10\nM30",
+);

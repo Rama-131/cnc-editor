@@ -4,8 +4,9 @@ export class RoughingError extends Error {
   constructor(
     public line: number,
     message: string,
+    cycle: "G71" | "G70" = "G71",
   ) {
-    super(`G71 non simulato: ${message}`);
+    super(`${cycle} non simulato: ${message}`);
   }
 }
 type Vertex = { point: Point; line: number; radius: number; rapid: boolean };
@@ -232,6 +233,97 @@ function roundedProfile(vertices: Vertex[]) {
   return points;
 }
 
+function profileRange(
+  lines: string[],
+  p: number,
+  q: number,
+  callIndex: number,
+  direction: "before" | "after",
+) {
+  const fail = (message: string): never => {
+    throw new RoughingError(callIndex + 1, message);
+  };
+  if (![p, q].every((v) => Number.isInteger(v) && v > 0))
+    fail("P/Q devono essere numeri di blocco positivi.");
+  const labels = lines.map((line, index) => ({
+    label: Number(clean(line).match(/^N\s*(\d+)(?![\d.])/)?.[1]),
+    index,
+  }));
+  const starts = labels.filter((v) => v.label === p),
+    ends = labels.filter((v) => v.label === q);
+  if (
+    starts.length !== 1 ||
+    ends.length !== 1 ||
+    ends[0].index <= starts[0].index
+  )
+    fail(`profilo N${p}–N${q} mancante, ambiguo o fuori ordine.`);
+  const from = starts[0].index,
+    to = ends[0].index;
+  if (direction === "after" ? from <= callIndex : to >= callIndex)
+    fail(
+      `il profilo N${p}–N${q} deve trovarsi ${direction === "after" ? "dopo il" : "prima del"} richiamo.`,
+    );
+  if (to - from > 10000) fail("profilo oltre 10.000 blocchi.");
+  return { from, to };
+}
+
+export function planG70(options: {
+  lines: string[];
+  callIndex: number;
+  start: Point;
+  unit: number;
+  diameter: boolean;
+  p: number;
+  q: number;
+}) {
+  const { lines, callIndex, start, unit, diameter, p, q } = options;
+  try {
+    const range = profileRange(lines, p, q, callIndex, "before");
+    const vertices = profileVertices(
+      lines,
+      range.from,
+      range.to,
+      start,
+      unit,
+      diameter,
+    );
+    const profile = roundedProfile(vertices);
+    const moves: RoughingMove[] = [];
+    let position = { ...start };
+    const emit = (to: Point, rapid: boolean, line: number, action: string) => {
+      if (
+        Math.hypot(to.x - position.x, to.y - position.y, to.z - position.z) >
+        epsilon
+      ) {
+        if (moves.length >= 100000)
+          throw new RoughingError(
+            callIndex + 1,
+            "limite di 100.000 segmenti raggiunto.",
+          );
+        moves.push({ to: { ...to }, rapid, line, action });
+      }
+      position = to;
+    };
+    profile.forEach((vertex, i) =>
+      emit(
+        vertex.point,
+        i === 0 && vertices[0].rapid,
+        vertex.line,
+        "G70 · finitura del profilo nominale",
+      ),
+    );
+    emit({ ...start }, true, callIndex + 1, "G70 · ritorno al punto iniziale");
+    return moves;
+  } catch (error) {
+    if (!(error instanceof RoughingError)) throw error;
+    throw new RoughingError(
+      error.line,
+      error.message.replace(/^G71 non simulato: /, ""),
+      "G70",
+    );
+  }
+}
+
 export function planG71(options: {
   lines: string[];
   callIndex: number;
@@ -259,32 +351,15 @@ export function planG71(options: {
   const fail = (message: string): never => {
     throw new RoughingError(callIndex + 1, message);
   };
-  if (
-    ![p, q].every((v) => Number.isInteger(v) && v > 0) ||
-    allowanceX < 0 ||
-    allowanceZ < 0
-  )
+  if (allowanceX < 0 || allowanceZ < 0)
     fail(
-      "P/Q devono essere numeri di blocco positivi e U/W sovrametalli non negativi per la lavorazione esterna.",
+      "U/W devono essere sovrametalli non negativi per la lavorazione esterna.",
     );
-  const labels = lines.map((line, index) => ({
-    label: Number(clean(line).match(/^N\s*(\d+)(?![\d.])/)?.[1]),
-    index,
-  }));
-  const starts = labels.filter((v) => v.label === p),
-    ends = labels.filter((v) => v.label === q);
-  if (
-    starts.length !== 1 ||
-    ends.length !== 1 ||
-    starts[0].index <= callIndex ||
-    ends[0].index <= starts[0].index
-  )
-    fail(`profilo N${p}–N${q} mancante, ambiguo o fuori ordine.`);
-  const endIndex = ends[0].index;
-  if (endIndex - starts[0].index > 10000) fail("profilo oltre 10.000 blocchi.");
+  const range = profileRange(lines, p, q, callIndex, "after");
+  const endIndex = range.to;
   const vertices = profileVertices(
     lines,
-    starts[0].index,
+    range.from,
     endIndex,
     start,
     unit,
