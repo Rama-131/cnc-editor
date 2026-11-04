@@ -578,11 +578,15 @@ h1 {
 }
 .viewport > .axis-indicator {
   position: absolute;
-  right: 4px;
-  bottom: 4px;
+  right: -4px;
+  bottom: -8px;
   width: 140px;
   height: 128px;
   pointer-events: none;
+}
+.viewport > .axis-indicator.axis-isometric {
+  right: 0;
+  bottom: 0;
 }
 .viewport-label {
   position: absolute;

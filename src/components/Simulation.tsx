@@ -36,7 +36,7 @@ function AxisIndicator({ view }: { view: View }) {
 
   return (
     <svg
-      className="axis-indicator"
+      className={`axis-indicator ${view === "ISO" ? "axis-isometric" : ""}`}
       viewBox="0 0 140 128"
       role="img"
       aria-label={`Versi positivi degli assi ${axes.map((axis) => `+${axis.toUpperCase()}`).join(", ")}`}
