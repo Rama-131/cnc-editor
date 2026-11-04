@@ -5,6 +5,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent,
 } from "react";
 import {
@@ -15,6 +16,7 @@ import {
   Plus,
   Minus,
   ScanLine,
+  Info,
 } from "lucide-react";
 import type { Point, Segment, Simulation as Result } from "../lib/simulator";
 import type { Machine } from "../lib/codes";
@@ -312,52 +314,49 @@ export function Simulation({
   ]);
   return (
     <section className="simulation panel">
-      <div className="panel-head">
+      <div className="panel-head simulation-head">
         <div className="panel-title">
           <ScanLine size={16} />
           <span>Simulazione percorso</span>
         </div>
-        <span className="badge">
-          {machine === "lathe" ? "TORNIO" : "FRESATRICE"}
-        </span>
-      </div>
-      <div className="view-toolbar">
-        <div className="segmented">
-          {(["ISO", "XY", "XZ", "YZ"] as View[]).map((v) => (
+        <div className="view-toolbar">
+          <div className="segmented">
+            {(["ISO", "XY", "XZ", "YZ"] as View[]).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={view === v ? "selected" : ""}
+              >
+                {v === "ISO" ? "3D" : v}
+              </button>
+            ))}
+          </div>
+          <div className="icon-group">
             <button
-              key={v}
-              onClick={() => setView(v)}
-              className={view === v ? "selected" : ""}
+              className="icon-button"
+              title="Riduci"
+              aria-label="Riduci vista"
+              onClick={() => zoomAt(1 / 1.3)}
             >
-              {v === "ISO" ? "3D" : v}
+              <Minus size={15} />
             </button>
-          ))}
-        </div>
-        <div className="icon-group">
-          <button
-            className="icon-button"
-            title="Riduci"
-            aria-label="Riduci vista"
-            onClick={() => zoomAt(1 / 1.3)}
-          >
-            <Minus size={15} />
-          </button>
-          <button
-            className="icon-button"
-            title="Ingrandisci"
-            aria-label="Ingrandisci vista"
-            onClick={() => zoomAt(1.3)}
-          >
-            <Plus size={15} />
-          </button>
-          <button
-            className="icon-button"
-            title="Adatta alla vista"
-            aria-label="Adatta alla vista"
-            onClick={fitView}
-          >
-            <Maximize2 size={14} />
-          </button>
+            <button
+              className="icon-button"
+              title="Ingrandisci"
+              aria-label="Ingrandisci vista"
+              onClick={() => zoomAt(1.3)}
+            >
+              <Plus size={15} />
+            </button>
+            <button
+              className="icon-button"
+              title="Adatta alla vista"
+              aria-label="Adatta alla vista"
+              onClick={fitView}
+            >
+              <Maximize2 size={14} />
+            </button>
+          </div>
         </div>
       </div>
       <div className="viewport">
@@ -396,27 +395,6 @@ export function Simulation({
             Trascina con il tasto sinistro per spostare il disegno. Usa la
             rotella per lo zoom sul punto del mouse. Doppio clic per ricentrare.
           </title>
-          <defs>
-            <pattern
-              id="grid"
-              width="24"
-              height="24"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M24 0H0V24"
-                fill="none"
-                stroke="#25303a"
-                strokeWidth=".6"
-              />
-            </pattern>
-            <radialGradient id="shade">
-              <stop offset="0" stopColor="#1b252e" />
-              <stop offset="1" stopColor="#141b22" />
-            </radialGradient>
-          </defs>
-          <rect width="640" height="410" fill="url(#shade)" />
-          <rect width="640" height="410" fill="url(#grid)" />
           {rapids && (
             <path
               d={drawing.rapid}
@@ -545,6 +523,7 @@ export function Simulation({
           max="100"
           step=".1"
           value={progress}
+          style={{ "--playback-progress": `${progress}%` } as CSSProperties}
           onChange={(e) => {
             setTrackedResult(result);
             setPlaying(false);
@@ -592,18 +571,24 @@ export function Simulation({
           </>
         )}
       </div>
-      <p className="scope-note">
-        {machine === "lathe"
-          ? "Profilo utensile XZ; nessuna asportazione del materiale. "
-          : "Percorso utensile; nessuna verifica collisioni. "}
-        {result.notes.length ? "Altri cicli" : "Cicli"}, macro e compensazioni
-        non simulati. I rapidi reali possono differire.
-        {hasMultipleOrigins &&
-          " Ogni origine è mostrata separatamente, con partenza convenzionale da zero; gli offset G54–G59 presenti sulla macchina non sono noti."}
-        {activeShift &&
-          " G10 P0: gli spostamenti programmati sono applicati alle quote locali; shift iniziale e posizione di ingresso sono assunti a zero per l’anteprima. Le viste dei diversi spostamenti sono separate."}
-        {result.notes.length > 0 && ` ${result.notes.join(" ")}`}
-      </p>
+      <details className="simulation-details">
+        <summary>
+          <Info size={12} />
+          Dettagli anteprima
+        </summary>
+        <p className="scope-note">
+          {machine === "lathe"
+            ? "Profilo utensile XZ; nessuna asportazione del materiale. "
+            : "Percorso utensile; nessuna verifica collisioni. "}
+          {result.notes.length ? "Altri cicli" : "Cicli"}, macro e compensazioni
+          non simulati. I rapidi reali possono differire.
+          {hasMultipleOrigins &&
+            " Ogni origine è mostrata separatamente, con partenza convenzionale da zero; gli offset G54–G59 presenti sulla macchina non sono noti."}
+          {activeShift &&
+            " G10 P0: gli spostamenti programmati sono applicati alle quote locali; shift iniziale e posizione di ingresso sono assunti a zero per l’anteprima. Le viste dei diversi spostamenti sono separate."}
+          {result.notes.length > 0 && ` ${result.notes.join(" ")}`}
+        </p>
+      </details>
     </section>
   );
 }

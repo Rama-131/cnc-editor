@@ -32,9 +32,11 @@ test("mostra lo zero giallo e segue i cambi di origine anche nei blocchi senza m
     "font-size",
     "18px",
   );
+  await page.getByText("Dettagli anteprima", { exact: true }).click();
   await expect(
     page.getByText(/Ogni origine è mostrata separatamente/),
   ).toBeVisible();
+  await page.getByText("Dettagli anteprima", { exact: true }).click();
   await expect(cut).toHaveAttribute("d", "");
 
   await timeline.fill("42.9");
