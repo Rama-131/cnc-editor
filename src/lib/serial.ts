@@ -15,7 +15,7 @@ export type SerialSettings = {
   dataBits: 7 | 8;
   stopBits: 1 | 2;
   parity: "none" | "even" | "odd";
-  flowControl: "none" | "hardware" | "software";
+  flowControl: "none" | "hardware" | "software" | "both";
   lineEnding: "CRLF" | "LF" | "CR";
   delay: number;
   wrap: boolean;
@@ -34,6 +34,10 @@ export const defaultSerial: SerialSettings = {
   delay: 10,
   wrap: true,
 };
+export const usesHardwareFlow = (settings: SerialSettings) =>
+  settings.flowControl === "hardware" || settings.flowControl === "both";
+export const usesSoftwareFlow = (settings: SerialSettings) =>
+  settings.flowControl === "software" || settings.flowControl === "both";
 export interface CncPort {
   setSignals?(signals: {
     dataTerminalReady?: boolean;
@@ -156,7 +160,7 @@ export class SerialConnection {
       dataBits: settings.dataBits,
       stopBits: settings.stopBits,
       parity: settings.parity,
-      flowControl: settings.flowControl === "hardware" ? "hardware" : "none",
+      flowControl: usesHardwareFlow(settings) ? "hardware" : "none",
       bufferSize: 4096,
     });
     try {
@@ -164,7 +168,7 @@ export class SerialConnection {
       const signals: { dataTerminalReady?: boolean; requestToSend?: boolean } =
         {};
       if (p.dtr !== null) signals.dataTerminalReady = p.dtr;
-      if (p.rts !== null && settings.flowControl !== "hardware")
+      if (p.rts !== null && !usesHardwareFlow(settings))
         signals.requestToSend = p.rts;
       if (Object.keys(signals).length) {
         if (!port.setSignals)
@@ -206,18 +210,14 @@ export class SerialConnection {
                 xon = controlText(options.xon).charCodeAt(0),
                 xoff = controlText(options.xoff).charCodeAt(0);
               for (const b of value) {
-                if (
-                  settings.flowControl === "software" &&
-                  (b === xon || b === xoff)
-                ) {
+                if (usesSoftwareFlow(settings) && (b === xon || b === xoff)) {
                   this.paused = b === xoff;
                   this.flowSeen = true;
                 }
               }
-              const plain =
-                settings.flowControl === "software"
-                  ? value.filter((b) => b !== xon && b !== xoff)
-                  : value;
+              const plain = usesSoftwareFlow(settings)
+                ? value.filter((b) => b !== xon && b !== xoff)
+                : value;
               if (plain.length) {
                 const text = decoder.decode(plain, { stream: true });
                 if (text) this.deliver(text);
@@ -321,7 +321,7 @@ export class SerialConnection {
     await this.receiveFlow(false, settings);
   }
   private async receiveFlow(ready: boolean, settings: SerialSettings) {
-    if (settings.flowControl !== "software") return;
+    if (!usesSoftwareFlow(settings)) return;
     if (ready && !receiveOptions(settings).sendXon) return;
     const options = portOptions(settings);
     await this.writeControl(

@@ -62,7 +62,7 @@ I comandi che aprono un pannello (**Trova**, **Sostituisci**, **Avanzamento**, *
 
 Il pannello Trova/Sostituisci usa campi monospaziati da 16 px, etichette visibili e pulsanti con icone e aree cliccabili più ampie. Le opzioni attive sono evidenziate e il conteggio mostra i risultati nel file corrente, anche dopo un incolla; una ricerca senza risultati o un’espressione non valida vengono segnalate nel pannello. Nei pannelli stretti i comandi si dispongono su più righe. La selezione multipla segue il limite di 1.000 risultati di CodeMirror; oltre questo numero occorre restringere la ricerca per selezionarli insieme.
 
-Il pulsante **Nascondi simulazione** nella barra dei comandi dell’editor, sotto le schede e accanto agli altri strumenti, mette in pausa l’anteprima e lascia tutto lo spazio all’editor. **Mostra simulazione** riapre lo stesso pannello con zoom e avanzamento mantenuti. Il comando resta visibile a destra della barra anche quando gli altri strumenti scorrono, con icona e scritta. Il passaggio a un altro programma aggiorna l’anteprima al file scelto e ne azzera la riproduzione.
+Il pulsante **Nascondi simulazione** nella barra dei comandi dell’editor, sotto le schede e accanto agli altri strumenti, mette in pausa l’anteprima e lascia tutto lo spazio all’editor. **Mostra simulazione** riapre lo stesso pannello con zoom e avanzamento mantenuti. Il comando scorre insieme agli altri strumenti nella barra comune, con icona e scritta. Il passaggio a un altro programma aggiorna l’anteprima al file scelto e ne azzera la riproduzione.
 
 Schede aperte, contenuti, selezione, modifiche da salvare e visibilità della simulazione sono ripristinati nello stesso browser dopo il ricaricamento. La cronologia Annulla/Ripristina resta separata per file durante la sessione e riparte dopo il ricaricamento. La vecchia bozza singola viene recuperata come scheda da salvare. Il ripristino usa lo spazio locale del browser: se la quota si esaurisce, l’app avvisa di salvare i programmi sul PC. Il salvataggio su disco rimane esplicito. L’editor normalizza CR/LF in righe LF; la ricezione conserva invece i fine riga originali.
 
@@ -126,6 +126,22 @@ G-code, codici M e sintassi dei cicli variano per serie, opzioni e costruttore: 
 
 ## Trasferimento seriale
 
+Le sette configurazioni `.mch` fornite vengono importate automaticamente al primo avvio di questa versione. L’importazione usa i valori di **STANDARDSERIAL**, che prevalgono sui valori di **DEFAULT STANDARDSERIAL**:
+
+| Macchina       | Porta originale | Baud rate | Formato | Flusso             | DTR       |
+| -------------- | --------------- | --------- | ------- | ------------------ | --------- |
+| DART VMC 1000A | COM3            | 9600      | 7E2     | XON/XOFF           | Attivo    |
+| FRESA QUARTZ   | COM3            | 9600      | 7E1     | XON/XOFF           | Attivo    |
+| BIGLIA S131    | COM6            | 4800      | 7E1     | XON/XOFF           | Attivo    |
+| HURCO VM1      | COM3            | 9600      | 7E2     | XON/XOFF           | Disattivo |
+| MAZAK HTC 400  | COM3            | 9600      | 7E2     | XON/XOFF + RTS/CTS | Attivo    |
+| MOMAC TA-20    | COM5            | 9600      | 7E1     | XON/XOFF           | Attivo    |
+| PUMA 300L      | COM3            | 4800      | 7E2     | XON/XOFF           | Attivo    |
+
+Tutte conservano parità pari, RTS attivo (gestito dal driver se il flusso include RTS/CTS), CR/LF in invio, timeout ricezione di 5 secondi, XON iniziale disattivato, rimozione NUL in invio, nessun ritardo aggiuntivo e nessuna aggiunta automatica di `%`. Per HURCO il filtro ASCII0TO31 elimina i caratteri di controllo dal contenuto delle righe mantenendo CR/LF come separatori; sulle altre macchine viene rimosso solo NUL. Il timeout handshake originale 0 resta illimitato. Nei file non sono configurate cartelle o estensioni; non vengono inventati percorsi. La porta originale viene mostrata come riferimento: va scelta nella finestra del browser a ogni collegamento.
+
+Le macchine già salvate e la selezione corrente vengono mantenute. In caso di nomi uguali si aggiunge “(importata)” alla nuova copia. L’importazione viene registrata solo dopo aver salvato i profili; i tentativi ripetuti non duplicano le macchine. Dopo il primo caricamento, modifiche ed eliminazioni dell’utente vengono rispettate. I file non identificano la famiglia del controllo: il campo descrittivo viene impostato ad **Altro controllo ISO**, senza modificare i parametri seriali. Le copie originali sono in `src/data/machines/`.
+
 In **Impostazioni**, crea una macchina con **+**, assegna un nome riconoscibile (ad esempio “Tornio Fanuc”) e scegli controllo CNC e parametri seriali. **Salva macchina** oppure Ctrl+S conferma le modifiche; i cambiamenti non salvati non vengono applicati ai trasferimenti. Puoi registrare più macchine anche con lo stesso tipo di controllo, modificarle ed eliminarle. Le precedenti configurazioni Fanuc/Mitsubishi/altro controllo vengono recuperate automaticamente come macchine, mantenendo i parametri già salvati.
 
 Il configuratore è diviso nelle schede **Porta**, **Trasmissione**, **Ricezione**, **Directory** e **Info versione**:
@@ -145,7 +161,7 @@ Trasmissione e Ricezione mostrano soltanto il menu **Macchina** e i comandi di c
 4. Metti il controllo nella modalità di ricezione prevista dal suo manuale, quindi premi **Invia programma alla macchina**.
 5. Verifica sul controllo che nome, contenuto e fine programma siano stati ricevuti correttamente. “Dati scritti sulla porta” indica che il browser ha completato la scrittura, non un riscontro di accettazione del CNC.
 
-Sono implementati flusso hardware RTS/CTS, software XON/XOFF (DC1/DC3), pausa configurabile tra blocchi, progressione, interruzione, lettura dei dati in arrivo e salvataggio del testo ricevuto. Il software sospende l’invio dopo XOFF e riprende dopo XON, con timeout configurabile (30 secondi per i profili precedenti, 0 per attesa illimitata). L’invio usa piccoli blocchi; i byte già bufferizzati dal driver o dall’adattatore non possono essere ritirati. Dopo un errore o un’interruzione occorre ricollegare la porta. Il trasferimento supporta ASCII: caratteri accentati e simboli non ASCII devono essere rimossi, anche dai commenti. Non è un’implementazione DNC per esecuzione continua in macchina, né un protocollo con checksum/ACK del costruttore.
+Sono implementati flusso hardware RTS/CTS, software XON/XOFF (DC1/DC3) oppure entrambi contemporaneamente, pausa configurabile tra blocchi, progressione, interruzione, lettura dei dati in arrivo e salvataggio del testo ricevuto. Il software sospende l’invio dopo XOFF e riprende dopo XON, con timeout configurabile (30 secondi per i profili precedenti, 0 per attesa illimitata). L’invio usa piccoli blocchi; i byte già bufferizzati dal driver o dall’adattatore non possono essere ritirati. Dopo un errore o un’interruzione occorre ricollegare la porta. Il trasferimento supporta ASCII: caratteri accentati e simboli non ASCII devono essere rimossi, anche dai commenti. Non è un’implementazione DNC per esecuzione continua in macchina, né un protocollo con checksum/ACK del costruttore.
 
 ## Ricezione dei programmi dalla CNC
 

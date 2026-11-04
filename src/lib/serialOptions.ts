@@ -28,6 +28,7 @@ export type ReceiveOptions = {
   discardLineCharacters: string;
   omitLineString: string;
   removeCharacters: string;
+  removeControls: boolean;
   omitEmpty: boolean;
   startTrigger: string;
   endTrigger: string;
@@ -67,6 +68,7 @@ export const defaultReceive: ReceiveOptions = {
   discardLineCharacters: "",
   omitLineString: "",
   removeCharacters: "",
+  removeControls: false,
   omitEmpty: false,
   startTrigger: "",
   endTrigger: "",
@@ -195,7 +197,7 @@ export function validateSerialOptions(settings: SerialSettings): string | null {
         throw new Error(
           "Tempi e limiti devono essere numeri interi positivi o zero, entro i limiti indicati.",
         );
-    if (t.waitForXon && settings.flowControl !== "software")
+    if (t.waitForXon && !["software", "both"].includes(settings.flowControl))
       throw new Error("Attendi XON richiede il controllo di flusso Software.");
     if (!["auto", "CRLF", "CR", "LF"].includes(r.lineEnding))
       throw new Error("Fine riga di ricezione non valida.");
@@ -247,7 +249,15 @@ export class ReceptionFilter {
     this.start = controlText(options.startTrigger);
     this.end = controlText(options.endTrigger);
     this.started = !this.start;
-    this.remove = new Set(controlText(options.removeCharacters));
+    // Line terminators frame the program; CIMCO's ASCII0TO31 filtering applies
+    // to the line contents, so retain CR/LF while removing other control bytes.
+    const controls = options.removeControls
+      ? Array.from({ length: 32 }, (_, i) => i)
+          .filter((i) => i !== 10 && i !== 13)
+          .map((i) => String.fromCharCode(i))
+          .join("")
+      : "";
+    this.remove = new Set(controlText(options.removeCharacters) + controls);
     this.discard = controlText(options.discardLineCharacters);
     this.omit = controlText(options.omitLineString);
   }

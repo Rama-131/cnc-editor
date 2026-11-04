@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { importedMachines } from "./importedMachineProfiles";
+import { MACHINE_IMPORT_KEY, mergeImportedMachines } from "./machineImport";
 import {
   loadMachineProfiles,
   MACHINES_KEY,
@@ -8,13 +10,36 @@ import {
 } from "./machineProfiles";
 
 export function useMachineProfiles(onNotice: (message: string) => void) {
-  const [state, setState] = useState<MachineProfiles>(() => {
+  const [initial] = useState(() => {
+    let saved: MachineProfiles = { version: 1, machines: [], selectedId: null };
+    let pending = true;
     try {
-      return loadMachineProfiles(localStorage);
-    } catch {
-      return { version: 1, machines: [], selectedId: null };
-    }
+      saved = loadMachineProfiles(localStorage);
+      pending = localStorage.getItem(MACHINE_IMPORT_KEY) !== "1";
+    } catch {}
+    return {
+      profiles: pending
+        ? mergeImportedMachines(saved, importedMachines)
+        : saved,
+      pending,
+    };
   });
+  const [state, setState] = useState<MachineProfiles>(initial.profiles);
+  const imported = useRef(!initial.pending);
+  useEffect(() => {
+    if (imported.current) return;
+    try {
+      // Persist the profiles before marking the batch as applied. If the marker
+      // write fails, stable IDs make retrying the batch safe on the next load.
+      localStorage.setItem(MACHINES_KEY, JSON.stringify(state));
+      localStorage.setItem(MACHINE_IMPORT_KEY, "1");
+      imported.current = true;
+    } catch {
+      onNotice(
+        "Le sette macchine importate sono disponibili in questa sessione, ma non è stato possibile salvarle nel browser. Abilita i dati del sito o libera spazio prima di chiudere.",
+      );
+    }
+  }, [state, onNotice]);
   function commit(next: MachineProfiles) {
     try {
       localStorage.setItem(MACHINES_KEY, JSON.stringify(next));

@@ -1697,6 +1697,16 @@ main {
   overflow-y: auto;
   padding: 24px;
 }
+.machine-import-note {
+  max-width: 1120px;
+  margin: 0 0 18px;
+  padding: 10px 12px;
+  border-left: 3px solid #528bc4;
+  background: #142637;
+  color: #a8c5df;
+  font-size: 11px;
+  line-height: 1.7;
+}
 .machine-config form,
 .settings-heading,
 .machine-lock {

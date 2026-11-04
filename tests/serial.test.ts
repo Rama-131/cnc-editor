@@ -27,6 +27,42 @@ function mockPort() {
 const decode = (v: Uint8Array[]) =>
   new TextDecoder().decode(new Uint8Array(v.flatMap((p) => [...p])));
 describe("trasmissione seriale", () => {
+  it("con BOTH attiva RTS/CTS nel driver e rispetta anche XOFF/XON software senza inviare XON iniziale se disattivato", async () => {
+    const m = mockPort();
+    m.port.setSignals = vi.fn(async () => {});
+    const settings = {
+      ...defaultSerial,
+      flowControl: "both" as const,
+      delay: 0,
+      port: { dtr: true, rts: true },
+      receive: { sendXon: false },
+    };
+    let received = "";
+    const c = new SerialConnection(
+      (t) => (received += t),
+      () => {},
+    );
+    await c.connect({ requestPort: async () => m.port }, settings);
+    expect(m.port.open).toHaveBeenCalledWith(
+      expect.objectContaining({ flowControl: "hardware" }),
+    );
+    expect(m.port.setSignals).toHaveBeenCalledWith({ dataTerminalReady: true });
+    await c.startReceiving(settings);
+    expect(m.writes).toHaveLength(0);
+    await c.stopReceiving(settings);
+    expect([...m.writes[0]]).toEqual([19]);
+    m.writes.length = 0;
+    m.input.enqueue(new Uint8Array([19]));
+    await new Promise((r) => setTimeout(r, 0));
+    const sending = c.send("O1", settings, () => {});
+    await new Promise((r) => setTimeout(r, 30));
+    expect(m.writes).toHaveLength(0);
+    m.input.enqueue(new Uint8Array([17, 79, 75]));
+    await sending;
+    expect(received).toBe("OK");
+    expect(decode(m.writes)).toContain("O1");
+    await c.disconnect();
+  });
   it("imposta DTR e RTS espliciti e lascia RTS al driver con handshake hardware", async () => {
     for (const hardware of [false, true]) {
       const m = mockPort();

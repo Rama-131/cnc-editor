@@ -139,6 +139,15 @@ export function MachineSettings({
             per modificarla.
           </p>
         )}
+        {draft.importedFrom && (
+          <p className="machine-import-note">
+            Importata da <strong>{draft.importedFrom.fileName}</strong> ·{" "}
+            {draft.importedFrom.port} · Parametri del trasmettitore precedente.
+            Il file non specifica la famiglia del controllo CNC: “Altro
+            controllo ISO” è un’etichetta descrittiva e non cambia la
+            connessione.
+          </p>
+        )}
         <form
           ref={form}
           noValidate

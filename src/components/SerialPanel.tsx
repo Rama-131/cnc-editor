@@ -280,6 +280,13 @@ export function SerialPanel({
               : "Configura la prima macchina"}
           </a>
         </div>
+        {machine?.importedFrom?.port && (
+          <p className="receive-instructions">
+            Porta nel trasmettitore precedente:{" "}
+            <strong>{machine.importedFrom.port}</strong>. Seleziona la porta
+            corrispondente nella finestra del browser.
+          </p>
+        )}
         {!getSerial() && (
           <div className="browser-note">
             La porta seriale richiede Chrome o Edge sul PC Windows collegato

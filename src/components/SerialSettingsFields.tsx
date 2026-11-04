@@ -13,7 +13,12 @@ import {
   type MachineProfile,
 } from "../lib/machineProfiles";
 import type { SerialSettings } from "../lib/serial";
-import { defaultSerial, getSerial } from "../lib/serial";
+import {
+  defaultSerial,
+  getSerial,
+  usesHardwareFlow,
+  usesSoftwareFlow,
+} from "../lib/serial";
 import {
   portOptions,
   transmitOptions,
@@ -261,8 +266,9 @@ export function SerialSettingsFields({
               <div>
                 <strong>Porta COM del PC Windows</strong>
                 <p>
-                  Seleziona COM3, COM4 o il tuo adattatore dalla finestra del
-                  browser quando colleghi la macchina.
+                  {profile.importedFrom?.port
+                    ? `Porta nel trasmettitore precedente: ${profile.importedFrom.port}. Scegli la porta corrispondente nella finestra del browser al collegamento.`
+                    : "Seleziona COM3, COM4 o il tuo adattatore dalla finestra del browser quando colleghi la macchina."}
                 </p>
               </div>
               <span>
@@ -325,7 +331,8 @@ export function SerialSettingsFields({
                     ...s,
                     flowControl: e.target
                       .value as SerialSettings["flowControl"],
-                    ...(e.target.value !== "software" && t.waitForXon
+                    ...(!["software", "both"].includes(e.target.value) &&
+                    t.waitForXon
                       ? { transmit: { ...t, waitForXon: false } }
                       : {}),
                   })
@@ -333,6 +340,9 @@ export function SerialSettingsFields({
               >
                 <option value="software">Software · XON / XOFF</option>
                 <option value="hardware">Hardware · RTS / CTS</option>
+                <option value="both">
+                  Software + Hardware · XON/XOFF + RTS/CTS
+                </option>
                 <option value="none">Nessuno</option>
               </select>
             </label>
@@ -347,7 +357,7 @@ export function SerialSettingsFields({
                 <select
                   aria-label={label}
                   value={p[key] === null ? "auto" : String(p[key])}
-                  disabled={key === "rts" && s.flowControl === "hardware"}
+                  disabled={key === "rts" && usesHardwareFlow(s)}
                   onChange={(e) =>
                     port(
                       key,
@@ -361,7 +371,7 @@ export function SerialSettingsFields({
                   <option value="true">Attivo</option>
                   <option value="false">Disattivo</option>
                 </select>
-                {key === "rts" && s.flowControl === "hardware" && (
+                {key === "rts" && usesHardwareFlow(s) && (
                   <small>RTS gestito dal driver in modalità hardware.</small>
                 )}
               </label>
@@ -486,7 +496,7 @@ export function SerialSettingsFields({
             <CheckField
               label="Attendi XON prima di inviare"
               value={t.waitForXon}
-              disabled={s.flowControl !== "software"}
+              disabled={!usesSoftwareFlow(s)}
               onChange={(v) => tx("waitForXon", v)}
             />
             <CheckField
@@ -582,6 +592,17 @@ export function SerialSettingsFields({
               hint="Es. \0 per ASCII 0; vuoto = conserva tutti i caratteri."
             />
             <CheckField
+              label="Rimuovi controlli ASCII 0–31"
+              value={r.removeControls}
+              onChange={(v) => rx("removeControls", v)}
+            />
+            {r.removeControls && (
+              <p className="field-hint full">
+                CR e LF restano separatori di riga; gli altri caratteri ASCII
+                0–31 vengono rimossi, come filtro sul contenuto delle righe.
+              </p>
+            )}
+            <CheckField
               label="Ometti linee vuote"
               value={r.omitEmpty}
               onChange={(v) => rx("omitEmpty", v)}
@@ -590,7 +611,7 @@ export function SerialSettingsFields({
             <CheckField
               label="Invia XON all’inizio della ricezione"
               value={r.sendXon}
-              disabled={s.flowControl !== "software"}
+              disabled={!usesSoftwareFlow(s)}
               onChange={(v) => rx("sendXon", v)}
             />
             <TextField

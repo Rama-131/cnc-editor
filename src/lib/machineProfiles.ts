@@ -16,6 +16,7 @@ export type MachineProfile = {
   name: string;
   control: (typeof serialControls)[number];
   settings: SerialSettings;
+  importedFrom?: { fileName: string; port: string; protocol: string };
 };
 export type MachineProfiles = {
   version: 1;
@@ -31,7 +32,7 @@ function validSettings(value: unknown): value is SerialSettings {
     [7, 8].includes(v.dataBits) &&
     [1, 2].includes(v.stopBits) &&
     ["none", "even", "odd"].includes(v.parity) &&
-    ["none", "hardware", "software"].includes(v.flowControl) &&
+    ["none", "hardware", "software", "both"].includes(v.flowControl) &&
     ["CRLF", "CR", "LF"].includes(v.lineEnding) &&
     blockDelays.includes(v.delay) &&
     typeof v.wrap === "boolean" &&
@@ -48,6 +49,14 @@ export function validMachine(value: unknown): value is MachineProfile {
     !!v.name.trim() &&
     v.name.length <= 80 &&
     serialControls.includes(v.control) &&
+    (v.importedFrom === undefined ||
+      (v.importedFrom !== null &&
+        typeof v.importedFrom === "object" &&
+        [
+          v.importedFrom.fileName,
+          v.importedFrom.port,
+          v.importedFrom.protocol,
+        ].every((s) => typeof s === "string" && s.length <= 255))) &&
     validSettings(v.settings)
   );
 }
