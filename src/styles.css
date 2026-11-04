@@ -537,10 +537,18 @@ h1 {
   border-bottom: 1px solid #27313c;
   overflow: hidden;
 }
-.viewport > svg {
+.viewport > svg:not(.axis-indicator) {
   display: block;
   width: 100%;
   height: 360px;
+}
+.viewport > .axis-indicator {
+  position: absolute;
+  right: 12px;
+  bottom: 30px;
+  width: 140px;
+  height: 128px;
+  pointer-events: none;
 }
 .viewport-label {
   position: absolute;
@@ -1025,7 +1033,7 @@ footer > span:first-child {
   .editor {
     height: 655px;
   }
-  .viewport > svg {
+  .viewport > svg:not(.axis-indicator) {
     height: 410px;
   }
   .serial .panel-title {
@@ -1226,7 +1234,7 @@ footer > span:first-child {
   .machine-note p {
     font-size: 11px;
   }
-  .viewport > svg {
+  .viewport > svg:not(.axis-indicator) {
     height: 330px;
   }
   .scope-note {

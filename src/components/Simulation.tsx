@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import {
   Play,
   Pause,
@@ -19,6 +19,88 @@ const project = (p: Point, v: View): [number, number] =>
       : v === "YZ"
         ? [p.y, -p.z]
         : [(p.x - p.y) * 0.866, (p.x + p.y) * 0.5 - p.z];
+
+function AxisIndicator({ view }: { view: View }) {
+  const id = useId();
+  const axes: (keyof Point)[] =
+    view === "ISO"
+      ? ["x", "y", "z"]
+      : view === "XY"
+        ? ["x", "y"]
+        : view === "XZ"
+          ? ["x", "z"]
+          : ["y", "z"];
+  const colors = { x: "#ef8f88", y: "#77dca9", z: "#83b6ed" };
+  const origin = view === "ISO" ? [70, 80] : [32, 100];
+  const length = view === "ISO" ? 50 : 60;
+
+  return (
+    <svg
+      className="axis-indicator"
+      viewBox="0 0 140 128"
+      role="img"
+      aria-label={`Versi positivi degli assi ${axes.map((axis) => `+${axis.toUpperCase()}`).join(", ")}`}
+    >
+      <rect
+        x="1"
+        y="1"
+        width="138"
+        height="126"
+        rx="12"
+        fill="#111a23e8"
+        stroke="#394a59"
+      />
+      {axes.map((axis) => {
+        const unit = { x: 0, y: 0, z: 0 };
+        unit[axis] = 1;
+        const [dx, dy] = project(unit, view);
+        const magnitude = Math.hypot(dx, dy);
+        const x = origin[0] + (dx / magnitude) * length;
+        const y = origin[1] + (dy / magnitude) * length;
+        const arrow = `${id}-${axis}`;
+        return (
+          <g key={axis}>
+            <defs>
+              <marker
+                id={arrow}
+                viewBox="0 0 6 6"
+                markerWidth="4"
+                markerHeight="4"
+                refX="5"
+                refY="3"
+                orient="auto"
+              >
+                <path d="M0 0L6 3L0 6Z" fill={colors[axis]} />
+              </marker>
+            </defs>
+            <line
+              x1={origin[0]}
+              y1={origin[1]}
+              x2={x}
+              y2={y}
+              stroke={colors[axis]}
+              strokeWidth="3"
+              strokeLinecap="round"
+              markerEnd={`url(#${arrow})`}
+            />
+            <text
+              x={x + (dx / magnitude) * 15}
+              y={y + (dy / magnitude) * 15}
+              fill={colors[axis]}
+              fontSize="17"
+              fontWeight="700"
+              textAnchor="middle"
+              dominantBaseline="central"
+            >
+              +{axis.toUpperCase()}
+            </text>
+          </g>
+        );
+      })}
+      <circle cx={origin[0]} cy={origin[1]} r="3.5" fill="#d4e0e9" />
+    </svg>
+  );
+}
 export function Simulation({
   result,
   machine,
@@ -234,25 +316,8 @@ export function Simulation({
               />
             </g>
           )}
-          <g transform="translate(550,345)" strokeWidth="1.5">
-            <path d="M0 25L42 25" stroke="#ef8f88" />
-            <text x="46" y="29" fill="#ef8f88" fontSize="11">
-              {view === "XZ" ? "Z" : view === "YZ" ? "Y" : "X"}
-            </text>
-            <path d="M0 25V-12" stroke="#77dca9" />
-            <text x="-4" y="-20" fill="#77dca9" fontSize="11">
-              {view === "XZ" ? "X" : view === "XY" ? "Y" : "Z"}
-            </text>
-            {view === "ISO" && (
-              <>
-                <path d="M0 25L-26 45" stroke="#83b6ed" />
-                <text x="-38" y="51" fill="#83b6ed" fontSize="11">
-                  Y
-                </text>
-              </>
-            )}
-          </g>
         </svg>
+        <AxisIndicator view={view} />
         <div className="viewport-legend">
           <span>
             <i className="legend-line" />
