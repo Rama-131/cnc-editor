@@ -53,7 +53,9 @@ test("editor, descrizioni, colori, simulazione e file", async ({ page }) => {
     mimeType: "text/plain",
     buffer: Buffer.from("G21 G18\nG0 X40 Z5\nG1 Z-20\nM30"),
   });
-  await expect(page.getByLabel("Nome file")).toHaveValue("prova.nc");
+  await expect(
+    page.getByRole("tab", { name: "prova.nc", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
   await expect(page.getByText(/Anteprima geometrica/)).toBeVisible();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Salva file", exact: true }).click();

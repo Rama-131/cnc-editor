@@ -85,15 +85,11 @@ export default function App() {
   const setSource = (source: string) => {
     if (active) programs.update(active.id, { source });
   };
-  const setFilename = (name: string) => {
-    if (active) programs.update(active.id, { name });
-  };
   const setMachine = (machine: Machine) => programs.configure({ machine });
   const setDiameter = (diameter: boolean) => programs.configure({ diameter });
   const reception = useReceivedDocument(setNotice);
   const fileInput = useRef<HTMLInputElement>(null);
   const programEditor = useRef<EditorHandle>(null);
-  const dirty = !!active && source !== active.savedSource;
   const simulationVisible =
     tab === "workspace" && programs.previewVisible && !!active;
   const onHistoryChange = useCallback(
@@ -510,6 +506,7 @@ export default function App() {
               activeId={programs.activeId}
               onSelect={selectProgram}
               onClose={closeProgram}
+              onRename={(id, name) => programs.update(id, { name })}
               onNew={newProgram}
               previewVisible={programs.previewVisible}
               onTogglePreview={programs.togglePreview}
@@ -527,26 +524,7 @@ export default function App() {
                   id="program-panel"
                   aria-labelledby={`program-tab-${active.id}`}
                 >
-                  <div className="panel-head editor-head">
-                    <div className="file-tab">
-                      <FileCode2 size={16} />
-                      <input
-                        aria-label="Nome file"
-                        value={filename}
-                        onChange={(e) =>
-                          setFilename(
-                            e.target.value.replace(/[\\/:*?"<>|]/g, "_") ||
-                              "programma.nc",
-                          )
-                        }
-                      />
-                      {dirty && (
-                        <i
-                          className="unsaved"
-                          title="Modifiche da salvare su file"
-                        />
-                      )}
-                    </div>
+                  <div className="panel-head editor-head editor-toolbar">
                     <div className="icon-group">
                       <button
                         className="icon-button"

@@ -6,7 +6,13 @@ async function openProgram(page: Page, source: string) {
     mimeType: "text/plain",
     buffer: Buffer.from(source),
   });
-  await expect(page.getByLabel("Nome file")).toHaveValue("simulazione.nc");
+  await expect(
+    page.getByRole("tab", {
+      name: "simulazione.nc",
+      exact: true,
+      selected: true,
+    }),
+  ).toHaveAttribute("aria-selected", "true");
 }
 async function expectVisibleExecutionLine(
   page: Page,

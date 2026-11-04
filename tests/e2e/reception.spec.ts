@@ -118,9 +118,9 @@ test("riceve in un documento vuoto, conserva il programma originale e salva i da
   await expect(
     page.getByRole("button", { name: "Invia programma alla macchina" }),
   ).toBeDisabled();
-  await expect(page.getByLabel("Nome file", { exact: true })).toHaveValue(
-    "O1001_piastra.nc",
-  );
+  await expect(
+    page.getByRole("tab", { name: "O1001_piastra.nc", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
   await inject(page, "10\r");
   await page.getByRole("link", { name: "Ricezione", exact: true }).click();
   await inject(page, "\nM30\r\n%\r\n");

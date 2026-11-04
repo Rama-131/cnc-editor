@@ -373,6 +373,18 @@ main {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.tab-rename {
+  width: 200px;
+  max-width: 240px;
+  min-width: 95px;
+  margin: 3px 4px;
+  padding: 3px 7px;
+  border: 1px solid var(--green);
+  border-radius: 3px;
+  background: #121a22;
+  color: #dce8ef;
+  font-size: 11px;
+}
 .program-tab svg {
   color: #94bba6;
 }
@@ -496,6 +508,9 @@ main {
   padding-right: 9px;
   flex-shrink: 0;
   background: #1a222b;
+}
+.editor-toolbar {
+  justify-content: flex-end;
 }
 .file-tab {
   display: flex;
@@ -1216,7 +1231,8 @@ main {
   .simulation-toggle span {
     display: none;
   }
-  .program-tab > button[role="tab"] {
+  .program-tab > button[role="tab"],
+  .tab-rename {
     max-width: min(240px, calc(100vw - 160px));
   }
   .rail {

@@ -8,7 +8,9 @@ test("le pagine condividono il programma, le modifiche e la cronologia dell’ed
   const editor = page.getByRole("textbox", { name: "Editor programma G-code" });
   const source = "G21 G90\n(PROGRAMMA CONDIVISO)\nG0 X5 Y3\nG1 X20 F200\nM30";
   await editor.fill(source);
+  await page.getByRole("tab", { selected: true }).dblclick();
   await page.getByLabel("Nome file").fill("programma_condiviso.nc");
+  await page.getByLabel("Nome file").press("Enter");
   const cursor = await page
     .locator(".editor-status > span")
     .first()
@@ -26,9 +28,9 @@ test("le pagine condividono il programma, le modifiche e la cronologia dell’ed
   await expect(
     page.locator(".cm-line").filter({ hasText: "(PROGRAMMA CONDIVISO)" }),
   ).toBeVisible();
-  await expect(page.getByLabel("Nome file")).toHaveValue(
-    "programma_condiviso.nc",
-  );
+  await expect(
+    page.getByRole("tab", { name: "programma_condiviso.nc", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
   await expect(page.locator(".unsaved")).toBeVisible();
   await expect(page.locator(".editor-status > span").first()).toHaveText(
     cursor!,
@@ -46,9 +48,9 @@ test("le pagine condividono il programma, le modifiche e la cronologia dell’ed
   await expect(page).toHaveURL(/#simulazione$/);
   await expect(page.locator(".preview-column")).toBeVisible();
   await expect(page.locator(".serial-column")).toBeHidden();
-  await expect(page.getByLabel("Nome file")).toHaveValue(
-    "programma_condiviso.nc",
-  );
+  await expect(
+    page.getByRole("tab", { name: "programma_condiviso.nc", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
   await expect
     .poll(() =>
       page.evaluate(

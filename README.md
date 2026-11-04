@@ -39,6 +39,8 @@ Il file, le modifiche non salvate, la cronologia annulla/ripristina e le imposta
 
 Puoi selezionare **più file insieme** con Apri oppure aggiungerli uno alla volta. Ogni programma compare in una **scheda in alto**, con la propria crocetta di chiusura; clicca sul nome per attivarlo. Ogni scheda conserva testo, cursore, scorrimento, cronologia delle modifiche e impostazioni Fresatrice/Tornio e diametro/raggio. Le frecce della tastiera cambiano scheda quando il nome ha il focus. **+** crea un nuovo programma. La chiusura chiede conferma se il testo contiene modifiche non salvate; chiudendo tutte le schede compare un’area vuota pronta per aprire altri file.
 
+Il nome del programma compare soltanto nella scheda superiore. Per rinominarlo, fai doppio clic sul nome oppure premi **F2** con la scheda selezionata: **Invio** conferma, **Esc** annulla; anche uscire dal campo conferma il nome.
+
 I pulsanti **Annulla** e **Ripristina** sopra l’editor operano sul file attivo, come Ctrl+Z e Ctrl+Y. **Salva** e Ctrl+S scaricano il programma della scheda selezionata; anche la pagina Trasmissione usa quel programma. Ricezione mantiene il proprio documento indipendente.
 
 Il pulsante **Nascondi simulazione** nella barra delle schede mette in pausa l’anteprima e lascia tutto lo spazio all’editor. **Mostra simulazione** riapre lo stesso pannello con zoom e avanzamento mantenuti. Il passaggio a un altro programma aggiorna l’anteprima al file scelto e ne azzera la riproduzione.

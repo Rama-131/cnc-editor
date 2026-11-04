@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   FileCode2,
   PanelRightClose,
@@ -13,6 +13,7 @@ export function ProgramTabs({
   activeId,
   onSelect,
   onClose,
+  onRename,
   onNew,
   previewVisible,
   onTogglePreview,
@@ -22,12 +23,40 @@ export function ProgramTabs({
   activeId: string | null;
   onSelect: (id: string) => void;
   onClose: (id: string) => void;
+  onRename: (id: string, name: string) => void;
   onNew: () => void;
   previewVisible: boolean;
   onTogglePreview: () => void;
   showPreviewToggle: boolean;
 }) {
   const tabs = useRef<HTMLDivElement>(null);
+  const renameInput = useRef<HTMLInputElement>(null);
+  const renameSession = useRef<string | null>(null);
+  const [renaming, setRenaming] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  function startRename(doc: ProgramDocument) {
+    renameSession.current = doc.id;
+    setName(doc.name);
+    setRenaming(doc.id);
+  }
+  function finishRename(commit: boolean, focusTab = false) {
+    const id = renameSession.current;
+    if (!id) return;
+    renameSession.current = null;
+    if (commit)
+      onRename(id, name.trim().replace(/[\\/:*?"<>|]/g, "_") || "programma.nc");
+    setRenaming(null);
+    if (focusTab)
+      requestAnimationFrame(() =>
+        document.getElementById(`program-tab-${id}`)?.focus(),
+      );
+  }
+  useEffect(() => {
+    if (renaming) {
+      renameInput.current?.focus();
+      renameInput.current?.select();
+    }
+  }, [renaming]);
   useEffect(() => {
     tabs.current
       ?.querySelector<HTMLElement>(".program-tab.active")
@@ -47,6 +76,11 @@ export function ProgramTabs({
           )
             return;
           const index = documents.findIndex((doc) => doc.id === activeId);
+          if (event.key === "F2" && index >= 0) {
+            event.preventDefault();
+            startRename(documents[index]);
+            return;
+          }
           const next =
             event.key === "ArrowRight"
               ? (index + 1) % documents.length
@@ -70,25 +104,45 @@ export function ProgramTabs({
             className={`program-tab ${doc.id === activeId ? "active" : ""}`}
             key={doc.id}
           >
-            <button
-              id={`program-tab-${doc.id}`}
-              role="tab"
-              aria-selected={doc.id === activeId}
-              aria-controls="program-panel"
-              tabIndex={doc.id === activeId ? 0 : -1}
-              aria-label={doc.name}
-              title={doc.name}
-              onClick={() => onSelect(doc.id)}
-            >
-              <FileCode2 size={14} />
-              <span>{doc.name}</span>
-              {doc.source !== doc.savedSource && (
-                <i
-                  className="document-dirty"
-                  title="Modifiche non salvate su file"
-                />
-              )}
-            </button>
+            {renaming === doc.id ? (
+              <input
+                ref={renameInput}
+                id={`program-tab-${doc.id}`}
+                className="tab-rename"
+                aria-label="Nome file"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                onBlur={() => finishRename(true)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === "Escape") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    finishRename(event.key === "Enter", true);
+                  }
+                }}
+              />
+            ) : (
+              <button
+                id={`program-tab-${doc.id}`}
+                role="tab"
+                aria-selected={doc.id === activeId}
+                aria-controls="program-panel"
+                tabIndex={doc.id === activeId ? 0 : -1}
+                aria-label={doc.name}
+                title={`${doc.name} · Doppio clic per rinominare`}
+                onClick={() => onSelect(doc.id)}
+                onDoubleClick={() => startRename(doc)}
+              >
+                <FileCode2 size={14} />
+                <span>{doc.name}</span>
+                {doc.source !== doc.savedSource && (
+                  <i
+                    className={`document-dirty${doc.id === activeId ? " unsaved" : ""}`}
+                    title="Modifiche non salvate su file"
+                  />
+                )}
+              </button>
+            )}
             <button
               className="close-program"
               tabIndex={doc.id === activeId ? 0 : -1}
