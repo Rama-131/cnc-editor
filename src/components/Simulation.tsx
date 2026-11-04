@@ -105,11 +105,17 @@ function AxisIndicator({ view }: { view: View }) {
 export function Simulation({
   result,
   machine,
+  diameter,
+  onMachineChange,
+  onDiameterChange,
   onLine,
   active = true,
 }: {
   result: Result;
   machine: Machine;
+  diameter: boolean;
+  onMachineChange: (machine: Machine) => void;
+  onDiameterChange: (diameter: boolean) => void;
   onLine: (n: number | null) => void;
   active?: boolean;
 }) {
@@ -357,6 +363,31 @@ export function Simulation({
               <Maximize2 size={14} />
             </button>
           </div>
+        </div>
+        <div
+          className="machine-select"
+          role="group"
+          aria-label="Impostazioni macchina"
+        >
+          <span>Macchina</span>
+          <select
+            aria-label="Tipo macchina"
+            value={machine}
+            onChange={(e) => onMachineChange(e.target.value as Machine)}
+          >
+            <option value="mill">Fresatrice · 3 assi</option>
+            <option value="lathe">Tornio · XZ</option>
+          </select>
+          {machine === "lathe" && (
+            <select
+              aria-label="Modalità asse X tornio"
+              value={diameter ? "diameter" : "radius"}
+              onChange={(e) => onDiameterChange(e.target.value === "diameter")}
+            >
+              <option value="diameter">X a diametro</option>
+              <option value="radius">X a raggio</option>
+            </select>
+          )}
         </div>
       </div>
       <div className="viewport">

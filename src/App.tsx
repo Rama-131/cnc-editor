@@ -24,6 +24,7 @@ import {
   PanelRightClose,
   PanelRightOpen,
   Save,
+  Printer,
   X,
 } from "lucide-react";
 import {
@@ -116,6 +117,7 @@ export default function App() {
     [search, setSearch] = useState(""),
     [notice, setNotice] = useState(""),
     [receiving, setReceiving] = useState(false),
+    [transmitting, setTransmitting] = useState(false),
     [lockedMachine, setLockedMachine] = useState<string | null>(null),
     [machineSettingsDirty, setMachineSettingsDirty] = useState(false),
     [adjustment, setAdjustment] = useState<{
@@ -205,7 +207,7 @@ export default function App() {
       if (saveAsTarget) {
         if (
           (event.ctrlKey || event.metaKey) &&
-          ["s", "o"].includes(event.key.toLowerCase())
+          ["s", "o", "p"].includes(event.key.toLowerCase())
         )
           event.preventDefault();
         return;
@@ -215,6 +217,10 @@ export default function App() {
         if (event.shiftKey) openSaveAs();
         else if (tab === "receive") reception.save();
         else saveFile();
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "p") {
+        event.preventDefault();
+        printProgram();
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "o") {
         event.preventDefault();
@@ -231,6 +237,9 @@ export default function App() {
     active,
     tab,
     reception.save,
+    reception.text,
+    receiving,
+    transmitting,
     programs.update,
     saveAsTarget,
     machineProfiles.selected,
@@ -445,6 +454,16 @@ export default function App() {
   async function saveFile() {
     if (active) await saveProgram(active, filename);
   }
+  function printProgram() {
+    if (
+      receiving ||
+      transmitting ||
+      tab === "settings" ||
+      (tab === "receive" ? !reception.text : !active)
+    )
+      return;
+    window.print();
+  }
   function openSaveAs() {
     if (tab === "receive") {
       if (reception.text)
@@ -609,32 +628,6 @@ export default function App() {
             <h1>{pageTitle[tab]}</h1>
           </div>
           <div
-            className="machine-select"
-            role="group"
-            aria-label="Impostazioni macchina"
-            hidden={tab !== "workspace"}
-          >
-            <span>Macchina</span>
-            <select
-              aria-label="Tipo macchina"
-              value={machine}
-              onChange={(e) => setMachine(e.target.value as Machine)}
-            >
-              <option value="mill">Fresatrice · 3 assi</option>
-              <option value="lathe">Tornio · XZ</option>
-            </select>
-            {machine === "lathe" && tab === "workspace" && (
-              <select
-                aria-label="Modalità asse X tornio"
-                value={diameter ? "diameter" : "radius"}
-                onChange={(e) => setDiameter(e.target.value === "diameter")}
-              >
-                <option value="diameter">X a diametro</option>
-                <option value="radius">X a raggio</option>
-              </select>
-            )}
-          </div>
-          <div
             className="file-actions"
             role="group"
             aria-label="Comandi file"
@@ -710,6 +703,24 @@ export default function App() {
             >
               <Save size={16} />
               <span className="file-action-label">Salva con nome</span>
+            </button>
+            <button
+              className="button"
+              aria-label="Stampa programma"
+              title={
+                receiving || transmitting
+                  ? "Stampa disponibile al termine del trasferimento"
+                  : "Stampa programma (Ctrl+P)"
+              }
+              disabled={
+                receiving ||
+                transmitting ||
+                (tab === "receive" ? !reception.text : !active)
+              }
+              onClick={printProgram}
+            >
+              <Printer size={16} />
+              <span className="file-action-label">Stampa</span>
             </button>
           </div>
           <div
@@ -1139,6 +1150,9 @@ export default function App() {
                 key={active?.id ?? "empty"}
                 result={result}
                 machine={machine}
+                diameter={diameter}
+                onMachineChange={setMachine}
+                onDiameterChange={setDiameter}
                 onLine={onLine}
                 active={simulationVisible}
               />
@@ -1158,6 +1172,7 @@ export default function App() {
                 receivedLength={reception.text.length}
                 onReceive={reception.append}
                 onReceivingChange={setReceiving}
+                onSendingChange={setTransmitting}
               />
             </div>
           </div>
@@ -1237,6 +1252,10 @@ export default function App() {
           </section>
         </div>
       )}
+      <section className="print-document" aria-label="Programma da stampare">
+        <h1>{tab === "receive" ? reception.name : filename}</h1>
+        <pre>{tab === "receive" ? reception.displayText : source}</pre>
+      </section>
     </div>
   );
 }

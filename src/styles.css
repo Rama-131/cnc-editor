@@ -1268,6 +1268,66 @@ main {
   width: 26px;
   height: 26px;
 }
+.simulation-head .machine-select {
+  flex-basis: 100%;
+  padding: 2px 0 4px;
+}
+.simulation-head .machine-select select {
+  min-height: 28px;
+  padding: 4px 6px;
+}
+.print-document {
+  display: none;
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm 12mm;
+  }
+  :root {
+    color-scheme: light;
+  }
+  html,
+  body,
+  #root,
+  .app {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    color: #000 !important;
+    background: #fff !important;
+  }
+  .app {
+    display: block !important;
+  }
+  body > :not(#root),
+  .app > :not(.print-document) {
+    display: none !important;
+  }
+  .print-document {
+    display: block;
+    width: 100%;
+  }
+  .print-document h1 {
+    font:
+      600 14pt "Segoe UI",
+      sans-serif;
+    margin: 0 0 8mm;
+    overflow-wrap: anywhere;
+  }
+  .print-document pre {
+    margin: 0;
+    font:
+      10pt/1.45 Consolas,
+      "Courier New",
+      monospace;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    tab-size: 4;
+    orphans: 3;
+    widows: 3;
+  }
+}
 .simulation {
   container: simulation / inline-size;
   display: flex;
@@ -2405,9 +2465,7 @@ main {
   .viewport {
     flex: none;
   }
-  .machine-select {
-    grid-column: 1 / -1;
-    grid-row: 2;
+  .simulation-head .machine-select {
     gap: 6px;
   }
   .machine-select > span {

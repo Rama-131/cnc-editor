@@ -32,6 +32,7 @@ export function SerialPanel({
   receivedLength = 0,
   onReceive = () => true,
   onReceivingChange = () => {},
+  onSendingChange,
 }: {
   source: string;
   filename: string;
@@ -44,6 +45,7 @@ export function SerialPanel({
   receivedLength?: number;
   onReceive?: (text: string) => boolean;
   onReceivingChange?: (active: boolean) => void;
+  onSendingChange?: (active: boolean) => void;
 }) {
   const machine = machines.find((m) => m.id === selectedId);
   const settings = machine?.settings ?? defaultSerial;
@@ -59,6 +61,7 @@ export function SerialPanel({
     [received, setReceived] = useState(""),
     [showLog, setShowLog] = useState(false);
   const connection = useRef<SerialConnection | null>(null);
+  useEffect(() => onSendingChange?.(sending), [sending, onSendingChange]);
   const receiveActive = useRef(receiving);
   const callbacks = useRef({ onReceive, onReceivingChange });
   callbacks.current = { onReceive, onReceivingChange };

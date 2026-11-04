@@ -7,6 +7,16 @@ test("editor, descrizioni, colori, simulazione e file", async ({ page }) => {
     page.getByRole("heading", { name: "Simulazione" }),
   ).toBeVisible();
   await expect(page.getByText(/Anteprima geometrica/)).toBeVisible();
+  await expect(
+    page
+      .locator(".topbar")
+      .getByRole("group", { name: "Impostazioni macchina", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page
+      .locator(".simulation-head")
+      .getByRole("group", { name: "Impostazioni macchina", exact: true }),
+  ).toBeVisible();
   await page.screenshot({
     path: "/tmp/cnc-studio-desktop.png",
     fullPage: true,
