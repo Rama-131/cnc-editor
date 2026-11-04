@@ -29,7 +29,7 @@ Per i test dell’interfaccia: `npx playwright install chromium`, quindi `npm ru
 
 ## Editor
 
-L’app ha tre pagine, raggiungibili dai pulsanti **Simulazione**, **Trasmissione** e **Ricezione**:
+L’app ha tre pagine, raggiungibili dalle icone **Simulazione**, **Trasmissione** e **Ricezione** nella barra laterale sinistra. Il nome della pagina compare al passaggio del mouse:
 
 - **Simulazione** (`#simulazione`): editor del programma e anteprima grafica del percorso.
 - **Trasmissione** (`#trasmissione`): lo stesso programma aperto, affiancato al configuratore e ai comandi seriali.

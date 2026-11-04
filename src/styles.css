@@ -129,6 +129,18 @@ svg {
   background: #91eab6;
   border-radius: 0 3px 3px 0;
 }
+.rail-button:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 3px;
+}
+.rail-button .status-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #14191f;
+}
 .rail-spacer {
   flex: 1;
 }
@@ -291,38 +303,6 @@ h1 {
   border-bottom: 1px solid #242d36;
   gap: 15px;
   flex-wrap: wrap;
-}
-.page-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  background: #151d24;
-  border: 1px solid #2c3843;
-  border-radius: 8px;
-}
-.page-tabs a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 9px 15px;
-  border-radius: 5px;
-  text-decoration: none;
-  color: #8e9ead;
-  font-size: 12px;
-  font-weight: 550;
-}
-.page-tabs a:hover {
-  background: #25313c;
-  color: #d9e5ec;
-}
-.page-tabs a[aria-current="page"] {
-  background: #294237;
-  color: #b0f0cb;
-}
-.page-tabs a:focus-visible {
-  outline: 2px solid var(--green);
-  outline-offset: 2px;
 }
 .machine-select {
   display: flex;
@@ -1196,17 +1176,6 @@ footer > span:first-child {
   .machine-select select {
     max-width: 145px;
     font-size: 10px;
-  }
-  .page-tabs {
-    width: 100%;
-  }
-  .page-tabs a {
-    flex: 1;
-    padding: 9px 8px;
-    font-size: 11px;
-  }
-  .page-tabs a svg {
-    display: none;
   }
   .serial-body {
     display: block;

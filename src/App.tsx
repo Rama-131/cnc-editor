@@ -4,7 +4,6 @@ import {
   ArrowDownToLine,
   BookOpen,
   Check,
-  Cable,
   Code2,
   FileCode2,
   FolderOpen,
@@ -290,14 +289,14 @@ export default function App() {
     );
   return (
     <div className="app">
-      <aside className="rail">
+      <aside className="rail" aria-label="Pagine dell’app">
         <div className="app-mark">
           <Activity size={24} />
         </div>
         <a
           className={tab === "workspace" ? "rail-button active" : "rail-button"}
-          title="Editor e simulazione"
-          aria-label="Editor e simulazione"
+          title="Simulazione"
+          aria-label="Simulazione"
           href="#simulazione"
           aria-current={tab === "workspace" ? "page" : undefined}
         >
@@ -305,8 +304,8 @@ export default function App() {
         </a>
         <a
           className={tab === "serial" ? "rail-button active" : "rail-button"}
-          title="Configuratore seriale"
-          aria-label="Configuratore seriale"
+          title="Trasmissione"
+          aria-label="Trasmissione"
           href="#trasmissione"
           aria-current={tab === "serial" ? "page" : undefined}
         >
@@ -314,12 +313,13 @@ export default function App() {
         </a>
         <a
           className={tab === "receive" ? "rail-button active" : "rail-button"}
-          title="Ricezione dalla macchina"
-          aria-label="Ricezione dalla macchina"
+          title="Ricezione"
+          aria-label="Ricezione"
           href="#ricezione"
           aria-current={tab === "receive" ? "page" : undefined}
         >
           <ArrowDownToLine size={21} />
+          {receiving && <i className="status-dot" />}
         </a>
         <div className="rail-spacer" />
         <button
@@ -410,29 +410,6 @@ export default function App() {
             </div>
           </div>
           <div className="workspace-bar">
-            <nav className="page-tabs" aria-label="Pagine dell’app">
-              <a
-                href="#simulazione"
-                aria-current={tab === "workspace" ? "page" : undefined}
-              >
-                <Code2 size={16} />
-                Simulazione
-              </a>
-              <a
-                href="#trasmissione"
-                aria-current={tab === "serial" ? "page" : undefined}
-              >
-                <Cable size={16} />
-                Trasmissione
-              </a>
-              <a
-                href="#ricezione"
-                aria-current={tab === "receive" ? "page" : undefined}
-              >
-                <ArrowDownToLine size={16} />
-                Ricezione {receiving && <i className="status-dot" />}
-              </a>
-            </nav>
             <div className="machine-select">
               <span>Macchina</span>
               <select
