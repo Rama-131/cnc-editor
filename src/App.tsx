@@ -55,25 +55,12 @@ function currentPage(): "workspace" | "serial" | "receive" {
   if (window.location.hash === "#ricezione") return "receive";
   return window.location.hash === "#trasmissione" ? "serial" : "workspace";
 }
-const pageContent = {
-  workspace: {
-    eyebrow: "SIMULAZIONE CNC",
-    title: "Dal codice al percorso.",
-    description: "Scrivi il programma e segui il percorso utensile.",
-  },
-  serial: {
-    eyebrow: "TRASMISSIONE CNC",
-    title: "Dal programma alla macchina.",
-    description:
-      "Controlla il programma aperto e trasferiscilo al controllo CNC.",
-  },
-  receive: {
-    eyebrow: "RICEZIONE CNC",
-    title: "Dalla macchina al tuo file.",
-    description:
-      "Ricevi il programma dalla CNC in un documento dedicato e salvalo sul PC.",
-  },
+const pageTitle = {
+  workspace: "Simulazione",
+  serial: "Trasmissione",
+  receive: "Ricezione",
 };
+
 export default function App() {
   const [source, setSource] = useState(initial?.source ?? millSample),
     [saved, setSaved] = useState(initial?.source ?? millSample),
@@ -334,10 +321,91 @@ export default function App() {
       </aside>
       <div className="main-shell">
         <header className="topbar">
-          <div className="brand">
-            CNC<span>studio</span>
-            <span className="brand-divider" />
-            <small>Il tuo spazio di lavorazione</small>
+          <div className="app-context">
+            <div className="brand">
+              CNC<span>studio</span>
+            </div>
+            <h1>{pageTitle[tab]}</h1>
+          </div>
+          <div
+            className="machine-select"
+            role="group"
+            aria-label="Impostazioni macchina"
+          >
+            <span>Macchina</span>
+            <select
+              aria-label="Tipo macchina"
+              value={machine}
+              onChange={(e) => setMachine(e.target.value as Machine)}
+            >
+              <option value="mill">Fresatrice · 3 assi</option>
+              <option value="lathe">Tornio · XZ</option>
+            </select>
+            {machine === "lathe" && tab === "workspace" && (
+              <select
+                aria-label="Modalità asse X tornio"
+                value={diameter ? "diameter" : "radius"}
+                onChange={(e) => setDiameter(e.target.value === "diameter")}
+              >
+                <option value="diameter">X a diametro</option>
+                <option value="radius">X a raggio</option>
+              </select>
+            )}
+          </div>
+          <div className="file-actions" role="group" aria-label="Comandi file">
+            <input
+              hidden
+              type="file"
+              ref={fileInput}
+              accept=".nc,.cnc,.tap,.txt,.iso,.mpf,.gcode"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void openFile(file);
+                e.target.value = "";
+              }}
+            />
+            <button
+              className="button"
+              aria-label="Apri programma"
+              title="Apri programma"
+              hidden={tab === "receive"}
+              onClick={() => fileInput.current?.click()}
+            >
+              <FolderOpen size={16} />
+              <span className="file-action-label">Apri</span>
+            </button>
+            <button
+              className="button primary"
+              aria-label="Salva file"
+              title="Salva file"
+              onClick={saveFile}
+              hidden={tab === "receive"}
+            >
+              <ArrowDownToLine size={16} />
+              <span className="file-action-label">Salva</span>
+            </button>
+            <button
+              className="button"
+              aria-label="Nuova ricezione"
+              title="Nuova ricezione"
+              hidden={tab !== "receive"}
+              disabled={receiving}
+              onClick={reception.clear}
+            >
+              <Plus size={16} />
+              <span className="file-action-label">Nuova</span>
+            </button>
+            <button
+              className="button primary"
+              aria-label="Salva ricevuto"
+              title="Salva ricevuto"
+              hidden={tab !== "receive"}
+              disabled={!reception.text}
+              onClick={reception.save}
+            >
+              <ArrowDownToLine size={16} />
+              <span className="file-action-label">Salva</span>
+            </button>
           </div>
           <div className="topbar-right">
             <span className="local-pill">
@@ -355,83 +423,6 @@ export default function App() {
           </div>
         </header>
         <main>
-          <div className="page-heading">
-            <div>
-              <div className="eyebrow">{pageContent[tab].eyebrow}</div>
-              <h1>{pageContent[tab].title}</h1>
-              <p>{pageContent[tab].description}</p>
-            </div>
-            <div className="file-actions">
-              <input
-                hidden
-                type="file"
-                ref={fileInput}
-                accept=".nc,.cnc,.tap,.txt,.iso,.mpf,.gcode"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) void openFile(file);
-                  e.target.value = "";
-                }}
-              />
-              <button
-                className="button"
-                hidden={tab === "receive"}
-                onClick={() => fileInput.current?.click()}
-              >
-                <FolderOpen size={16} />
-                Apri programma
-              </button>
-              <button
-                className="button primary"
-                onClick={saveFile}
-                hidden={tab === "receive"}
-              >
-                <ArrowDownToLine size={16} />
-                Salva file
-              </button>
-              <button
-                className="button"
-                hidden={tab !== "receive"}
-                disabled={receiving}
-                onClick={reception.clear}
-              >
-                <Plus size={16} />
-                Nuova ricezione
-              </button>
-              <button
-                className="button primary"
-                hidden={tab !== "receive"}
-                disabled={!reception.text}
-                onClick={reception.save}
-              >
-                <ArrowDownToLine size={16} />
-                Salva ricevuto
-              </button>
-            </div>
-          </div>
-          <div className="workspace-bar">
-            <div className="machine-select">
-              <span>Macchina</span>
-              <select
-                aria-label="Tipo macchina"
-                value={machine}
-                onChange={(e) => setMachine(e.target.value as Machine)}
-              >
-                <option value="mill">Fresatrice · 3 assi</option>
-                <option value="lathe">Tornio · XZ</option>
-              </select>
-              {machine === "lathe" && tab === "workspace" && (
-                <select
-                  aria-label="Modalità asse X tornio"
-                  value={diameter ? "diameter" : "radius"}
-                  onChange={(e) => setDiameter(e.target.value === "diameter")}
-                >
-                  <option value="diameter">X a diametro</option>
-                  <option value="radius">X a raggio</option>
-                </select>
-              )}
-            </div>
-          </div>
           {notice && (
             <div className="notice" role="status">
               <Info size={15} />

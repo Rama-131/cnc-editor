@@ -193,7 +193,7 @@ export function Editor({
                   '"Cascadia Code", "SFMono-Regular", Consolas, monospace',
                 lineHeight: "1.9",
               },
-              ".cm-content": { padding: "20px 0" },
+              ".cm-content": { padding: "10px 0" },
               ".cm-gutters": {
                 backgroundColor: "#12161c",
                 color: "#586576",

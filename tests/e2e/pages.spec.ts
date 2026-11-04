@@ -19,7 +19,7 @@ test("le pagine condividono il programma, le modifiche e la cronologia dell’ed
   await page.getByRole("link", { name: "Trasmissione", exact: true }).click();
   await expect(page).toHaveURL(/#trasmissione$/);
   await expect(
-    page.getByRole("heading", { name: "Dal programma alla macchina." }),
+    page.getByRole("heading", { name: "Trasmissione" }),
   ).toBeVisible();
   await expect(editor).toHaveCount(1);
   await expect(editor).toBeVisible();

@@ -4,7 +4,7 @@ test("editor, descrizioni, colori, simulazione e file", async ({ page }) => {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Dal codice al percorso." }),
+    page.getByRole("heading", { name: "Simulazione" }),
   ).toBeVisible();
   await expect(page.getByText(/Anteprima geometrica/)).toBeVisible();
   await page.screenshot({

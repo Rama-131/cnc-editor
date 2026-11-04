@@ -67,9 +67,7 @@ test("riceve in un documento vuoto, conserva il programma originale e salva i da
 }) => {
   await mockSerial(page);
   await page.goto("/#ricezione");
-  await expect(
-    page.getByRole("heading", { name: "Dalla macchina al tuo file." }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Ricezione" })).toBeVisible();
   await expect(page.locator(".received-count")).toHaveAttribute(
     "data-count",
     "0",
