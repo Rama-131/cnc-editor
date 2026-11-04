@@ -10,13 +10,14 @@ export function SaveAsDialog({
 }: {
   initialName: string;
   receiving?: boolean;
-  onConfirm: (name: string) => void;
+  onConfirm: (name: string) => void | Promise<void>;
   onClose: () => void;
 }) {
   const originalExtension = fileExtension(initialName);
   const [name, setName] = useState(initialName);
   const [format, setFormat] = useState(originalExtension || "nc");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const titleId = useId();
@@ -38,7 +39,7 @@ export function SaveAsDialog({
       aria-labelledby={titleId}
       onCancel={(event) => {
         event.preventDefault();
-        onClose();
+        if (!busy) onClose();
       }}
       onClick={(event) => {
         const rect = event.currentTarget.getBoundingClientRect();
@@ -49,20 +50,26 @@ export function SaveAsDialog({
             event.clientY < rect.top ||
             event.clientY > rect.bottom)
         )
-          onClose();
+          if (!busy) onClose();
       }}
     >
       <form
         noValidate
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
+          if (busy) return;
           const problem = fileNameError(result);
           if (problem) {
             setError(problem);
             input.current?.focus();
             return;
           }
-          onConfirm(result);
+          setBusy(true);
+          try {
+            await onConfirm(result);
+          } finally {
+            setBusy(false);
+          }
         }}
       >
         <div className="save-as-heading">
@@ -74,6 +81,7 @@ export function SaveAsDialog({
             aria-label="Chiudi Salva con nome"
             title="Chiudi"
             onClick={onClose}
+            disabled={busy}
           >
             <X size={18} />
           </button>
@@ -83,6 +91,7 @@ export function SaveAsDialog({
             Nome file
             <input
               ref={input}
+              disabled={busy}
               type="text"
               required
               aria-label="Nome file"
@@ -107,6 +116,7 @@ export function SaveAsDialog({
             Formato
             <select
               aria-label="Formato file"
+              disabled={busy}
               value={format}
               onChange={(event) => {
                 setFormat(event.target.value);
@@ -137,18 +147,23 @@ export function SaveAsDialog({
           <p className="save-as-hint">
             {receiving
               ? "Verranno salvati i dati ricevuti fino alla conferma; la ricezione continua."
-              : "Il file verrà scaricato sul PC con il nome scelto."}
+              : "Il file verrà salvato sul PC con il nome scelto. Se hai associato una cartella alla macchina, si aprirà la finestra di salvataggio del browser."}
           </p>
         </div>
         <div className="save-as-actions">
-          <button type="button" className="button" onClick={onClose}>
+          <button
+            type="button"
+            className="button"
+            onClick={onClose}
+            disabled={busy}
+          >
             Annulla
           </button>
           <button
             type="submit"
             className="button primary"
             aria-label="Conferma salvataggio con nome"
-            disabled={!name.trim()}
+            disabled={busy || !name.trim()}
           >
             <Save size={16} />
             Salva

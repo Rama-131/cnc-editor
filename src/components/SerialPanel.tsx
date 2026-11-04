@@ -80,10 +80,10 @@ export function SerialPanel({
     try {
       if (connected) {
         if (receiveActive.current) {
-          setReceiving(false);
           try {
             await connection.current?.stopReceiving(settings);
           } catch {}
+          setReceiving(false);
         }
         await connection.current?.disconnect();
         connection.current = null;
@@ -101,18 +101,6 @@ export function SerialPanel({
       const c = new SerialConnection(
         (text) => {
           setReceived((s) => (s + text).slice(-200000));
-          if (receiveActive.current && !callbacks.current.onReceive(text)) {
-            setReceiving(false);
-            setError(true);
-            setMessage(
-              `Limite di ${MAX_RECEIVED_CHARS.toLocaleString("it-IT")} caratteri raggiunto: ricezione interrotta. Il file contiene solo i dati acquisiti fino al limite; salvalo prima di iniziare di nuovo.`,
-            );
-            setBusy(true);
-            void c
-              .stopReceiving(settings)
-              .catch(() => setFault(true))
-              .finally(() => setBusy(false));
-          }
         },
         (message) => {
           setReceiving(false);
@@ -122,6 +110,30 @@ export function SerialPanel({
               " I dati già ricevuti sono conservati; ricollega la porta prima di continuare.",
           );
           setError(true);
+        },
+        {
+          onReceive: (text) => {
+            if (receiveActive.current && !callbacks.current.onReceive(text)) {
+              setReceiving(false);
+              setError(true);
+              setMessage(
+                `Limite di ${MAX_RECEIVED_CHARS.toLocaleString("it-IT")} caratteri raggiunto: ricezione interrotta. Il file contiene solo i dati acquisiti fino al limite; salvalo prima di iniziare di nuovo.`,
+              );
+              setBusy(true);
+              void c
+                .stopReceiving(settings)
+                .catch(() => setFault(true))
+                .finally(() => setBusy(false));
+            }
+          },
+          onEnd: (reason) => {
+            setReceiving(false);
+            setMessage(
+              reason === "trigger"
+                ? "Trigger di fine ricevuto. Ricezione conclusa; verifica e salva il programma."
+                : "Tempo limite senza nuovi dati raggiunto. Ricezione conclusa; verifica e salva il programma.",
+            );
+          },
         },
       );
       await c.connect(provider, settings);
@@ -146,17 +158,18 @@ export function SerialPanel({
     setError(false);
     try {
       if (receiveActive.current) {
-        setReceiving(false);
         await connection.current.stopReceiving(settings);
+        setReceiving(false);
         setMessage(
           "Ricezione terminata. Verifica che il programma sia completo, poi salva il file ricevuto.",
         );
       } else {
         setReceiving(true);
         await connection.current.startReceiving(settings);
-        setMessage(
-          "Ricezione attiva. Avvia l’invio del programma sulla macchina; i dati compariranno nel documento.",
-        );
+        if (receiveActive.current)
+          setMessage(
+            "Ricezione attiva. Avvia l’invio del programma sulla macchina; i dati compariranno nel documento.",
+          );
       }
     } catch (error) {
       setReceiving(false);
@@ -177,11 +190,15 @@ export function SerialPanel({
       setSending(true);
       setProgress(0);
       setMessage(`Invio di ${filename}…`);
-      await connection.current?.send(source, settings, (sent, total) =>
-        setProgress((sent / total) * 100),
+      const result = await connection.current?.send(
+        source,
+        settings,
+        (sent, total) => setProgress((sent / total) * 100),
       );
       setMessage(
-        "Dati scritti sulla porta. Verifica la ricezione sul controllo CNC.",
+        result?.limited
+          ? `Invio parziale: raggiunto il limite configurato di ${result.total} caratteri. Il programma completo non è stato trasmesso.`
+          : "Dati scritti sulla porta. Verifica la ricezione sul controllo CNC.",
       );
     } catch (e) {
       setError(true);
@@ -305,7 +322,7 @@ export function SerialPanel({
             <p className="receive-instructions">
               {receiving
                 ? "Attendi la fine dell’invio sulla CNC prima di terminare la ricezione. Puoi cambiare pagina: l’acquisizione continua."
-                : "I dati vengono acquisiti soltanto dopo Avvia ricezione. Fine riga e delimitatori ricevuti vengono conservati nel file."}
+                : "I dati vengono acquisiti soltanto dopo Avvia ricezione. Il file segue i filtri e i trigger configurati per la macchina."}
             </p>
           </>
         ) : (

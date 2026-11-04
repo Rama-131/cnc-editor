@@ -43,7 +43,12 @@ import { ProgramAdjustment } from "./components/ProgramAdjustment";
 import { SaveAsDialog } from "./components/SaveAsDialog";
 import type { AdjustmentWord, TextRange } from "./lib/programTools";
 import { useMachineProfiles } from "./lib/useMachineProfiles";
-import { downloadText } from "./lib/files";
+import {
+  openMachineFiles,
+  saveMachineFile,
+  extensions,
+} from "./lib/machineFiles";
+import { directoryOptions } from "./lib/serialOptions";
 import { useReceivedDocument } from "./lib/useReceivedDocument";
 import { useProgramDocuments } from "./lib/useProgramDocuments";
 import { simulate } from "./lib/simulator";
@@ -132,7 +137,7 @@ export default function App() {
   };
   const setMachine = (machine: Machine) => programs.configure({ machine });
   const setDiameter = (diameter: boolean) => programs.configure({ diameter });
-  const reception = useReceivedDocument(setNotice);
+  const reception = useReceivedDocument(setNotice, machineProfiles.selected);
   const fileInput = useRef<HTMLInputElement>(null);
   const programEditor = useRef<EditorHandle>(null);
   useEffect(() => setAdjustment(null), [active?.id, tab, source]);
@@ -217,12 +222,19 @@ export default function App() {
           setNotice(
             "Per aprire un file usa la pagina Simulazione o Trasmissione.",
           );
-        else fileInput.current?.click();
+        else void chooseFiles();
       }
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [active, tab, reception.save, programs.update, saveAsTarget]);
+  }, [
+    active,
+    tab,
+    reception.save,
+    programs.update,
+    saveAsTarget,
+    machineProfiles.selected,
+  ]);
   useEffect(() => {
     if (!showExamples) return;
     const closeOutside = (event: PointerEvent) => {
@@ -389,23 +401,76 @@ export default function App() {
         : `${opened.length === 1 ? "File aperto" : `${opened.length} file aperti`}. Seleziona Fresatrice o Tornio prima di simulare o inviare.`,
     );
   }
-  function saveFile() {
-    if (!active) return;
-    downloadText(source, filename);
-    programs.update(active.id, { savedSource: source });
-    setNotice("Download del programma avviato.");
+  async function chooseFiles() {
+    try {
+      const files = await openMachineFiles(machineProfiles.selected);
+      if (files) await openFiles(files);
+      else fileInput.current?.click();
+    } catch (e) {
+      if (!(e instanceof DOMException && e.name === "AbortError"))
+        setNotice(
+          `Apertura non riuscita: ${e instanceof Error ? e.message : String(e)}`,
+        );
+    }
+  }
+  async function saveProgram(
+    document: NonNullable<typeof active>,
+    name: string,
+  ) {
+    try {
+      const result = await saveMachineFile(
+        document.source,
+        name,
+        "send",
+        machineProfiles.selected,
+      );
+      programs.update(document.id, {
+        name: result.name,
+        savedSource: document.source,
+      });
+      setNotice(
+        result.downloaded
+          ? `Download di ${result.name} avviato.`
+          : `File salvato: ${result.name}.`,
+      );
+      return true;
+    } catch (e) {
+      if (!(e instanceof DOMException && e.name === "AbortError"))
+        setNotice(
+          `Salvataggio non riuscito: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      return false;
+    }
+  }
+  async function saveFile() {
+    if (active) await saveProgram(active, filename);
   }
   function openSaveAs() {
     if (tab === "receive") {
       if (reception.text)
-        setSaveAsTarget({ kind: "receive", name: reception.name });
-    } else if (active && tab !== "settings")
-      setSaveAsTarget({ kind: "program", id: active.id, name: active.name });
+        setSaveAsTarget({
+          kind: "receive",
+          name:
+            reception.name === "ricevuto.nc" && machineProfiles.selected
+              ? `ricevuto.${directoryOptions(machineProfiles.selected.settings).receive.extension.replace(/^\./, "")}`
+              : reception.name,
+        });
+    } else if (active && tab !== "settings") {
+      const configured = machineProfiles.selected?.settings.directories?.send;
+      setSaveAsTarget({
+        kind: "program",
+        id: active.id,
+        name: configured
+          ? `${active.name.replace(/\.[^.]+$/, "")}.${configured.extension.replace(/^\./, "")}`
+          : active.name,
+      });
+    }
   }
-  function confirmSaveAs(name: string) {
+  async function confirmSaveAs(name: string) {
     if (!saveAsTarget) return;
-    if (saveAsTarget.kind === "receive") reception.saveAs(name);
-    else {
+    if (saveAsTarget.kind === "receive") {
+      if (!(await reception.saveAs(name))) return;
+    } else {
       const document = programs.documents.find(
         (doc) => doc.id === saveAsTarget.id,
       );
@@ -413,9 +478,7 @@ export default function App() {
         setSaveAsTarget(null);
         return;
       }
-      downloadText(document.source, name);
-      programs.update(document.id, { name, savedSource: document.source });
-      setNotice(`Download di ${name} avviato.`);
+      if (!(await saveProgram(document, name))) return;
     }
     setSaveAsTarget(null);
   }
@@ -582,7 +645,13 @@ export default function App() {
               type="file"
               multiple
               ref={fileInput}
-              accept=".nc,.cnc,.tap,.txt,.iso,.mpf,.gcode"
+              accept={
+                machineProfiles.selected
+                  ? extensions(machineProfiles.selected, "send")
+                      .map((e) => `.${e}`)
+                      .join(",")
+                  : ".nc,.cnc,.tap,.txt,.iso,.mpf,.gcode"
+              }
               onChange={(e) => {
                 const files = [...(e.target.files ?? [])];
                 if (files.length) void openFiles(files);
@@ -594,7 +663,7 @@ export default function App() {
               aria-label="Apri programma"
               title="Apri programma"
               hidden={tab === "receive"}
-              onClick={() => fileInput.current?.click()}
+              onClick={() => void chooseFiles()}
             >
               <FolderOpen size={16} />
               <span className="file-action-label">Apri</span>

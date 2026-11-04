@@ -119,6 +119,10 @@ test("configuratore e trasmissione con una porta seriale di test", async ({
   await page.getByLabel("Parità").selectOption("odd");
   await page.getByLabel("Bit di stop").selectOption("1");
   await page.getByLabel("Controllo di flusso").selectOption("none");
+  await page
+    .getByRole("navigation", { name: "Sezioni impostazioni RS232" })
+    .getByRole("button", { name: "Trasmissione", exact: true })
+    .click();
   await page.getByLabel("Fine riga").selectOption("LF");
   await page.getByLabel("Pausa tra blocchi").selectOption("0");
   await page.getByLabel("Delimitatori %").uncheck();

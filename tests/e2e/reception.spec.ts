@@ -67,6 +67,42 @@ async function rawText(page: Page) {
   );
 }
 
+test("applica i filtri della macchina e conclude automaticamente al trigger finale", async ({
+  page,
+}) => {
+  await mockSerial(page);
+  await page.goto("/#impostazioni");
+  await page
+    .getByRole("navigation", { name: "Sezioni impostazioni RS232" })
+    .getByRole("button", { name: "Ricezione", exact: true })
+    .click();
+  await page.getByLabel("Trigger d’inizio ricezione").fill("BEGIN");
+  await page.getByLabel("Trigger di fine ricezione").fill("END");
+  await page.getByLabel("Ometti linee con stringa").fill("SKIP");
+  await page.getByLabel("Rimuovi caratteri in ricezione").fill("\\0");
+  await page.getByLabel("CR/LF ricezione").selectOption("LF");
+  await page
+    .getByRole("button", { name: "Salva macchina", exact: true })
+    .click();
+  await page.getByRole("link", { name: "Ricezione", exact: true }).click();
+  await page.getByRole("button", { name: "Seleziona e collega porta" }).click();
+  await page
+    .getByRole("button", { name: "Avvia ricezione", exact: true })
+    .click();
+  await inject(page, "noiseBE");
+  await inject(page, "GIN\r\nO1\0\r\nSKIP\r\nM30\r\nEN");
+  await inject(page, "Dignored");
+  await expect(page.locator(".serial-message")).toContainText(
+    "Trigger di fine ricevuto",
+  );
+  await expect.poll(() => rawText(page)).toBe("BEGIN\nO1\nM30\nEND");
+  await expect(
+    page.getByRole("button", { name: "Riprendi ricezione", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /Dati ricevuti/ }).click();
+  await expect(page.getByLabel("Dati seriali ricevuti")).toContainText("SKIP");
+});
+
 test("riceve in un documento vuoto, conserva il programma originale e salva i dati senza modificarli", async ({
   page,
 }) => {

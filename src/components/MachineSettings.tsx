@@ -8,13 +8,13 @@ import {
   Trash2,
 } from "lucide-react";
 import {
-  baudRates,
-  blockDelays,
   newMachine,
   serialControls,
   type MachineProfile,
 } from "../lib/machineProfiles";
-import { defaultSerial, type SerialSettings } from "../lib/serial";
+import { defaultSerial } from "../lib/serial";
+import { validateSerialOptions } from "../lib/serialOptions";
+import { SerialSettingsFields } from "./SerialSettingsFields";
 
 export function MachineSettings({
   machines,
@@ -67,13 +67,6 @@ export function MachineSettings({
       return;
     setDraft(profile);
     setError("");
-    setSavedMessage("");
-  }
-  function update<K extends keyof SerialSettings>(
-    key: K,
-    value: SerialSettings[K],
-  ) {
-    setDraft((d) => ({ ...d, settings: { ...d.settings, [key]: value } }));
     setSavedMessage("");
   }
   return (
@@ -148,6 +141,7 @@ export function MachineSettings({
         )}
         <form
           ref={form}
+          noValidate
           onSubmit={(event) => {
             event.preventDefault();
             if (locked) return;
@@ -167,6 +161,11 @@ export function MachineSettings({
               setError(
                 "Esiste già una macchina con questo nome. Scegli un nome diverso.",
               );
+              return;
+            }
+            const invalid = validateSerialOptions(draft.settings);
+            if (invalid) {
+              setError(invalid);
               return;
             }
             if (onSave({ ...draft, name })) {
@@ -208,108 +207,18 @@ export function MachineSettings({
                 ))}
               </select>
             </label>
-            <p className="field-hint full">
-              Usa gli stessi parametri impostati sulla macchina. La porta del PC
-              si sceglie al momento del collegamento.
-            </p>
-            <label>
-              Baud rate
-              <select
-                value={draft.settings.baudRate}
-                onChange={(e) => update("baudRate", +e.target.value)}
-              >
-                {baudRates.map((v) => (
-                  <option key={v}>{v}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Bit dati
-              <select
-                value={draft.settings.dataBits}
-                onChange={(e) => update("dataBits", +e.target.value as 7 | 8)}
-              >
-                <option>7</option>
-                <option>8</option>
-              </select>
-            </label>
-            <label>
-              Parità
-              <select
-                value={draft.settings.parity}
-                onChange={(e) =>
-                  update("parity", e.target.value as SerialSettings["parity"])
-                }
-              >
-                <option value="even">Pari (Even)</option>
-                <option value="odd">Dispari (Odd)</option>
-                <option value="none">Nessuna</option>
-              </select>
-            </label>
-            <label>
-              Bit di stop
-              <select
-                value={draft.settings.stopBits}
-                onChange={(e) => update("stopBits", +e.target.value as 1 | 2)}
-              >
-                <option>1</option>
-                <option>2</option>
-              </select>
-            </label>
-            <label>
-              Controllo di flusso
-              <select
-                value={draft.settings.flowControl}
-                onChange={(e) =>
-                  update(
-                    "flowControl",
-                    e.target.value as SerialSettings["flowControl"],
-                  )
-                }
-              >
-                <option value="software">XON / XOFF</option>
-                <option value="hardware">RTS / CTS</option>
-                <option value="none">Nessuno</option>
-              </select>
-            </label>
-            <label>
-              Fine riga
-              <select
-                value={draft.settings.lineEnding}
-                onChange={(e) =>
-                  update(
-                    "lineEnding",
-                    e.target.value as SerialSettings["lineEnding"],
-                  )
-                }
-              >
-                <option>CRLF</option>
-                <option>LF</option>
-                <option>CR</option>
-              </select>
-            </label>
-            <label>
-              Pausa tra blocchi
-              <select
-                value={draft.settings.delay}
-                onChange={(e) => update("delay", +e.target.value)}
-              >
-                {blockDelays.map((v) => (
-                  <option key={v} value={v}>
-                    {v} ms
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="check-label">
-              <input
-                type="checkbox"
-                checked={draft.settings.wrap}
-                onChange={(e) => update("wrap", e.target.checked)}
-              />
-              Delimitatori %
-            </label>
           </fieldset>
+          <SerialSettingsFields
+            key={draft.id}
+            profile={draft}
+            locked={locked}
+            saved={!!original}
+            onChange={(settings) => {
+              setDraft((d) => ({ ...d, settings }));
+              setSavedMessage("");
+              setError("");
+            }}
+          />
           {error && (
             <p className="settings-error" role="alert">
               {error}

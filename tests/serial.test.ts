@@ -27,6 +27,119 @@ function mockPort() {
 const decode = (v: Uint8Array[]) =>
   new TextDecoder().decode(new Uint8Array(v.flatMap((p) => [...p])));
 describe("trasmissione seriale", () => {
+  it("imposta DTR e RTS espliciti e lascia RTS al driver con handshake hardware", async () => {
+    for (const hardware of [false, true]) {
+      const m = mockPort();
+      m.port.setSignals = vi.fn(async () => {});
+      const c = new SerialConnection(
+        () => {},
+        () => {},
+      );
+      await c.connect(
+        { requestPort: async () => m.port },
+        {
+          ...defaultSerial,
+          flowControl: hardware ? "hardware" : "software",
+          port: { dtr: true, rts: false },
+        },
+      );
+      expect(m.port.setSignals).toHaveBeenCalledWith(
+        hardware
+          ? { dataTerminalReady: true }
+          : { dataTerminalReady: true, requestToSend: false },
+      );
+      await c.disconnect();
+    }
+  });
+  it("attende un XON personalizzato e permette di interrompere subito l’attesa", async () => {
+    const m = mockPort();
+    const settings = {
+      ...defaultSerial,
+      delay: 0,
+      port: { xon: "\\6", xoff: "\\21" },
+      transmit: { waitForXon: true, handshakeTimeout: 0 },
+    };
+    const c = new SerialConnection(
+      () => {},
+      () => {},
+    );
+    await c.connect({ requestPort: async () => m.port }, settings);
+    const job = c.send("O1", settings, () => {});
+    await new Promise((r) => setTimeout(r, 25));
+    expect(m.writes).toHaveLength(0);
+    m.input.enqueue(new Uint8Array([6]));
+    await job;
+    expect(decode(m.writes)).toContain("O1");
+    await c.disconnect();
+  });
+  it("conclude al trigger anche quando la macchina risponde durante la scrittura di XON", async () => {
+    const m = mockPort();
+    const received: string[] = [],
+      ends: string[] = [];
+    m.port.writable = new WritableStream({
+      async write(bytes) {
+        m.writes.push(bytes);
+        if (bytes[0] === 17) {
+          m.input.enqueue(new TextEncoder().encode("noise%\r\nO1\r\n%extra"));
+          await new Promise((r) => setTimeout(r, 5));
+        }
+      },
+    });
+    const settings = {
+      ...defaultSerial,
+      receive: { startTrigger: "%", endTrigger: "%" },
+    };
+    const c = new SerialConnection(
+      () => {},
+      () => {},
+      {
+        onReceive: (t) => received.push(t),
+        onEnd: (reason) => ends.push(reason),
+      },
+    );
+    await c.connect({ requestPort: async () => m.port }, settings);
+    await c.startReceiving(settings);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(received.join("")).toBe("%\r\nO1\r\n%");
+    expect(ends).toEqual(["trigger"]);
+    expect(m.writes.map((b) => [...b])).toEqual([[17], [19]]);
+    await c.disconnect();
+  });
+  it("il timeout ricezione parte al primo dato e conserva anche l’ultima riga senza fine riga", async () => {
+    vi.useFakeTimers();
+    try {
+      const m = mockPort();
+      const received: string[] = [],
+        ends: string[] = [];
+      const settings = {
+        ...defaultSerial,
+        receive: { timeout: 1, omitEmpty: true },
+      };
+      const c = new SerialConnection(
+        () => {},
+        () => {},
+        {
+          onReceive: (t) => received.push(t),
+          onEnd: (reason) => ends.push(reason),
+        },
+      );
+      await c.connect({ requestPort: async () => m.port }, settings);
+      await c.startReceiving(settings);
+      await vi.advanceTimersByTimeAsync(1500);
+      expect(ends).toEqual([]);
+      m.input.enqueue(new TextEncoder().encode("O1"));
+      await vi.advanceTimersByTimeAsync(800);
+      m.input.enqueue(new TextEncoder().encode("\nM30"));
+      await vi.advanceTimersByTimeAsync(900);
+      expect(ends).toEqual([]);
+      await vi.advanceTimersByTimeAsync(200);
+      expect(received.join("")).toBe("O1\nM30");
+      expect(ends).toEqual(["timeout"]);
+      await c.disconnect();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
   it("normalizza fine riga e delimitatori senza duplicarli", () => {
     const s = { ...defaultSerial, delay: 0 };
     expect(decode(encodeProgram("%\nO1\nM30\n%\n", s))).toBe(

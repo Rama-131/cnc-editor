@@ -1,4 +1,5 @@
 import { defaultSerial, type SerialSettings } from "./serial";
+import { validateSerialOptions } from "./serialOptions";
 
 export const serialControls = [
   "Fanuc",
@@ -33,7 +34,8 @@ function validSettings(value: unknown): value is SerialSettings {
     ["none", "hardware", "software"].includes(v.flowControl) &&
     ["CRLF", "CR", "LF"].includes(v.lineEnding) &&
     blockDelays.includes(v.delay) &&
-    typeof v.wrap === "boolean"
+    typeof v.wrap === "boolean" &&
+    validateSerialOptions(v) === null
   );
 }
 export function validMachine(value: unknown): value is MachineProfile {

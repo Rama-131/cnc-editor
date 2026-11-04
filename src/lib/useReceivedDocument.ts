@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { downloadText } from "./files";
+import { saveMachineFile } from "./machineFiles";
+import type { MachineProfile } from "./machineProfiles";
 import { appendReceivedText, MAX_RECEIVED_CHARS } from "./reception";
 
 function restoreReceived() {
@@ -21,12 +22,16 @@ function restoreReceived() {
   return { text: "", name: "ricevuto.nc", saved: true };
 }
 
-export function useReceivedDocument(onNotice: (message: string) => void) {
+export function useReceivedDocument(
+  onNotice: (message: string) => void,
+  machine?: MachineProfile,
+) {
   const [initial] = useState(restoreReceived);
   const [text, setText] = useState(initial.text);
   const [name, setName] = useState(initial.name);
   const [savedText, setSavedText] = useState(initial.saved ? initial.text : "");
   const raw = useRef(initial.text);
+  const generation = useRef(0);
   const dirty = text !== savedText;
   useEffect(() => {
     try {
@@ -47,18 +52,39 @@ export function useReceivedDocument(onNotice: (message: string) => void) {
     return !result.overflow;
   }, []);
   const saveAs = useCallback(
-    (filename: string) => {
+    async (filename: string) => {
       if (!raw.current) {
         onNotice("Nessun dato ricevuto da salvare.");
-        return;
+        return false;
       }
       const snapshot = raw.current;
-      downloadText(snapshot, filename);
-      setName(filename);
-      setSavedText(snapshot);
-      onNotice("Download del file ricevuto avviato.");
+      const savingGeneration = generation.current;
+      try {
+        const result = await saveMachineFile(
+          snapshot,
+          filename,
+          "receive",
+          machine,
+        );
+        if (savingGeneration === generation.current) {
+          setName(result.name);
+          setSavedText(snapshot);
+        }
+        onNotice(
+          result.downloaded
+            ? "Download del file ricevuto avviato."
+            : `File ricevuto salvato: ${result.name}.`,
+        );
+        return true;
+      } catch (e) {
+        if (!(e instanceof DOMException && e.name === "AbortError"))
+          onNotice(
+            `Salvataggio non riuscito: ${e instanceof Error ? e.message : String(e)}`,
+          );
+        return false;
+      }
     },
-    [onNotice],
+    [onNotice, machine],
   );
   const save = useCallback(() => saveAs(name), [name, saveAs]);
   const clear = useCallback(() => {
@@ -69,6 +95,7 @@ export function useReceivedDocument(onNotice: (message: string) => void) {
       )
     )
       return;
+    generation.current++;
     raw.current = "";
     setText("");
     setSavedText("");
