@@ -9,49 +9,24 @@ import {
   Terminal,
   ArrowDownToLine,
   Info,
+  Settings2,
 } from "lucide-react";
 import {
   defaultSerial,
   encodeProgram,
   getSerial,
   SerialConnection,
-  type SerialSettings,
 } from "../lib/serial";
+import type { MachineProfile } from "../lib/machineProfiles";
 import { downloadText } from "../lib/files";
 import { MAX_RECEIVED_CHARS } from "../lib/reception";
-function loadProfile(): string {
-  try {
-    const name = localStorage.getItem("cnc.serial.profile");
-    if (name && ["Fanuc", "Mitsubishi", "Altro controllo ISO"].includes(name))
-      return name;
-  } catch {}
-  return "Fanuc";
-}
-function loadSettings(profile: string): SerialSettings {
-  try {
-    const v = JSON.parse(
-      localStorage.getItem(`cnc.serial.${profile}`) ?? "null",
-    );
-    if (
-      v &&
-      [
-        110, 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200,
-      ].includes(v.baudRate) &&
-      [7, 8].includes(v.dataBits) &&
-      [1, 2].includes(v.stopBits) &&
-      ["none", "even", "odd"].includes(v.parity) &&
-      ["none", "hardware", "software"].includes(v.flowControl) &&
-      ["CRLF", "CR", "LF"].includes(v.lineEnding) &&
-      [0, 10, 25, 50, 100, 250].includes(v.delay) &&
-      typeof v.wrap === "boolean"
-    )
-      return v;
-  } catch {}
-  return defaultSerial;
-}
 export function SerialPanel({
   source,
   filename,
+  machines,
+  selectedId,
+  onSelectMachine,
+  onLockChange,
   mode = "send",
   receiving = false,
   receivedLength = 0,
@@ -60,15 +35,19 @@ export function SerialPanel({
 }: {
   source: string;
   filename: string;
+  machines: MachineProfile[];
+  selectedId: string | null;
+  onSelectMachine: (id: string) => void;
+  onLockChange: (id: string | null) => void;
   mode?: "send" | "receive";
   receiving?: boolean;
   receivedLength?: number;
   onReceive?: (text: string) => boolean;
   onReceivingChange?: (active: boolean) => void;
 }) {
-  const [profile, setProfile] = useState(loadProfile);
-  const [settings, setSettings] = useState(() => loadSettings(profile)),
-    [connected, setConnected] = useState(false),
+  const machine = machines.find((m) => m.id === selectedId);
+  const settings = machine?.settings ?? defaultSerial;
+  const [connected, setConnected] = useState(false),
     [busy, setBusy] = useState(false),
     [sending, setSending] = useState(false),
     [progress, setProgress] = useState(0),
@@ -87,23 +66,14 @@ export function SerialPanel({
     receiveActive.current = active;
     callbacks.current.onReceivingChange(active);
   }
-  useEffect(() => {
-    try {
-      localStorage.setItem(`cnc.serial.${profile}`, JSON.stringify(settings));
-      localStorage.setItem("cnc.serial.profile", profile);
-    } catch {}
-  }, [settings, profile]);
   useEffect(
     () => () => {
       void connection.current?.disconnect();
     },
     [],
   );
-  const update = <K extends keyof SerialSettings>(
-    key: K,
-    value: SerialSettings[K],
-  ) => setSettings((s) => ({ ...s, [key]: value }));
   async function connect() {
+    if (!machine && !connected) return;
     setBusy(true);
     setError(false);
     setFault(false);
@@ -118,6 +88,7 @@ export function SerialPanel({
         await connection.current?.disconnect();
         connection.current = null;
         setConnected(false);
+        onLockChange(null);
         setMessage("Porta disconnessa.");
         return;
       }
@@ -126,6 +97,7 @@ export function SerialPanel({
         throw new Error(
           "Per la seriale usa Chrome o Edge su Windows, in HTTPS o su localhost, sul PC collegato alla CNC.",
         );
+      onLockChange(machine!.id);
       const c = new SerialConnection(
         (text) => {
           setReceived((s) => (s + text).slice(-200000));
@@ -161,6 +133,7 @@ export function SerialPanel({
           : "Porta aperta. Imposta la CNC in ricezione prima di inviare.",
       );
     } catch (e) {
+      if (!connection.current) onLockChange(null);
       setError(true);
       setMessage(e instanceof Error ? e.message : String(e));
     } finally {
@@ -221,6 +194,7 @@ export function SerialPanel({
       } catch {}
       connection.current = null;
       setConnected(false);
+      onLockChange(null);
     } finally {
       setSending(false);
     }
@@ -261,126 +235,34 @@ export function SerialPanel({
             </p>
           </div>
         </div>
-        <fieldset disabled={connected || busy} className="serial-fields">
-          <label className="full">
-            Riferimento controllo
-            <select
-              value={profile}
-              onChange={(e) => {
-                setProfile(e.target.value);
-                setSettings(loadSettings(e.target.value));
-              }}
-            >
-              <option>Fanuc</option>
-              <option>Mitsubishi</option>
-              <option>Altro controllo ISO</option>
-            </select>
-          </label>
-          <p className="field-hint full">
-            {profile}: parametri indicativi. Imposta gli stessi valori presenti
-            sulla macchina.
-          </p>
+        <div className="transfer-machine">
           <label>
-            Baud rate
+            Macchina
             <select
-              value={settings.baudRate}
-              onChange={(e) => update("baudRate", +e.target.value)}
-            >
-              {[
-                110, 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600,
-                115200,
-              ].map((v) => (
-                <option key={v}>{v}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Bit dati
-            <select
-              value={settings.dataBits}
-              onChange={(e) => update("dataBits", +e.target.value as 7 | 8)}
-            >
-              <option>7</option>
-              <option>8</option>
-            </select>
-          </label>
-          <label>
-            Parità
-            <select
-              value={settings.parity}
-              onChange={(e) =>
-                update("parity", e.target.value as SerialSettings["parity"])
+              aria-label="Macchina per il trasferimento"
+              value={selectedId ?? ""}
+              disabled={
+                connected || busy || sending || receiving || !machines.length
               }
+              onChange={(event) => onSelectMachine(event.target.value)}
             >
-              <option value="even">Pari (Even)</option>
-              <option value="odd">Dispari (Odd)</option>
-              <option value="none">Nessuna</option>
-            </select>
-          </label>
-          <label>
-            Bit di stop
-            <select
-              value={settings.stopBits}
-              onChange={(e) => update("stopBits", +e.target.value as 1 | 2)}
-            >
-              <option>1</option>
-              <option>2</option>
-            </select>
-          </label>
-          <label className={mode === "receive" ? "full" : undefined}>
-            Controllo di flusso
-            <select
-              value={settings.flowControl}
-              onChange={(e) =>
-                update(
-                  "flowControl",
-                  e.target.value as SerialSettings["flowControl"],
-                )
-              }
-            >
-              <option value="software">XON / XOFF</option>
-              <option value="hardware">RTS / CTS</option>
-              <option value="none">Nessuno</option>
-            </select>
-          </label>
-          <label hidden={mode === "receive"}>
-            Fine riga
-            <select
-              value={settings.lineEnding}
-              onChange={(e) =>
-                update(
-                  "lineEnding",
-                  e.target.value as SerialSettings["lineEnding"],
-                )
-              }
-            >
-              <option>CRLF</option>
-              <option>LF</option>
-              <option>CR</option>
-            </select>
-          </label>
-          <label hidden={mode === "receive"}>
-            Pausa tra blocchi
-            <select
-              value={settings.delay}
-              onChange={(e) => update("delay", +e.target.value)}
-            >
-              {[0, 10, 25, 50, 100, 250].map((v) => (
-                <option key={v} value={v}>
-                  {v} ms
+              {!machines.length && (
+                <option value="">Nessuna macchina configurata</option>
+              )}
+              {machines.map((profile) => (
+                <option key={profile.id} value={profile.id}>
+                  {profile.name}
                 </option>
               ))}
             </select>
           </label>
-          <label className="check-label" hidden={mode === "receive"}>
-            <input
-              type="checkbox"
-              checked={settings.wrap}
-              onChange={(e) => update("wrap", e.target.checked)}
-            />
-            Delimitatori %
-          </label>
-        </fieldset>
+          <a className="manage-machines" href="#impostazioni">
+            <Settings2 size={14} />
+            {machines.length
+              ? "Gestisci macchine"
+              : "Configura la prima macchina"}
+          </a>
+        </div>
         {!getSerial() && (
           <div className="browser-note">
             La porta seriale richiede Chrome o Edge sul PC Windows collegato
@@ -389,7 +271,7 @@ export function SerialPanel({
         )}
         <button
           className="button connect-button"
-          disabled={busy || sending}
+          disabled={busy || sending || (!connected && !machine)}
           onClick={connect}
         >
           <Plug size={15} />

@@ -1,8 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { millSample } from "../../src/lib/samples";
+import { defaultSerial } from "../../src/lib/serial";
 
 async function mockSerial(page: Page) {
+  await page.addInitScript((settings) => {
+    localStorage.setItem("cnc.serial.Fanuc", JSON.stringify(settings));
+    localStorage.setItem("cnc.serial.profile", "Fanuc");
+  }, defaultSerial);
   await page.addInitScript(() => {
     const state = {
       bytes: [] as number[],
@@ -122,8 +127,10 @@ test("riceve in un documento vuoto, conserva il programma originale e salva i da
     page.getByRole("tab", { name: "O1001_piastra.nc", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   await inject(page, "10\r");
-  await page.getByRole("link", { name: "Ricezione", exact: true }).click();
+  await page.getByRole("link", { name: "Impostazioni", exact: true }).click();
+  await expect(page.getByLabel("Baud rate")).toBeDisabled();
   await inject(page, "\nM30\r\n%\r\n");
+  await page.getByRole("link", { name: "Ricezione", exact: true }).click();
   const program = "%\r\nO1234\r\nG1 X10\r\nM30\r\n%\r\n";
   await expect.poll(() => rawText(page)).toBe(program);
   await expect(

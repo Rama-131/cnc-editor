@@ -11,6 +11,7 @@ import {
   Plus,
   RotateCcw,
   Settings2,
+  Cable,
   Space,
   Undo2,
   Redo2,
@@ -27,6 +28,8 @@ import { Simulation } from "./components/Simulation";
 import { SerialPanel } from "./components/SerialPanel";
 import { ReceivedDocument } from "./components/ReceivedDocument";
 import { ProgramTabs } from "./components/ProgramTabs";
+import { MachineSettings } from "./components/MachineSettings";
+import { useMachineProfiles } from "./lib/useMachineProfiles";
 import { downloadText } from "./lib/files";
 import { useReceivedDocument } from "./lib/useReceivedDocument";
 import { useProgramDocuments } from "./lib/useProgramDocuments";
@@ -52,7 +55,8 @@ function readPalette(): Palette {
   } catch {}
   return defaultPalette;
 }
-function currentPage(): "workspace" | "serial" | "receive" {
+function currentPage(): "workspace" | "serial" | "receive" | "settings" {
+  if (window.location.hash === "#impostazioni") return "settings";
   if (window.location.hash === "#ricezione") return "receive";
   return window.location.hash === "#trasmissione" ? "serial" : "workspace";
 }
@@ -60,6 +64,7 @@ const pageTitle = {
   workspace: "Simulazione",
   serial: "Trasmissione",
   receive: "Ricezione",
+  settings: "Impostazioni",
 };
 
 export default function App() {
@@ -73,12 +78,15 @@ export default function App() {
     [search, setSearch] = useState(""),
     [notice, setNotice] = useState(""),
     [receiving, setReceiving] = useState(false),
+    [lockedMachine, setLockedMachine] = useState<string | null>(null),
+    [machineSettingsDirty, setMachineSettingsDirty] = useState(false),
     [history, setHistory] = useState<EditorHistory>({
       canUndo: false,
       canRedo: false,
     }),
     [tab, setTab] = useState(currentPage);
   const programs = useProgramDocuments(setNotice);
+  const machineProfiles = useMachineProfiles(setNotice);
   const { active, machine, diameter } = programs;
   const source = active?.source ?? "";
   const filename = active?.name ?? "programma.nc";
@@ -120,14 +128,19 @@ export default function App() {
   }, [palette]);
   useEffect(() => {
     const listener = (e: BeforeUnloadEvent) => {
-      if (programs.dirty || reception.dirty || receiving) {
+      if (
+        programs.dirty ||
+        reception.dirty ||
+        receiving ||
+        machineSettingsDirty
+      ) {
         e.preventDefault();
         e.returnValue = "";
       }
     };
     window.addEventListener("beforeunload", listener);
     return () => window.removeEventListener("beforeunload", listener);
-  }, [programs.dirty, reception.dirty, receiving]);
+  }, [programs.dirty, reception.dirty, receiving, machineSettingsDirty]);
   const onCursor = useCallback(
       (line: number, col: number) => setCursor({ line, col }),
       [],
@@ -135,6 +148,7 @@ export default function App() {
     onLine = useCallback((line: number | null) => setActiveLine(line), []);
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
+      if (tab === "settings") return;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
         event.preventDefault();
         if (tab === "receive") reception.save();
@@ -358,7 +372,7 @@ export default function App() {
           href="#trasmissione"
           aria-current={tab === "serial" ? "page" : undefined}
         >
-          <Settings2 size={21} />
+          <Cable size={21} />
         </a>
         <a
           className={tab === "receive" ? "rail-button active" : "rail-button"}
@@ -371,6 +385,15 @@ export default function App() {
           {receiving && <i className="status-dot" />}
         </a>
         <div className="rail-spacer" />
+        <a
+          className={tab === "settings" ? "rail-button active" : "rail-button"}
+          title="Impostazioni"
+          aria-label="Impostazioni"
+          href="#impostazioni"
+          aria-current={tab === "settings" ? "page" : undefined}
+        >
+          <Settings2 size={21} />
+        </a>
         <button
           className="rail-button"
           title="Guida codici G e M"
@@ -393,6 +416,7 @@ export default function App() {
             className="machine-select"
             role="group"
             aria-label="Impostazioni macchina"
+            hidden={tab !== "workspace"}
           >
             <span>Macchina</span>
             <select
@@ -414,7 +438,12 @@ export default function App() {
               </select>
             )}
           </div>
-          <div className="file-actions" role="group" aria-label="Comandi file">
+          <div
+            className="file-actions"
+            role="group"
+            aria-label="Comandi file"
+            hidden={tab === "settings"}
+          >
             <input
               hidden
               type="file"
@@ -471,7 +500,9 @@ export default function App() {
               <span className="file-action-label">Salva</span>
             </button>
           </div>
-          <div className="topbar-right">
+          <div
+            className={`topbar-right ${tab === "settings" ? "settings-topbar-right" : ""}`}
+          >
             <span className="local-pill">
               <i />
               Progetto locale
@@ -500,7 +531,7 @@ export default function App() {
               </button>
             </div>
           )}
-          {tab !== "receive" && (
+          {tab !== "receive" && tab !== "settings" && (
             <ProgramTabs
               documents={programs.documents}
               activeId={programs.activeId}
@@ -515,6 +546,7 @@ export default function App() {
           )}
           <div
             className={`workspace ${tab === "workspace" ? `simulation-page${simulationVisible ? "" : " editor-only"}` : "transmission-page"}`}
+            hidden={tab === "settings"}
           >
             <div className="editor-column" hidden={tab === "receive"}>
               {active ? (
@@ -715,6 +747,12 @@ export default function App() {
               <SerialPanel
                 source={source}
                 filename={filename}
+                machines={machineProfiles.machines}
+                selectedId={machineProfiles.selectedId}
+                onSelectMachine={(id) => {
+                  if (!lockedMachine) machineProfiles.select(id);
+                }}
+                onLockChange={setLockedMachine}
                 mode={tab === "receive" ? "receive" : "send"}
                 receiving={receiving}
                 receivedLength={reception.text.length}
@@ -723,6 +761,19 @@ export default function App() {
               />
             </div>
           </div>
+          <MachineSettings
+            machines={machineProfiles.machines}
+            lockedId={lockedMachine}
+            visible={tab === "settings"}
+            onDirtyChange={setMachineSettingsDirty}
+            onSave={(profile) =>
+              lockedMachine !== profile.id &&
+              machineProfiles.save(profile, !lockedMachine)
+            }
+            onDelete={(id) =>
+              lockedMachine !== id && machineProfiles.remove(id)
+            }
+          />
         </main>
       </div>
       {showGuide && (

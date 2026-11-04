@@ -29,11 +29,12 @@ Per i test dell’interfaccia: `npx playwright install chromium`, quindi `npm ru
 
 ## Editor
 
-L’app ha tre pagine, raggiungibili dalle icone **Simulazione**, **Trasmissione** e **Ricezione** nella barra laterale sinistra. Il nome della pagina compare al passaggio del mouse:
+L’app ha quattro pagine, raggiungibili dalle icone **Simulazione**, **Trasmissione**, **Ricezione** e **Impostazioni** nella barra laterale sinistra. Il nome della pagina compare al passaggio del mouse:
 
 - **Simulazione** (`#simulazione`): editor del programma e anteprima grafica del percorso.
-- **Trasmissione** (`#trasmissione`): lo stesso programma aperto, affiancato al configuratore e ai comandi seriali.
+- **Trasmissione** (`#trasmissione`): lo stesso programma aperto, affiancato alla scelta della macchina salvata e ai comandi seriali.
 - **Ricezione** (`#ricezione`): un documento inizialmente vuoto e indipendente, che si riempie con i dati inviati dalla macchina.
+- **Impostazioni** (`#impostazioni`): elenco delle proprie macchine con nome, controllo CNC e configurazione seriale.
 
 Il file, le modifiche non salvate, la cronologia annulla/ripristina e le impostazioni restano disponibili passando da una pagina all’altra. Il cambio pagina mette in pausa la simulazione e mantiene aperta la connessione seriale fino alla disconnessione esplicita. Funzionano anche i pulsanti Indietro/Avanti del browser e i link diretti alle pagine.
 
@@ -54,7 +55,7 @@ La barra superiore compatta riunisce nome della pagina, selezione della macchina
 - Il pulsante **Spazi** nella barra dell’editor separa le parole dei blocchi numerici, ad esempio `N10G1X20Z-5F0.2M8` diventa `N10 G1 X20 Z-5 F0.2 M8`. Funziona in Simulazione e Trasmissione, senza modificare valori, commenti o righe; Ctrl+Z annulla l’operazione. I blocchi con macro, stringhe, checksum o sintassi non riconosciuta rimangono invariati. I file aperti non vengono formattati automaticamente. Il simulatore legge già i codici numerici senza spazi: la formattazione migliora la leggibilità e non aggiunge il supporto a istruzioni non simulate.
 - Descrizioni dei codici G/M al passaggio del mouse e guida ricercabile. Le descrizioni distinguono tornio e fresatrice dove necessario, ad esempio G90 e G98/G99.
 - Annulla/ripristina; Ctrl+S salva il file, Ctrl+O apre un file.
-- Bozza, colori e configurazioni seriali separate per Fanuc, Mitsubishi e altro controllo vengono conservati nel browser con `localStorage`. Il salvataggio su disco rimane esplicito. Cancellare i dati del browser elimina la bozza locale.
+- Bozza, colori e macchine con le rispettive configurazioni seriali vengono conservati nel browser con `localStorage`. Il salvataggio dei programmi su disco rimane esplicito. Cancellare i dati del browser elimina anche queste configurazioni locali.
 - Il menu **Esempi** nella barra dell’editor contiene “Profilo fresatura” e “Profilo tornitura” per provare subito l’anteprima. Seleziona esplicitamente il tipo macchina quando apri un programma esterno.
 
 ## Simulazione geometrica
@@ -105,8 +106,12 @@ G-code, codici M e sintassi dei cicli variano per serie, opzioni e costruttore: 
 
 ## Trasferimento seriale
 
+In **Impostazioni**, crea una macchina con **+**, assegna un nome riconoscibile (ad esempio “Tornio Fanuc”) e scegli controllo CNC e parametri seriali. **Salva macchina** oppure Ctrl+S conferma le modifiche; i cambiamenti non salvati non vengono applicati ai trasferimenti. Puoi registrare più macchine anche con lo stesso tipo di controllo, modificarle ed eliminarle. Le precedenti configurazioni Fanuc/Mitsubishi/altro controllo vengono recuperate automaticamente come macchine, mantenendo i parametri già salvati.
+
+Trasmissione e Ricezione mostrano soltanto il menu **Macchina** e i comandi di collegamento/trasferimento. La selezione è condivisa tra le due pagine e viene ripristinata dopo il ricaricamento. Mentre la porta è collegata, la macchina selezionata non può essere cambiata, modificata o eliminata; puoi comunque gestire le altre macchine e cambiare pagina senza interrompere la connessione o la ricezione. La porta fisica COM resta una scelta del browser a ogni collegamento.
+
 1. Collega il PC alla CNC con una porta COM oppure un adattatore USB–RS-232 e un cavo con piedinatura adatta al controllo.
-2. Imposta sul programma gli stessi parametri del controllo: baud rate, 7/8 bit dati, parità, 1/2 stop bit, controllo di flusso, fine riga e delimitatori `%`. “Fanuc” e “Mitsubishi” sono riferimenti descrittivi: non identificano automaticamente la macchina né impongono valori universali.
+2. In **Impostazioni**, salva una macchina con gli stessi parametri del controllo: baud rate, 7/8 bit dati, parità, 1/2 stop bit, controllo di flusso, fine riga, pausa tra blocchi e delimitatori `%`. In **Trasmissione**, seleziona la macchina salvata. “Fanuc” e “Mitsubishi” sono riferimenti descrittivi: non identificano automaticamente la macchina né impongono valori universali.
 3. Premi **Seleziona e collega porta** e scegli la porta nel selettore del browser. Il browser gestisce i permessi locali, senza un server che acceda alla COM.
 4. Metti il controllo nella modalità di ricezione prevista dal suo manuale, quindi premi **Invia programma alla macchina**.
 5. Verifica sul controllo che nome, contenuto e fine programma siano stati ricevuti correttamente. “Dati scritti sulla porta” indica che il browser ha completato la scrittura, non un riscontro di accettazione del CNC.
@@ -116,7 +121,7 @@ Sono implementati flusso hardware RTS/CTS, software XON/XOFF (DC1/DC3), pausa co
 ## Ricezione dei programmi dalla CNC
 
 1. Apri **Ricezione**. Il documento ricevuto è separato dal programma aperto nell’editor; la prima volta è vuoto. Una precedente bozza di ricezione viene ripristinata senza attivare la porta.
-2. Configura gli stessi parametri seriali presenti sulla CNC e premi **Seleziona e collega porta**. Trasmissione e ricezione condividono una sola connessione, mantenuta passando fra le pagine.
+2. Scegli la macchina configurata in **Impostazioni** e premi **Seleziona e collega porta**. Trasmissione e ricezione condividono una sola connessione, mantenuta passando fra le pagine.
 3. Premi **Avvia ricezione**, poi avvia l’uscita/invio del programma dalla macchina con la procedura prevista dal controllo. Con XON/XOFF il PC invia XON (DC1) per dichiararsi pronto; con RTS/CTS il flusso hardware è gestito dal driver seriale.
 4. Il testo compare progressivamente, con evidenziazione G-code e conteggio dei caratteri. **Segui dati** mantiene visibile la fine del documento. Puoi cambiare pagina mentre la ricezione continua; l’invio di un programma dal PC rimane disabilitato finché ricevi.
 5. Attendi che la CNC abbia terminato l’invio, premi **Termina ricezione**, verifica il programma e usa **Salva** nella barra superiore. Puoi scegliere il nome del file `.nc`. Ctrl+S nella pagina Ricezione salva questo documento. La fine dell’acquisizione è manuale: l’app non presume che una pausa, M30 o `%` garantiscano la fine dell’invio.
@@ -136,7 +141,8 @@ Per modificare o simulare un file ricevuto, salvalo e aprilo dalla pagina Simula
 - `src/lib/simulator.ts`: interprete geometrico indipendente dall’interfaccia.
 - `src/lib/serial.ts`: trasporto Web Serial e codifica del programma.
 - `src/lib/codes.ts`: descrizioni G/M.
-- `src/components/`: editor CodeMirror, anteprima SVG, configuratore seriale.
+- `src/lib/machineProfiles.ts`: macchine salvate e recupero delle precedenti configurazioni seriali.
+- `src/components/`: editor CodeMirror, anteprima SVG, impostazioni macchine e comandi seriali.
 - `tests/`: test Vitest e flussi browser Playwright.
 
 Lo sviluppo usa il checkout esistente, senza necessità di worktree aggiuntivi. Non sono necessari account, segreti, database o servizi esterni per l’applicazione.

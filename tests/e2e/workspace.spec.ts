@@ -100,16 +100,48 @@ test("configuratore e trasmissione con una porta seriale di test", async ({
     });
   });
   await page.goto("/");
-  await page.getByRole("link", { name: "Trasmissione", exact: true }).click();
+  await page.getByRole("link", { name: "Impostazioni", exact: true }).click();
+  await page.getByLabel("Nome macchina", { exact: true }).fill("Tornio Fanuc");
   await page.getByLabel("Baud rate").selectOption("4800");
-  await page.getByLabel("Riferimento controllo").selectOption("Mitsubishi");
-  await expect(page.getByLabel("Baud rate")).toHaveValue("9600");
-  await page.getByLabel("Riferimento controllo").selectOption("Fanuc");
-  await expect(page.getByLabel("Baud rate")).toHaveValue("4800");
   await page.getByLabel("Controllo di flusso").selectOption("hardware");
+  await page
+    .getByRole("button", { name: "Salva macchina", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Nuova macchina", exact: true })
+    .click();
+  await page
+    .getByLabel("Nome macchina", { exact: true })
+    .fill("Fresa Mitsubishi");
+  await page.getByLabel("Controllo CNC").selectOption("Mitsubishi");
+  await page.getByLabel("Baud rate").selectOption("19200");
+  await page.getByLabel("Bit dati").selectOption("8");
+  await page.getByLabel("Parità").selectOption("odd");
+  await page.getByLabel("Bit di stop").selectOption("1");
+  await page.getByLabel("Controllo di flusso").selectOption("none");
+  await page.getByLabel("Fine riga").selectOption("LF");
+  await page.getByLabel("Pausa tra blocchi").selectOption("0");
+  await page.getByLabel("Delimitatori %").uncheck();
+  await page
+    .getByRole("button", { name: "Salva macchina", exact: true })
+    .click();
+  await page.getByRole("link", { name: "Trasmissione", exact: true }).click();
+  await page
+    .getByLabel("Macchina per il trasferimento")
+    .selectOption({ label: "Tornio Fanuc" });
+  await expect(page.getByLabel("Baud rate")).toBeHidden();
   await page.getByRole("button", { name: "Seleziona e collega porta" }).click();
   await expect(page.getByText("Collegato", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Macchina per il trasferimento")).toBeDisabled();
+  await page.getByRole("link", { name: "Impostazioni", exact: true }).click();
+  await page
+    .locator(".machine-item")
+    .filter({ hasText: "Tornio Fanuc" })
+    .click();
   await expect(page.getByLabel("Baud rate")).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Elimina macchina", exact: true }),
+  ).toBeDisabled();
   await page.getByRole("link", { name: "Simulazione", exact: true }).click();
   await expect(page.locator(".serial-column")).toBeHidden();
   expect(
@@ -121,7 +153,9 @@ test("configuratore e trasmissione con una porta seriale di test", async ({
   ).toBe(false);
   await page.getByRole("link", { name: "Trasmissione", exact: true }).click();
   await expect(page.getByText("Collegato", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Baud rate")).toHaveValue("4800");
+  await expect(
+    page.getByLabel("Macchina per il trasferimento").locator("option:checked"),
+  ).toHaveText("Tornio Fanuc");
   await page
     .getByRole("button", { name: "Invia programma alla macchina" })
     .click();
@@ -156,6 +190,41 @@ test("configuratore e trasmissione con una porta seriale di test", async ({
   await expect(
     page.getByRole("button", { name: "Seleziona e collega porta" }),
   ).toBeVisible();
+  await page
+    .getByLabel("Macchina per il trasferimento")
+    .selectOption({ label: "Fresa Mitsubishi" });
+  await page
+    .getByRole("textbox", { name: "Editor programma G-code" })
+    .fill("O4321\nG1 X2\nM30");
+  await page.getByRole("button", { name: "Seleziona e collega porta" }).click();
+  await page
+    .getByRole("button", { name: "Invia programma alla macchina" })
+    .click();
+  await expect(
+    page.getByText(
+      "Dati scritti sulla porta. Verifica la ricezione sul controllo CNC.",
+    ),
+  ).toBeVisible();
+  const second = await page.evaluate(
+    () =>
+      (
+        window as unknown as {
+          serialTest: { options: Record<string, unknown>; bytes: number[] };
+        }
+      ).serialTest,
+  );
+  expect(second.options).toMatchObject({
+    baudRate: 19200,
+    dataBits: 8,
+    parity: "odd",
+    stopBits: 1,
+    flowControl: "none",
+  });
+  expect(
+    new TextDecoder().decode(
+      new Uint8Array(second.bytes.slice(state.bytes.length)),
+    ),
+  ).toBe("O4321\nG1 X2\nM30\n");
 });
 test("interfaccia utilizzabile su schermo stretto", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });

@@ -41,9 +41,17 @@ test("trasmette il programma della scheda selezionata e disabilita l’invio qua
     });
   });
   await page.goto("/");
+  await page.getByRole("link", { name: "Impostazioni", exact: true }).click();
+  await page
+    .getByLabel("Nome macchina", { exact: true })
+    .fill("Macchina di prova");
+  await page.getByLabel("Controllo di flusso").selectOption("hardware");
+  await page
+    .getByRole("button", { name: "Salva macchina", exact: true })
+    .click();
+  await page.getByRole("link", { name: "Simulazione", exact: true }).click();
   await openPair(page);
   await page.getByRole("link", { name: "Trasmissione", exact: true }).click();
-  await page.getByLabel("Controllo di flusso").selectOption("hardware");
   await page
     .getByRole("button", { name: "Seleziona e collega porta", exact: true })
     .click();
