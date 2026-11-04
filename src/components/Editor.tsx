@@ -37,6 +37,7 @@ import {
 } from "@codemirror/search";
 import { codeInfo, type Machine } from "../lib/codes";
 import { gcodeSpacingChanges } from "../lib/gcodeSpacing";
+import { createEditorSearchPanel } from "../lib/editorSearchPanel";
 import {
   adjustmentChanges,
   adjacentToolChange,
@@ -318,7 +319,11 @@ export function Editor({
         highlightActiveLine(),
         highlightActiveLineGutter(),
         simulationLineField,
-        search({ top: true, literal: true }),
+        search({
+          top: true,
+          literal: true,
+          createPanel: createEditorSearchPanel,
+        }),
         EditorState.phrases.of({
           Find: "Trova testo",
           Replace: "Sostituisci con",
