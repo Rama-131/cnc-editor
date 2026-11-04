@@ -38,7 +38,9 @@ L’app ha quattro pagine, raggiungibili dalle icone **Simulazione**, **Trasmiss
 
 Il file, le modifiche non salvate, la cronologia annulla/ripristina e le impostazioni restano disponibili passando da una pagina all’altra. Il cambio pagina mette in pausa la simulazione e mantiene aperta la connessione seriale fino alla disconnessione esplicita. Funzionano anche i pulsanti Indietro/Avanti del browser e i link diretti alle pagine.
 
-Puoi selezionare **più file insieme** con Apri oppure aggiungerli uno alla volta. Ogni programma compare in una **scheda in alto**, con la propria crocetta di chiusura; clicca sul nome per attivarlo. Ogni scheda conserva testo, cursore, scorrimento, cronologia delle modifiche e impostazioni Fresatrice/Tornio e diametro/raggio. Le frecce della tastiera cambiano scheda quando il nome ha il focus. **+** crea un nuovo programma. La chiusura chiede conferma se il testo contiene modifiche non salvate; chiudendo tutte le schede compare un’area vuota pronta per aprire altri file.
+Puoi selezionare **più file insieme** con Apri oppure aggiungerli uno alla volta. Ogni programma compare in una **scheda in alto**, con la propria crocetta di chiusura; clicca sul nome per attivarlo. Ogni scheda conserva testo, cursore, scorrimento, cronologia delle modifiche e impostazioni Fresatrice/Tornio e diametro/raggio. Le frecce della tastiera cambiano scheda quando il nome ha il focus. **+ Nuovo** crea un nuovo programma: si trova subito dopo l’ultima scheda, si sposta con i file aperti e scorre insieme a loro. La chiusura chiede conferma se il testo contiene modifiche non salvate; chiudendo tutte le schede compare un’area vuota pronta per aprire altri file.
+
+Il testo del programma usa un carattere monospaziato da **15 px**, con interlinea compatta e numeri di riga allineati.
 
 La scheda del programma attivo è **blu con nome e icone bianchi**; le schede inattive mantengono i colori scuri. La barra unica sotto le schede presenta **icone con il nome del comando sotto**, raggruppate in Modifica, Parametri, Trova, Utensili e Aspetto. Occupa la larghezza dell’area di lavoro per rendere leggibili i comandi anche con la simulazione aperta.
 

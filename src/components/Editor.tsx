@@ -435,14 +435,14 @@ export function Editor({
           {
             "&": {
               height: "100%",
-              fontSize: "13px",
+              fontSize: "15px",
               backgroundColor: "#12161c",
               color: "#d7dee7",
             },
             ".cm-scroller": {
               fontFamily:
                 '"Cascadia Code", "SFMono-Regular", Consolas, monospace',
-              lineHeight: "1.9",
+              lineHeight: "1.75",
             },
             ".cm-content": { padding: "10px 0" },
             ".cm-gutters": {

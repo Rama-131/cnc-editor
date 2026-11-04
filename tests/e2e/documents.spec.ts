@@ -204,6 +204,14 @@ test("la crocetta protegge le modifiche anche di una scheda inattiva e permette 
   ).toBeDisabled();
   await page.reload();
   await expect(page.getByRole("tab")).toHaveCount(0);
+  const newButton = page.getByRole("button", {
+    name: "Nuovo programma",
+    exact: true,
+  });
+  const emptyPosition = (await newButton.boundingBox())!.x;
+  expect(
+    emptyPosition - (await page.locator(".program-tabs-bar").boundingBox())!.x,
+  ).toBeLessThan(12);
   await page
     .getByRole("button", { name: "Nuovo programma", exact: true })
     .click();
@@ -211,6 +219,8 @@ test("la crocetta protegge le modifiche anche di una scheda inattiva e permette 
     page.getByRole("tab", { name: "nuovo_programma.txt", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("textbox", { name: editorName })).toBeVisible();
+  const firstPosition = (await newButton.boundingBox())!.x;
+  expect(firstPosition).toBeGreaterThan(emptyPosition + 100);
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Salva file", exact: true }).click();
   expect((await download).suggestedFilename()).toBe("nuovo_programma.txt");
@@ -227,6 +237,15 @@ test("la crocetta protegge le modifiche anche di una scheda inattiva e permette 
   await expect(
     page.getByRole("tab", { name: "nuovo_programma_2.txt", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
+  const secondPosition = (await newButton.boundingBox())!.x;
+  expect(secondPosition).toBeGreaterThan(firstPosition + 100);
+  const lastTab = (await page.locator(".program-tab").last().boundingBox())!;
+  expect(secondPosition - lastTab.x - lastTab.width).toBeLessThan(12);
+  page.once("dialog", (d) => d.accept());
+  await page
+    .getByRole("button", { name: "Chiudi nuovo_programma_2.txt", exact: true })
+    .click();
+  expect((await newButton.boundingBox())!.x).toBeLessThan(secondPosition - 100);
 });
 
 test("nasconde e riapre la simulazione a tutta larghezza e ripristina le schede dopo il ricaricamento", async ({
@@ -316,6 +335,9 @@ test("le schede scorrono senza allargare la pagina sui piccoli schermi e si navi
     exact: true,
   });
   await expect(selected).toHaveAttribute("aria-selected", "true");
+  await expect(
+    page.getByRole("button", { name: "Nuovo programma", exact: true }),
+  ).toBeInViewport();
   await expect(
     page.getByRole("button", {
       name: "Chiudi programma-lungo-numero-4.nc",

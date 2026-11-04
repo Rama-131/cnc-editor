@@ -446,6 +446,10 @@ main {
   border-right: 1px solid var(--line);
   color: #91a0af;
 }
+.program-tab-list {
+  display: flex;
+  flex-shrink: 0;
+}
 .program-tab.active {
   background: #096bb6;
   color: #ffffff;
@@ -521,7 +525,6 @@ main {
   gap: 4px;
   padding: 0 6px;
   flex-shrink: 0;
-  border-left: 1px solid var(--line);
 }
 .new-program-button {
   display: inline-flex;
