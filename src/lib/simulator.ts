@@ -7,11 +7,15 @@ export type Segment = {
   rapid: boolean;
   line: number;
   origin: WorkOrigin | null;
+  workShift: Point | null;
 };
 export type SimulationStep = {
-  kind: "motion" | "origin";
+  kind: "motion" | "origin" | "auxiliary";
+  action?: string;
   line: number;
   origin: WorkOrigin | null;
+  workShift: Point | null;
+  spindleLimit: number | null;
   position: Point;
   segmentCount: number;
 };
@@ -43,6 +47,9 @@ export function simulate(
     plane: 17 | 18 | 19 = machine === "lathe" ? 18 : 17,
     distance = 0;
   let origin: WorkOrigin | null = null;
+  let workShift: Point | null = null;
+  let spindleLimit: number | null = null;
+  let hasPosition = false;
   let ended = false;
   function fail(line: number, message: string) {
     issues.push({ line, message });
@@ -50,16 +57,35 @@ export function simulate(
   function add(to: Point, rapid: boolean, line: number) {
     const from = { ...pos };
     distance += Math.hypot(to.x - from.x, to.y - from.y, to.z - from.z);
-    const segment = { from, to: { ...to }, rapid, line, origin };
+    const segment = { from, to: { ...to }, rapid, line, origin, workShift };
     segments.push(segment);
     steps.push({
       kind: "motion",
       line,
       origin,
+      workShift,
+      spindleLimit,
       position: segment.to,
       segmentCount: segments.length,
     });
     pos = { ...to };
+    hasPosition = true;
+  }
+  function recordState(
+    kind: "origin" | "auxiliary",
+    line: number,
+    action?: string,
+  ) {
+    steps.push({
+      kind,
+      action,
+      line,
+      origin,
+      workShift,
+      spindleLimit,
+      position: { ...pos },
+      segmentCount: segments.length,
+    });
   }
   const lines = source.split(/\r?\n/);
   for (let n = 0; n < lines.length; n++) {
@@ -101,6 +127,88 @@ export function simulate(
       else if (w[1] === "M") ms.push(v);
       else vals[w[1]] = v;
     }
+    if (gs.includes(10)) {
+      if (machine !== "lathe") {
+        fail(
+          line,
+          "G10 P0 Fanuc è supportato in modalità Tornio · XZ. Anteprima interrotta.",
+        );
+        break;
+      }
+      const addresses = words.map((w) => w[1]);
+      if (
+        gs.length !== 1 ||
+        ms.length ||
+        vals.P !== 0 ||
+        new Set(addresses).size !== addresses.length ||
+        Object.keys(vals).some(
+          (k) => !["N", "P", "X", "Z", "U", "W"].includes(k),
+        ) ||
+        !["X", "Z", "U", "W"].some((k) => k in vals) ||
+        ("X" in vals && "U" in vals) ||
+        ("Z" in vals && "W" in vals)
+      ) {
+        fail(
+          line,
+          "G10: supportato P0 con X/Z assoluti o U/W incrementali, in un blocco separato. Anteprima interrotta.",
+        );
+        break;
+      }
+      const previous: Point = workShift ?? { x: 0, y: 0, z: 0 };
+      const next: Point = { ...previous };
+      const xScale = unit * (diameter ? 0.5 : 1);
+      if ("X" in vals) next.x = vals.X * xScale;
+      if ("Z" in vals) next.z = vals.Z * unit;
+      if ("U" in vals) next.x += vals.U * xScale;
+      if ("W" in vals) next.z += vals.W * unit;
+      const nextPosition: Point = hasPosition
+        ? {
+            x: pos.x - (next.x - previous.x),
+            y: pos.y,
+            z: pos.z - (next.z - previous.z),
+          }
+        : { ...pos };
+      if (
+        ![...Object.values(next), ...Object.values(nextPosition)].every(
+          (v) => Number.isFinite(v) && Math.abs(v) <= 1000000,
+        )
+      ) {
+        fail(line, "Spostamento G10 P0 non valido. Anteprima interrotta.");
+        break;
+      }
+      // G10 writes the external work shift, not a motion or a modal G0/G1.
+      // Before the first motion, entry at local zero remains conventional.
+      pos = nextPosition;
+      workShift = next;
+      recordState("origin", line);
+      continue;
+    }
+    if (gs.includes(92)) {
+      const addresses = words.map((w) => w[1]);
+      if (
+        machine !== "lathe" ||
+        gs.length !== 1 ||
+        ms.length ||
+        new Set(addresses).size !== addresses.length ||
+        Object.keys(vals).some((k) => !["N", "S"].includes(k)) ||
+        !Number.isFinite(vals.S) ||
+        vals.S <= 0 ||
+        vals.S > 1000000
+      ) {
+        fail(
+          line,
+          "G92: supportato sul tornio solo S positivo per il limite giri, in un blocco separato. Cicli di filettatura e impostazioni coordinate non simulati.",
+        );
+        break;
+      }
+      spindleLimit = vals.S;
+      recordState(
+        "auxiliary",
+        line,
+        `Limite mandrino · ${spindleLimit} giri/min`,
+      );
+      continue;
+    }
     const allowedG = [
       0, 1, 2, 3, 4, 17, 18, 19, 20, 21, 40, 49, 54, 55, 56, 57, 58, 59, 80, 90,
       91, 94, 95, 96, 97, 98, 99,
@@ -117,7 +225,22 @@ export function simulate(
       break;
     }
     const unknownM = ms.find(
-      (m) => ![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 19, 30].includes(m),
+      (m) =>
+        ![
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          19,
+          30,
+          ...(machine === "lathe" ? [26] : []),
+        ].includes(m),
     );
     if (unknownM !== undefined) {
       fail(line, `M${unknownM} non simulato. Anteprima interrotta.`);
@@ -173,15 +296,10 @@ export function simulate(
         // Each work origin is previewed independently in local coordinates.
         // Machine offsets and entry positions between origins are unknown.
         pos = { x: 0, y: 0, z: 0 };
+        hasPosition = false;
         origin = selected;
       }
-      steps.push({
-        kind: "origin",
-        line,
-        origin,
-        position: { ...pos },
-        segmentCount: segments.length,
-      });
+      recordState("origin", line);
     }
     if (gs.includes(4)) continue;
     const hasAxis = axes.some((a) => a in vals) || "U" in vals || "W" in vals;
@@ -202,6 +320,12 @@ export function simulate(
       break;
     }
     if (!hasAxis && !hasArc) {
+      if (ms.includes(26))
+        recordState(
+          "auxiliary",
+          line,
+          "Contropunta avanti · movimento non rappresentato",
+        );
       if (ms.some((m) => m === 2 || m === 30)) ended = true;
       continue;
     }

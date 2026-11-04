@@ -8,7 +8,7 @@ import {
   Minus,
   ScanLine,
 } from "lucide-react";
-import type { Point, Simulation as Result } from "../lib/simulator";
+import type { Point, Segment, Simulation as Result } from "../lib/simulator";
 import type { Machine } from "../lib/codes";
 type View = "ISO" | "XY" | "XZ" | "YZ";
 const project = (p: Point, v: View): [number, number] =>
@@ -139,6 +139,8 @@ export function Simulation({
   const currentPoint =
     count > 0 ? step?.position : (result.segments[0]?.from ?? step?.position);
   const activeOrigin = step?.origin ?? null;
+  const activeShift = step?.workShift ?? null;
+  const originLabel = activeOrigin ?? (activeShift ? "G10 P0" : null);
   const visibleSegments = count > 0 ? (step?.segmentCount ?? 0) : 0;
   const hasMultipleOrigins = useMemo(
     () => new Set(result.steps.map((step) => step.origin)).size > 1,
@@ -149,9 +151,11 @@ export function Simulation({
     onLine(currentLine);
   }, [currentLine, onLine]);
   const drawing = useMemo(() => {
-    const localSegments = result.segments.filter(
-      (s) => s.origin === activeOrigin,
-    );
+    const sameCoordinates = (s: Segment) =>
+      s.origin === activeOrigin &&
+      s.workShift?.x === activeShift?.x &&
+      s.workShift?.z === activeShift?.z;
+    const localSegments = result.segments.filter(sameCoordinates);
     const points = localSegments.flatMap((s) => [
       project(s.from, view),
       project(s.to, view),
@@ -179,7 +183,7 @@ export function Simulation({
     const path = (rapid: boolean) =>
       result.segments
         .slice(0, visibleSegments)
-        .filter((s) => s.origin === activeOrigin && s.rapid === rapid)
+        .filter((s) => sameCoordinates(s) && s.rapid === rapid)
         .map((s) => {
           const a = at(project(s.from, view)),
             b = at(project(s.to, view));
@@ -203,7 +207,15 @@ export function Simulation({
       ),
       segmentCount: localSegments.length,
     };
-  }, [result, view, zoom, visibleSegments, currentPoint, activeOrigin]);
+  }, [
+    result,
+    view,
+    zoom,
+    visibleSegments,
+    currentPoint,
+    activeOrigin,
+    activeShift,
+  ]);
   return (
     <section className="simulation panel">
       <div className="panel-head">
@@ -258,8 +270,19 @@ export function Simulation({
         <div className="viewport-label">
           {view === "ISO" ? "VISTA ISOMETRICA" : `PIANO ${view}`}
           <span>
-            Coordinate locali · {activeOrigin ?? "origine non indicata"} · mm
+            Coordinate locali · {originLabel ?? "origine non indicata"} · mm
           </span>
+          {activeShift && (
+            <span className="work-shift-label">
+              Spostamento G10 P0 · X {activeShift.x.toFixed(3)} · Z{" "}
+              {activeShift.z.toFixed(3)} mm
+            </span>
+          )}
+          {step?.spindleLimit != null && (
+            <span className="spindle-limit-label">
+              Limite mandrino · {step.spindleLimit} giri/min
+            </span>
+          )}
         </div>
         <svg
           viewBox="0 0 640 410"
@@ -324,14 +347,14 @@ export function Simulation({
           <g
             className="work-origin"
             aria-label={
-              activeOrigin
-                ? `Origine attiva ${activeOrigin}`
+              originLabel
+                ? `Origine attiva ${originLabel}`
                 : "Zero pezzo: origine non indicata nel programma"
             }
           >
             <title>
-              {activeOrigin
-                ? `Zero pezzo ${activeOrigin}`
+              {originLabel
+                ? `Zero pezzo ${originLabel}`
                 : "Zero pezzo: origine non indicata nel programma"}
             </title>
             <path
@@ -340,9 +363,9 @@ export function Simulation({
               strokeWidth="1.8"
             />
             <text
-              x={drawing.origin[0] - 12}
+              x={drawing.origin[0] + (drawing.origin[0] < 120 ? 12 : -12)}
               y={drawing.origin[1] - 14}
-              textAnchor="end"
+              textAnchor={drawing.origin[0] < 120 ? "start" : "end"}
               fill="#f4d35e"
               fontSize="18"
               fontWeight="700"
@@ -352,9 +375,9 @@ export function Simulation({
               paintOrder="stroke"
             >
               <tspan className="work-origin-zero">0</tspan>
-              {activeOrigin && (
+              {originLabel && (
                 <tspan className="work-origin-code" dx="7" fontSize="16">
-                  {activeOrigin}
+                  {originLabel}
                 </tspan>
               )}
             </text>
@@ -452,7 +475,10 @@ export function Simulation({
         ) : (
           <>
             <span className="status-dot" />
-            <span>Anteprima geometrica · {drawing.segmentCount} segmenti</span>
+            <span>
+              {step?.action ??
+                `Anteprima geometrica · ${drawing.segmentCount} segmenti`}
+            </span>
           </>
         )}
       </div>
@@ -463,7 +489,9 @@ export function Simulation({
         Cicli, macro e compensazioni non simulati. I rapidi reali possono
         differire.
         {hasMultipleOrigins &&
-          " Ogni origine è mostrata separatamente, con partenza convenzionale da zero; gli offset macchina non sono applicati."}
+          " Ogni origine è mostrata separatamente, con partenza convenzionale da zero; gli offset G54–G59 presenti sulla macchina non sono noti."}
+        {activeShift &&
+          " G10 P0: gli spostamenti programmati sono applicati alle quote locali; shift iniziale e posizione di ingresso sono assunti a zero per l’anteprima. Le viste dei diversi spostamenti sono separate."}
       </p>
     </section>
   );

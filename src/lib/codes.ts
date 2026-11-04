@@ -20,6 +20,10 @@ const common: Record<string, [string, string]> = {
     "Sosta temporizzata",
     "Introduce una pausa. Le unità del parametro P dipendono dal controllo.",
   ],
+  G10: [
+    "Impostazione dati programmata",
+    "Scrive dati di origine o correttori secondo il controllo e i parametri del blocco. L’anteprima supporta G10 P0 per lo spostamento origine del tornio Fanuc; altre forme non sono simulate.",
+  ],
   G17: ["Piano XY", "Seleziona il piano XY per le interpolazioni circolari."],
   G18: [
     "Piano ZX",
@@ -135,13 +139,21 @@ const common: Record<string, [string, string]> = {
   ],
 };
 const turning: Record<string, [string, string]> = {
+  M26: [
+    "Contropunta avanti",
+    "Nella configurazione tornio di questa app comanda la contropunta avanti, secondo la funzione indicata per la macchina. L’anteprima registra il blocco senza rappresentare il movimento della contropunta. L’associazione M26 dipende dal costruttore e non è universale Fanuc.",
+  ],
+  G10: [
+    "Spostamento origine programmato",
+    "Su tornio Fanuc, G10 P0 imposta lo spostamento esterno dell’origine: X/Z sono valori assoluti, U/W sono variazioni incrementali. Non muove gli assi e non seleziona G54. L’anteprima supporta questa forma, con shift iniziale e ingresso convenzionali a zero; altre forme G10 non sono simulate.",
+  ],
   G90: [
     "Ciclo di tornitura longitudinale",
     "Su molti torni Fanuc è un ciclo di tornitura, non la selezione di quote assolute. Non simulato.",
   ],
   G92: [
     "Ciclo di filettatura / limite giri",
-    "Il significato varia con la serie del controllo. Non simulato.",
+    "Nella configurazione tornio di questa app, G92 S imposta il limite giri mandrino; ad esempio G92 S1200 limita a 1200 giri/min. L’anteprima registra il limite senza calcolare tempi o giri effettivi. Le forme con coordinate possono indicare cicli di filettatura e non sono simulate.",
   ],
   G50: [
     "Limite giri / coordinate",
