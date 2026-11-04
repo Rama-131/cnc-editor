@@ -100,12 +100,12 @@ export type EditorHandle = {
   adjust: (word: AdjustmentWord, value: string, range?: TextRange) => number;
 };
 export const defaultPalette: Palette = {
-  g: "#70b7ff",
-  m: "#c99aff",
-  axis: "#64dcb6",
-  value: "#f3c978",
+  g: "#4fa9ff",
+  m: "#ff6be8",
+  axis: "#42e8ff",
+  value: "#ffe55b",
   comment: "#7dff6a",
-  tool: "#f0a57d",
+  tool: "#ff9e45",
 };
 const language = StreamLanguage.define({
   startState: () => ({ comment: false }),

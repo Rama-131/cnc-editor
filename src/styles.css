@@ -262,6 +262,99 @@ main {
   gap: 6px;
   font-size: 11px;
 }
+.save-as-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 0;
+  border: 1px solid #465b6e;
+  border-radius: 12px;
+  background: #18232d;
+  color: #deebf4;
+  box-shadow: 0 24px 90px #0009;
+  overflow-y: auto;
+}
+.save-as-dialog::backdrop {
+  background: #050b12bb;
+  backdrop-filter: blur(3px);
+}
+.save-as-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #344553;
+  color: #a7e6c2;
+}
+.save-as-heading h2 {
+  flex: 1;
+  margin: 0;
+  color: #e0edf6;
+  font-size: 17px;
+  font-weight: 550;
+}
+.save-as-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+}
+.save-as-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #b1c4d2;
+  font-size: 12px;
+}
+.save-as-fields input,
+.save-as-fields select {
+  width: 100%;
+  min-width: 0;
+  min-height: 38px;
+  padding: 8px 10px;
+  border: 1px solid #4b6070;
+  border-radius: 5px;
+  background: #111b24;
+  color: #edf5fb;
+  font-size: 15px;
+}
+.save-as-fields input {
+  font-family: "Cascadia Code", Consolas, monospace;
+}
+.save-as-preview {
+  padding: 10px 12px;
+  border: 1px solid #344b5b;
+  border-radius: 5px;
+  background: #15212b;
+}
+.save-as-preview span {
+  display: block;
+  margin-bottom: 5px;
+  color: #8fa8ba;
+  font-size: 11px;
+}
+.save-as-preview output {
+  color: #c6e7f8;
+  font-family: "Cascadia Code", Consolas, monospace;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.save-as-hint,
+.save-as-error {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #95aebf;
+}
+.save-as-error {
+  color: #ffb59e;
+}
+.save-as-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 13px 18px;
+  border-top: 1px solid #344553;
+}
 .button {
   display: flex;
   align-items: center;
@@ -2197,5 +2290,14 @@ main {
   .file-actions .button {
     width: 32px;
     padding: 0;
+  }
+}
+@media (max-width: 360px) {
+  .topbar .brand {
+    display: none;
+  }
+  .topbar .app-context h1 {
+    padding-left: 0;
+    border-left: 0;
   }
 }

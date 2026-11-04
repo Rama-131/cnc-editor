@@ -23,6 +23,7 @@ import {
   StepForward,
   PanelRightClose,
   PanelRightOpen,
+  Save,
   X,
 } from "lucide-react";
 import {
@@ -39,6 +40,7 @@ import { ReceivedDocument } from "./components/ReceivedDocument";
 import { ProgramTabs } from "./components/ProgramTabs";
 import { MachineSettings } from "./components/MachineSettings";
 import { ProgramAdjustment } from "./components/ProgramAdjustment";
+import { SaveAsDialog } from "./components/SaveAsDialog";
 import type { AdjustmentWord, TextRange } from "./lib/programTools";
 import { useMachineProfiles } from "./lib/useMachineProfiles";
 import { downloadText } from "./lib/files";
@@ -62,14 +64,21 @@ function readPalette(): Palette {
       p &&
       Object.keys(defaultPalette).every((k) => /^#[a-f\d]{6}$/i.test(p[k]))
     ) {
-      // Upgrade the previous default without replacing custom comment colors.
-      return {
-        ...p,
-        comment:
-          p.comment.toLowerCase() === "#798593"
-            ? defaultPalette.comment
-            : p.comment,
+      // Refresh old defaults without replacing colors chosen by the user.
+      const previousDefaults: Palette = {
+        g: "#70b7ff",
+        m: "#c99aff",
+        axis: "#64dcb6",
+        value: "#f3c978",
+        comment: "#798593",
+        tool: "#f0a57d",
       };
+      const restored = { ...p } as Palette;
+      for (const key of Object.keys(previousDefaults) as (keyof Palette)[]) {
+        if (restored[key].toLowerCase() === previousDefaults[key])
+          restored[key] = defaultPalette[key];
+      }
+      return restored;
     }
   } catch {}
   return defaultPalette;
@@ -85,12 +94,16 @@ const pageTitle = {
   receive: "Ricezione",
   settings: "Impostazioni",
 };
+type SaveAsTarget =
+  | { kind: "program"; id: string; name: string }
+  | { kind: "receive"; name: string };
 
 export default function App() {
   const [palette, setPalette] = useState(readPalette),
     [showColors, setShowColors] = useState(false),
     [showExamples, setShowExamples] = useState(false),
     [showGuide, setShowGuide] = useState(false),
+    [saveAsTarget, setSaveAsTarget] = useState<SaveAsTarget | null>(null),
     [editorSearch, setEditorSearch] = useState<EditorSearchMode | null>(null),
     [cursor, setCursor] = useState({ line: 1, col: 1 }),
     [activeLine, setActiveLine] = useState<number | null>(null),
@@ -123,6 +136,7 @@ export default function App() {
   const fileInput = useRef<HTMLInputElement>(null);
   const programEditor = useRef<EditorHandle>(null);
   useEffect(() => setAdjustment(null), [active?.id, tab, source]);
+  useEffect(() => setSaveAsTarget(null), [active?.id, tab]);
   const simulationVisible =
     tab === "workspace" && programs.previewVisible && !!active;
   const onHistoryChange = useCallback(
@@ -181,10 +195,20 @@ export default function App() {
     onLine = useCallback((line: number | null) => setActiveLine(line), []);
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
       if (tab === "settings") return;
+      if (saveAsTarget) {
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          ["s", "o"].includes(event.key.toLowerCase())
+        )
+          event.preventDefault();
+        return;
+      }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
         event.preventDefault();
-        if (tab === "receive") reception.save();
+        if (event.shiftKey) openSaveAs();
+        else if (tab === "receive") reception.save();
         else saveFile();
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "o") {
@@ -198,7 +222,7 @@ export default function App() {
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [active, tab, reception.save, programs.update]);
+  }, [active, tab, reception.save, programs.update, saveAsTarget]);
   useEffect(() => {
     if (!showExamples) return;
     const closeOutside = (event: PointerEvent) => {
@@ -370,6 +394,30 @@ export default function App() {
     downloadText(source, filename);
     programs.update(active.id, { savedSource: source });
     setNotice("Download del programma avviato.");
+  }
+  function openSaveAs() {
+    if (tab === "receive") {
+      if (reception.text)
+        setSaveAsTarget({ kind: "receive", name: reception.name });
+    } else if (active && tab !== "settings")
+      setSaveAsTarget({ kind: "program", id: active.id, name: active.name });
+  }
+  function confirmSaveAs(name: string) {
+    if (!saveAsTarget) return;
+    if (saveAsTarget.kind === "receive") reception.saveAs(name);
+    else {
+      const document = programs.documents.find(
+        (doc) => doc.id === saveAsTarget.id,
+      );
+      if (!document) {
+        setSaveAsTarget(null);
+        return;
+      }
+      downloadText(document.source, name);
+      programs.update(document.id, { name, savedSource: document.source });
+      setNotice(`Download di ${name} avviato.`);
+    }
+    setSaveAsTarget(null);
   }
   const codes = [
     "G0",
@@ -583,6 +631,16 @@ export default function App() {
             >
               <ArrowDownToLine size={16} />
               <span className="file-action-label">Salva</span>
+            </button>
+            <button
+              className="button"
+              aria-label="Salva con nome"
+              title="Salva con nome (Ctrl+Maiusc+S)"
+              disabled={tab === "receive" ? !reception.text : !active}
+              onClick={openSaveAs}
+            >
+              <Save size={16} />
+              <span className="file-action-label">Salva con nome</span>
             </button>
           </div>
           <div
@@ -1056,6 +1114,14 @@ export default function App() {
           />
         </main>
       </div>
+      {saveAsTarget && (
+        <SaveAsDialog
+          initialName={saveAsTarget.name}
+          receiving={saveAsTarget.kind === "receive" && receiving}
+          onConfirm={confirmSaveAs}
+          onClose={() => setSaveAsTarget(null)}
+        />
+      )}
       {showGuide && (
         <div className="modal-backdrop" onClick={() => setShowGuide(false)}>
           <section
