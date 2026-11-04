@@ -1,11 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  FileCode2,
-  PanelRightClose,
-  PanelRightOpen,
-  Plus,
-  X,
-} from "lucide-react";
+import { FileCode2, Plus, X } from "lucide-react";
 import type { ProgramDocument } from "../lib/useProgramDocuments";
 
 export function ProgramTabs({
@@ -15,9 +9,6 @@ export function ProgramTabs({
   onClose,
   onRename,
   onNew,
-  previewVisible,
-  onTogglePreview,
-  showPreviewToggle,
 }: {
   documents: ProgramDocument[];
   activeId: string | null;
@@ -25,9 +16,6 @@ export function ProgramTabs({
   onClose: (id: string) => void;
   onRename: (id: string, name: string) => void;
   onNew: () => void;
-  previewVisible: boolean;
-  onTogglePreview: () => void;
-  showPreviewToggle: boolean;
 }) {
   const tabs = useRef<HTMLDivElement>(null);
   const renameInput = useRef<HTMLInputElement>(null);
@@ -164,29 +152,6 @@ export function ProgramTabs({
         >
           <Plus size={16} />
         </button>
-        {showPreviewToggle && (
-          <button
-            className="examples-toggle simulation-toggle"
-            aria-label={
-              previewVisible ? "Nascondi simulazione" : "Mostra simulazione"
-            }
-            title={
-              previewVisible ? "Nascondi simulazione" : "Mostra simulazione"
-            }
-            aria-expanded={previewVisible}
-            aria-controls="simulation-panel"
-            onClick={onTogglePreview}
-          >
-            {previewVisible ? (
-              <PanelRightClose size={16} />
-            ) : (
-              <PanelRightOpen size={16} />
-            )}
-            <span>
-              {previewVisible ? "Nascondi simulazione" : "Mostra simulazione"}
-            </span>
-          </button>
-        )}
       </div>
     </div>
   );

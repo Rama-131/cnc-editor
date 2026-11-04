@@ -517,6 +517,7 @@ main {
   padding-left: 8px;
 }
 .editor-toolbar .icon-group {
+  flex: 1;
   width: 100%;
   min-width: 0;
   align-items: center;
@@ -563,6 +564,15 @@ main {
 }
 .editor-toolbar button:focus-visible {
   outline-offset: -1px;
+}
+.editor-toolbar .simulation-toggle {
+  min-width: 32px;
+  justify-content: center;
+}
+@container editor (max-width: 800px) {
+  .simulation-toggle span {
+    display: none;
+  }
 }
 .toolbar-group {
   display: flex;
@@ -1938,9 +1948,6 @@ main {
   }
   .delete-machine {
     margin-left: 0;
-  }
-  .simulation-toggle span {
-    display: none;
   }
   .program-tab > button[role="tab"],
   .tab-rename {

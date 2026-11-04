@@ -22,6 +22,8 @@ import {
   StepBack,
   StepForward,
   Wrench,
+  PanelRightClose,
+  PanelRightOpen,
   X,
 } from "lucide-react";
 import {
@@ -576,9 +578,6 @@ export default function App() {
               onClose={closeProgram}
               onRename={(id, name) => programs.update(id, { name })}
               onNew={newProgram}
-              previewVisible={programs.previewVisible}
-              onTogglePreview={programs.togglePreview}
-              showPreviewToggle={tab === "workspace" && !!active}
             />
           )}
           <div
@@ -747,6 +746,35 @@ export default function App() {
                         <PaletteIcon size={16} />
                       </button>
                     </div>
+                    {tab === "workspace" && (
+                      <button
+                        className="examples-toggle simulation-toggle"
+                        aria-label={
+                          programs.previewVisible
+                            ? "Nascondi simulazione"
+                            : "Mostra simulazione"
+                        }
+                        title={
+                          programs.previewVisible
+                            ? "Nascondi simulazione"
+                            : "Mostra simulazione"
+                        }
+                        aria-expanded={programs.previewVisible}
+                        aria-controls="simulation-panel"
+                        onClick={programs.togglePreview}
+                      >
+                        {programs.previewVisible ? (
+                          <PanelRightClose size={16} />
+                        ) : (
+                          <PanelRightOpen size={16} />
+                        )}
+                        <span>
+                          {programs.previewVisible
+                            ? "Nascondi simulazione"
+                            : "Mostra simulazione"}
+                        </span>
+                      </button>
+                    )}
                   </div>
                   {adjustment && tab === "workspace" && (
                     <ProgramAdjustment
