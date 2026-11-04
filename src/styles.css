@@ -17,6 +17,9 @@
 * {
   box-sizing: border-box;
 }
+[hidden] {
+  display: none !important;
+}
 body {
   margin: 0;
 }
@@ -287,22 +290,45 @@ h1 {
   padding-bottom: 15px;
   border-bottom: 1px solid #242d36;
   gap: 15px;
+  flex-wrap: wrap;
 }
-.workspace-label {
+.page-tabs {
   display: flex;
-  gap: 9px;
+  gap: 4px;
+  padding: 4px;
+  background: #151d24;
+  border: 1px solid #2c3843;
+  border-radius: 8px;
+}
+.page-tabs a {
+  display: flex;
   align-items: center;
-  color: #c9d3dd;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 15px;
+  border-radius: 5px;
+  text-decoration: none;
+  color: #8e9ead;
   font-size: 12px;
   font-weight: 550;
 }
-.workspace-label svg {
-  color: #8c9dab;
+.page-tabs a:hover {
+  background: #25313c;
+  color: #d9e5ec;
+}
+.page-tabs a[aria-current="page"] {
+  background: #294237;
+  color: #b0f0cb;
+}
+.page-tabs a:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
 }
 .machine-select {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-left: auto;
 }
 .machine-select > span {
   font-size: 11px;
@@ -315,9 +341,17 @@ h1 {
 }
 .workspace {
   display: grid;
-  grid-template-columns: minmax(290px, 1fr) minmax(340px, 1.07fr) 290px;
-  gap: 17px;
+  grid-template-columns: minmax(300px, 1fr) minmax(360px, 1.1fr);
+  gap: 22px;
   align-items: start;
+}
+.workspace.transmission-page {
+  grid-template-columns: minmax(320px, 1.15fr) minmax(340px, 0.85fr);
+}
+.editor-column,
+.preview-column,
+.serial-column {
+  min-width: 0;
 }
 .panel {
   border: 1px solid var(--line);
@@ -346,7 +380,7 @@ h1 {
   color: #93a3b4;
 }
 .editor {
-  height: 600px;
+  height: 660px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -540,7 +574,7 @@ h1 {
 .viewport > svg:not(.axis-indicator) {
   display: block;
   width: 100%;
-  height: 360px;
+  height: 420px;
 }
 .viewport > .axis-indicator {
   position: absolute;
@@ -715,14 +749,14 @@ h1 {
   background: #9be8bc;
 }
 .serial .panel-head {
-  padding: 0 12px;
+  padding: 0 18px;
 }
 .serial .panel-title {
-  font-size: 11px;
-  gap: 6px;
+  font-size: 13px;
+  gap: 8px;
 }
 .serial-body {
-  padding: 16px 14px 6px;
+  padding: 20px 18px 10px;
 }
 .serial-intro {
   display: flex;
@@ -742,12 +776,12 @@ h1 {
   flex-shrink: 0;
 }
 .serial-intro strong {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 550;
   color: #d7e1e8;
 }
 .serial-intro p {
-  font-size: 9px;
+  font-size: 11px;
   margin: 5px 0 0;
   color: #80909f;
   line-height: 1.5;
@@ -758,11 +792,11 @@ h1 {
   margin: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 13px 9px;
+  gap: 17px 12px;
   min-width: 0;
 }
 .serial-fields label {
-  font-size: 10px;
+  font-size: 11px;
   color: #96a5b4;
   display: flex;
   flex-direction: column;
@@ -771,14 +805,14 @@ h1 {
 }
 .serial-fields label select {
   width: 100%;
-  font-size: 10px;
-  padding: 8px 5px;
+  font-size: 12px;
+  padding: 10px 8px;
 }
 .full {
   grid-column: 1/-1;
 }
 .field-hint {
-  font-size: 9px;
+  font-size: 10px;
   color: #718293;
   line-height: 1.6;
   margin: -6px 0 1px;
@@ -808,7 +842,7 @@ h1 {
 .connect-button {
   width: 100%;
   margin-top: 18px;
-  font-size: 11px;
+  font-size: 12px;
   padding: 9px 8px;
   background: #222d38;
 }
@@ -816,7 +850,7 @@ h1 {
   margin-left: auto;
 }
 .serial-message {
-  font-size: 10px;
+  font-size: 11px;
   color: #8395a5;
   line-height: 1.65;
   padding: 11px 1px;
@@ -827,7 +861,7 @@ h1 {
 }
 .send-button {
   width: 100%;
-  font-size: 10px;
+  font-size: 12px;
   padding: 10px 7px;
 }
 .serial progress {
@@ -1027,71 +1061,20 @@ footer > span:first-child {
     padding: 40px 40px 30px;
   }
   .workspace {
-    grid-template-columns: minmax(350px, 1fr) minmax(420px, 1.1fr) 320px;
+    grid-template-columns: minmax(350px, 1fr) minmax(420px, 1.1fr);
     gap: 22px;
   }
   .editor {
-    height: 655px;
+    height: 720px;
   }
   .viewport > svg:not(.axis-indicator) {
-    height: 410px;
-  }
-  .serial .panel-title {
-    font-size: 12px;
-  }
-  .serial-fields label select {
-    font-size: 11px;
-  }
-  .serial-body {
-    padding: 20px 18px 10px;
-  }
-  .serial-fields {
-    gap: 17px 10px;
-  }
-  .send-button {
-    font-size: 11px;
+    height: 460px;
   }
 }
 @media (max-width: 1200px) {
-  .workspace {
-    grid-template-columns: minmax(270px, 1fr) minmax(320px, 1fr);
-  }
-  .serial-column {
-    grid-column: 1/-1;
-  }
-  .serial-body {
-    display: grid;
-    grid-template-columns: 1.4fr 1fr;
-    gap: 5px 25px;
-  }
-  .serial-intro,
-  .serial-fields {
-    grid-column: 1;
-  }
-  .serial-fields {
-    grid-row: 2/8;
-  }
-  .serial-body > .browser-note,
-  .serial-body > .connect-button,
-  .serial-body > .serial-message,
-  .serial-body > .send-button,
-  .serial-body > .receive-toggle,
-  .serial-body > .receive-log,
-  .serial-body > progress {
-    grid-column: 2;
-  }
-  .serial-body > .connect-button {
-    margin-top: 0;
-  }
-  .serial-focus .serial-column {
-    grid-row: 1;
-    grid-column: 1/-1;
-  }
-  .serial-focus .editor-column {
-    grid-row: 2;
-  }
-  .serial-focus .preview-column {
-    grid-row: 2;
+  .workspace,
+  .workspace.transmission-page {
+    grid-template-columns: minmax(270px, 1fr) minmax(290px, 1fr);
   }
   .serial .panel-head {
     padding: 0 16px;
@@ -1168,7 +1151,8 @@ footer > span:first-child {
   .file-actions > button {
     flex: 1;
   }
-  .workspace {
+  .workspace,
+  .workspace.transmission-page {
     grid-template-columns: minmax(0, 1fr);
     gap: 20px;
   }
@@ -1176,15 +1160,6 @@ footer > span:first-child {
   .preview-column,
   .serial-column {
     grid-column: 1;
-  }
-  .serial-focus .serial-column {
-    grid-row: 1;
-  }
-  .serial-focus .editor-column {
-    grid-row: 2;
-  }
-  .serial-focus .preview-column {
-    grid-row: 3;
   }
   .editor {
     height: 520px;
@@ -1201,12 +1176,13 @@ footer > span:first-child {
     max-width: 145px;
     font-size: 10px;
   }
-  .workspace-label {
-    font-size: 11px;
-    white-space: nowrap;
+  .page-tabs {
+    width: 100%;
   }
-  .workspace-label svg {
-    display: none;
+  .page-tabs a {
+    flex: 1;
+    padding: 9px 8px;
+    font-size: 11px;
   }
   .serial-body {
     display: block;
@@ -1223,9 +1199,6 @@ footer > span:first-child {
   }
   .serial-fields label {
     font-size: 11px;
-  }
-  .serial-body > .connect-button {
-    margin-top: 18px;
   }
   .serial .panel-title {
     font-size: 12px;

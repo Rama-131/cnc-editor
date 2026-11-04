@@ -29,6 +29,13 @@ Per i test dell’interfaccia: `npx playwright install chromium`, quindi `npm ru
 
 ## Editor
 
+L’app ha due pagine, raggiungibili dai pulsanti **Simulazione** e **Trasmissione**:
+
+- **Simulazione** (`#simulazione`): editor del programma e anteprima grafica del percorso.
+- **Trasmissione** (`#trasmissione`): lo stesso programma aperto, affiancato al configuratore e ai comandi seriali.
+
+Il file, le modifiche non salvate, la cronologia annulla/ripristina e le impostazioni restano disponibili passando da una pagina all’altra. Il cambio pagina mette in pausa la simulazione e mantiene aperta la connessione seriale fino alla disconnessione esplicita. Funzionano anche i pulsanti Indietro/Avanti del browser e i link diretti alle due pagine.
+
 - Apertura di file `.nc`, `.cnc`, `.tap`, `.txt`, `.iso`, `.mpf`, `.gcode`, fino a 2 MB; salvataggio tramite download del browser.
 - Colori configurabili per G, M, assi, numeri, commenti, utensili/correttori. Il pulsante con la tavolozza apre le impostazioni.
 - Descrizioni dei codici G/M al passaggio del mouse e guida ricercabile. Le descrizioni distinguono tornio e fresatrice dove necessario, ad esempio G90 e G98/G99.

@@ -105,10 +105,12 @@ export function Simulation({
   result,
   machine,
   onLine,
+  active = true,
 }: {
   result: Result;
   machine: Machine;
   onLine: (n: number | null) => void;
+  active?: boolean;
 }) {
   const [view, setView] = useState<View>(machine === "lathe" ? "XZ" : "ISO"),
     [progress, setProgress] = useState(100),
@@ -118,6 +120,9 @@ export function Simulation({
     [rapids, setRapids] = useState(true);
   const [trackedResult, setTrackedResult] = useState<Result | null>(null);
   useEffect(() => {
+    if (!active) setPlaying(false);
+  }, [active]);
+  useEffect(() => {
     setView(machine === "lathe" ? "XZ" : "ISO");
   }, [machine]);
   useEffect(() => {
@@ -126,7 +131,7 @@ export function Simulation({
     setTrackedResult(null);
   }, [result]);
   useEffect(() => {
-    if (!playing) return;
+    if (!playing || !active) return;
     const timer = setInterval(
       () =>
         setProgress((p) => {
@@ -137,7 +142,7 @@ export function Simulation({
       40,
     );
     return () => clearInterval(timer);
-  }, [playing, speed]);
+  }, [playing, speed, active]);
   const count = Math.round((result.segments.length * progress) / 100),
     segment = result.segments[Math.max(0, count - 1)];
   const currentPoint = count > 0 ? segment?.to : segment?.from;

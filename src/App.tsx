@@ -4,12 +4,11 @@ import {
   ArrowDownToLine,
   BookOpen,
   Check,
-  ChevronDown,
+  Cable,
   Code2,
   FileCode2,
   FolderOpen,
   Info,
-  Layers3,
   Palette as PaletteIcon,
   Plus,
   RotateCcw,
@@ -50,6 +49,9 @@ function readPalette(): Palette {
   return defaultPalette;
 }
 const initial = readDraft();
+function currentPage(): "workspace" | "serial" {
+  return window.location.hash === "#trasmissione" ? "serial" : "workspace";
+}
 export default function App() {
   const [source, setSource] = useState(initial?.source ?? millSample),
     [saved, setSaved] = useState(initial?.source ?? millSample),
@@ -66,13 +68,18 @@ export default function App() {
     [followSimulation, setFollowSimulation] = useState(true),
     [search, setSearch] = useState(""),
     [notice, setNotice] = useState(""),
-    [tab, setTab] = useState<"workspace" | "serial">("workspace");
+    [tab, setTab] = useState(currentPage);
   const fileInput = useRef<HTMLInputElement>(null);
   const dirty = source !== saved;
   const result = useMemo(
     () => simulate(source, machine, diameter),
     [source, machine, diameter],
   );
+  useEffect(() => {
+    const updatePage = () => setTab(currentPage());
+    window.addEventListener("hashchange", updatePage);
+    return () => window.removeEventListener("hashchange", updatePage);
+  }, []);
   useEffect(() => {
     try {
       localStorage.setItem(
@@ -175,7 +182,9 @@ export default function App() {
       setSaved(text);
       setFilename(file.name);
       setNotice(
-        "File aperto. Seleziona Fresatrice o Tornio prima di simulare.",
+        tab === "workspace"
+          ? "File aperto. Seleziona Fresatrice o Tornio prima di simulare."
+          : "File aperto. Controlla il programma e i parametri prima dell’invio.",
       );
     } catch {
       setNotice("Impossibile leggere il file.");
@@ -253,22 +262,24 @@ export default function App() {
         <div className="app-mark">
           <Activity size={24} />
         </div>
-        <button
+        <a
           className={tab === "workspace" ? "rail-button active" : "rail-button"}
           title="Editor e simulazione"
           aria-label="Editor e simulazione"
-          onClick={() => setTab("workspace")}
+          href="#simulazione"
+          aria-current={tab === "workspace" ? "page" : undefined}
         >
           <Code2 size={21} />
-        </button>
-        <button
+        </a>
+        <a
           className={tab === "serial" ? "rail-button active" : "rail-button"}
           title="Configuratore seriale"
           aria-label="Configuratore seriale"
-          onClick={() => setTab("serial")}
+          href="#trasmissione"
+          aria-current={tab === "serial" ? "page" : undefined}
         >
           <Settings2 size={21} />
-        </button>
+        </a>
         <div className="rail-spacer" />
         <button
           className="rail-button"
@@ -305,9 +316,19 @@ export default function App() {
         <main>
           <div className="page-heading">
             <div>
-              <div className="eyebrow">PROGRAMMAZIONE CNC</div>
-              <h1>Dal codice al percorso.</h1>
-              <p>Scrivi, visualizza e trasferisci i tuoi programmi macchina.</p>
+              <div className="eyebrow">
+                {tab === "workspace" ? "SIMULAZIONE CNC" : "TRASMISSIONE CNC"}
+              </div>
+              <h1>
+                {tab === "workspace"
+                  ? "Dal codice al percorso."
+                  : "Dal programma alla macchina."}
+              </h1>
+              <p>
+                {tab === "workspace"
+                  ? "Scrivi il programma e segui il percorso utensile."
+                  : "Controlla il programma aperto e trasferiscilo al controllo CNC."}
+              </p>
             </div>
             <div className="file-actions">
               <input
@@ -335,10 +356,22 @@ export default function App() {
             </div>
           </div>
           <div className="workspace-bar">
-            <div className="workspace-label">
-              <Layers3 size={16} />
-              Area di lavoro
-            </div>
+            <nav className="page-tabs" aria-label="Pagine dell’app">
+              <a
+                href="#simulazione"
+                aria-current={tab === "workspace" ? "page" : undefined}
+              >
+                <Code2 size={16} />
+                Simulazione
+              </a>
+              <a
+                href="#trasmissione"
+                aria-current={tab === "serial" ? "page" : undefined}
+              >
+                <Cable size={16} />
+                Trasmissione
+              </a>
+            </nav>
             <div className="machine-select">
               <span>Macchina</span>
               <select
@@ -349,7 +382,7 @@ export default function App() {
                 <option value="mill">Fresatrice · 3 assi</option>
                 <option value="lathe">Tornio · XZ</option>
               </select>
-              {machine === "lathe" && (
+              {machine === "lathe" && tab === "workspace" && (
                 <select
                   aria-label="Modalità asse X tornio"
                   value={diameter ? "diameter" : "radius"}
@@ -375,7 +408,7 @@ export default function App() {
             </div>
           )}
           <div
-            className={`workspace ${tab === "serial" ? "serial-focus" : ""}`}
+            className={`workspace ${tab === "serial" ? "transmission-page" : "simulation-page"}`}
           >
             <div className="editor-column">
               <section className="editor panel">
@@ -458,6 +491,7 @@ export default function App() {
                 )}
                 <div
                   className={`execution-bar ${activeLine !== null ? "tracking" : ""}`}
+                  hidden={tab !== "workspace"}
                 >
                   <span className="execution-position">
                     {activeLine === null
@@ -479,8 +513,8 @@ export default function App() {
                   machine={machine}
                   palette={palette}
                   onCursor={onCursor}
-                  simulationLine={activeLine}
-                  followSimulation={followSimulation}
+                  simulationLine={tab === "workspace" ? activeLine : null}
+                  followSimulation={tab === "workspace" && followSimulation}
                 />
                 <div className="editor-status">
                   <span>
@@ -504,7 +538,7 @@ export default function App() {
                   significato.
                 </p>
               </div>
-              <div className="examples">
+              <div className="examples" hidden={tab !== "workspace"}>
                 <span>INIZIA DA UN ESEMPIO</span>
                 <button onClick={() => example("mill")}>
                   <FileCode2 size={14} />
@@ -516,8 +550,13 @@ export default function App() {
                 </button>
               </div>
             </div>
-            <div className="preview-column">
-              <Simulation result={result} machine={machine} onLine={onLine} />
+            <div className="preview-column" hidden={tab !== "workspace"}>
+              <Simulation
+                result={result}
+                machine={machine}
+                onLine={onLine}
+                active={tab === "workspace"}
+              />
               <div className="preview-caption">
                 <Check size={14} />
                 <span>Aggiornamento automatico durante la scrittura</span>
@@ -526,7 +565,7 @@ export default function App() {
                 </span>
               </div>
             </div>
-            <div className="serial-column">
+            <div className="serial-column" hidden={tab !== "serial"}>
               <SerialPanel source={source} filename={filename} />
               <div className="machine-note">
                 <Info size={15} />

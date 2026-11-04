@@ -97,6 +97,7 @@ test("configuratore e trasmissione con una porta seriale di test", async ({
     });
   });
   await page.goto("/");
+  await page.getByRole("link", { name: "Trasmissione", exact: true }).click();
   await page.getByLabel("Baud rate").selectOption("4800");
   await page.getByLabel("Riferimento controllo").selectOption("Mitsubishi");
   await expect(page.getByLabel("Baud rate")).toHaveValue("9600");
@@ -106,6 +107,18 @@ test("configuratore e trasmissione con una porta seriale di test", async ({
   await page.getByRole("button", { name: "Seleziona e collega porta" }).click();
   await expect(page.getByText("Collegato", { exact: true })).toBeVisible();
   await expect(page.getByLabel("Baud rate")).toBeDisabled();
+  await page.getByRole("link", { name: "Simulazione", exact: true }).click();
+  await expect(page.locator(".serial-column")).toBeHidden();
+  expect(
+    await page.evaluate(
+      () =>
+        (window as unknown as { serialTest: { closed: boolean } }).serialTest
+          .closed,
+    ),
+  ).toBe(false);
+  await page.getByRole("link", { name: "Trasmissione", exact: true }).click();
+  await expect(page.getByText("Collegato", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Baud rate")).toHaveValue("4800");
   await page
     .getByRole("button", { name: "Invia programma alla macchina" })
     .click();
@@ -151,4 +164,14 @@ test("interfaccia utilizzabile su schermo stretto", async ({ page }) => {
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(390);
   await page.screenshot({ path: "/tmp/cnc-studio-mobile.png", fullPage: true });
+  await page.getByRole("link", { name: "Trasmissione", exact: true }).click();
+  await expect(page.locator(".serial-column")).toBeVisible();
+  await expect(page.locator(".preview-column")).toBeHidden();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(390);
+  await page.screenshot({
+    path: "/tmp/cnc-transmission-mobile.png",
+    fullPage: true,
+  });
 });
