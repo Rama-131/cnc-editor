@@ -1234,6 +1234,9 @@ main {
   }
 }
 @media (max-width: 480px) {
+  .spacing-button span {
+    display: none;
+  }
   .topbar {
     padding-inline: 8px;
     column-gap: 6px;

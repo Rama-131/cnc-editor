@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
 import { EditorState, Compartment } from "@codemirror/state";
 import {
   EditorView,
@@ -15,6 +15,7 @@ import {
   history,
   historyKeymap,
   indentWithTab,
+  isolateHistory,
 } from "@codemirror/commands";
 import {
   StreamLanguage,
@@ -23,6 +24,7 @@ import {
 } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
 import { codeInfo, type Machine } from "../lib/codes";
+import { gcodeSpacingChanges } from "../lib/gcodeSpacing";
 import {
   followSimulationLine,
   setSimulationLine,
@@ -36,6 +38,7 @@ export type Palette = {
   comment: string;
   tool: string;
 };
+export type EditorHandle = { insertSpaces: () => void };
 export const defaultPalette: Palette = {
   g: "#70b7ff",
   m: "#c99aff",
@@ -85,6 +88,7 @@ function colors(p: Palette) {
   );
 }
 export function Editor({
+  ref,
   value,
   onChange,
   onCursor,
@@ -97,6 +101,7 @@ export function Editor({
   emptyHint = "",
   followEnd = false,
 }: {
+  ref?: Ref<EditorHandle>;
   value: string;
   onChange: (v: string) => void;
   onCursor: (line: number, col: number) => void;
@@ -117,6 +122,24 @@ export function Editor({
     cursorRef = useRef(onCursor);
   changeRef.current = onChange;
   cursorRef.current = onCursor;
+  useImperativeHandle(
+    ref,
+    () => ({
+      insertSpaces() {
+        const v = view.current;
+        if (!v || v.state.readOnly) return;
+        const changes = gcodeSpacingChanges(v.state.doc.toString());
+        if (changes.length)
+          v.dispatch({
+            changes,
+            annotations: isolateHistory.of("full"),
+            userEvent: "input.format",
+          });
+        v.focus();
+      },
+    }),
+    [],
+  );
   function tooltip(m: Machine) {
     return hoverTooltip(
       (v, pos) => {

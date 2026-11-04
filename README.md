@@ -41,6 +41,7 @@ La barra superiore compatta riunisce nome della pagina, selezione della macchina
 
 - Apertura di file `.nc`, `.cnc`, `.tap`, `.txt`, `.iso`, `.mpf`, `.gcode`, fino a 2 MB; salvataggio tramite download del browser.
 - Colori configurabili per G, M, assi, numeri, commenti, utensili/correttori. Il pulsante con la tavolozza apre le impostazioni.
+- Il pulsante **Spazi** nella barra dell’editor separa le parole dei blocchi numerici, ad esempio `N10G1X20Z-5F0.2M8` diventa `N10 G1 X20 Z-5 F0.2 M8`. Funziona in Simulazione e Trasmissione, senza modificare valori, commenti o righe; Ctrl+Z annulla l’operazione. I blocchi con macro, stringhe, checksum o sintassi non riconosciuta rimangono invariati. I file aperti non vengono formattati automaticamente. Il simulatore legge già i codici numerici senza spazi: la formattazione migliora la leggibilità e non aggiunge il supporto a istruzioni non simulate.
 - Descrizioni dei codici G/M al passaggio del mouse e guida ricercabile. Le descrizioni distinguono tornio e fresatrice dove necessario, ad esempio G90 e G98/G99.
 - Annulla/ripristina; Ctrl+S salva il file, Ctrl+O apre un file.
 - Bozza, colori e configurazioni seriali separate per Fanuc, Mitsubishi e altro controllo vengono conservati nel browser con `localStorage`. Il salvataggio su disco rimane esplicito. Cancellare i dati del browser elimina la bozza locale.

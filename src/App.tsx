@@ -11,9 +11,15 @@ import {
   Plus,
   RotateCcw,
   Settings2,
+  Space,
   X,
 } from "lucide-react";
-import { Editor, defaultPalette, type Palette } from "./components/Editor";
+import {
+  Editor,
+  defaultPalette,
+  type EditorHandle,
+  type Palette,
+} from "./components/Editor";
 import { Simulation } from "./components/Simulation";
 import { SerialPanel } from "./components/SerialPanel";
 import { ReceivedDocument } from "./components/ReceivedDocument";
@@ -81,6 +87,7 @@ export default function App() {
     [tab, setTab] = useState(currentPage);
   const reception = useReceivedDocument(setNotice);
   const fileInput = useRef<HTMLInputElement>(null);
+  const programEditor = useRef<EditorHandle>(null);
   const dirty = source !== saved;
   const result = useMemo(
     () => simulate(source, machine, diameter),
@@ -486,6 +493,19 @@ export default function App() {
                   </div>
                   <div className="icon-group">
                     <button
+                      className="examples-toggle spacing-button"
+                      title="Inserisci spazi tra i codici"
+                      aria-label="Inserisci spazi"
+                      onClick={() => {
+                        setShowExamples(false);
+                        setShowColors(false);
+                        programEditor.current?.insertSpaces();
+                      }}
+                    >
+                      <Space size={15} />
+                      <span>Spazi</span>
+                    </button>
+                    <button
                       className="examples-toggle"
                       hidden={tab !== "workspace"}
                       aria-label="Esempi di programma"
@@ -598,6 +618,7 @@ export default function App() {
                   </label>
                 </div>
                 <Editor
+                  ref={programEditor}
                   value={source}
                   onChange={setSource}
                   machine={machine}
