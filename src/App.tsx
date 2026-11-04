@@ -344,10 +344,10 @@ export default function App() {
     if (programs.close(id) && active?.id === id) setActiveLine(null);
   }
   function newProgram() {
-    let name = "nuovo_programma.nc",
+    let name = "nuovo_programma.txt",
       number = 1;
     while (programs.documents.some((doc) => doc.name === name))
-      name = `nuovo_programma_${++number}.nc`;
+      name = `nuovo_programma_${++number}.txt`;
     setActiveLine(null);
     programs.open([
       { name, source: "%\nO0001\n\nM30\n%", machine, diameter, saved: false },
@@ -944,45 +944,38 @@ export default function App() {
                     <PaletteIcon size={16} />
                     <span className="toolbar-button-label">Colori</span>
                   </button>
+                  {tab === "workspace" && (
+                    <button
+                      className="examples-toggle simulation-toggle"
+                      aria-label={
+                        programs.previewVisible
+                          ? "Nascondi simulazione"
+                          : "Mostra simulazione"
+                      }
+                      title={
+                        programs.previewVisible
+                          ? "Nascondi simulazione"
+                          : "Mostra simulazione"
+                      }
+                      aria-expanded={programs.previewVisible}
+                      aria-pressed={programs.previewVisible}
+                      aria-controls="simulation-panel"
+                      onClick={programs.togglePreview}
+                    >
+                      {programs.previewVisible ? (
+                        <PanelRightClose size={16} />
+                      ) : (
+                        <PanelRightOpen size={16} />
+                      )}
+                      <span className="toolbar-button-label">
+                        {programs.previewVisible
+                          ? "Nascondi simulazione"
+                          : "Mostra simulazione"}
+                      </span>
+                    </button>
+                  )}
                 </div>
               </div>
-              {tab === "workspace" && (
-                <div
-                  className="toolbar-group simulation-tools"
-                  role="group"
-                  aria-label="Visibilità simulazione"
-                  data-label="Simulazione"
-                >
-                  <button
-                    className="examples-toggle simulation-toggle"
-                    aria-label={
-                      programs.previewVisible
-                        ? "Nascondi simulazione"
-                        : "Mostra simulazione"
-                    }
-                    title={
-                      programs.previewVisible
-                        ? "Nascondi simulazione"
-                        : "Mostra simulazione"
-                    }
-                    aria-expanded={programs.previewVisible}
-                    aria-pressed={programs.previewVisible}
-                    aria-controls="simulation-panel"
-                    onClick={programs.togglePreview}
-                  >
-                    {programs.previewVisible ? (
-                      <PanelRightClose size={16} />
-                    ) : (
-                      <PanelRightOpen size={16} />
-                    )}
-                    <span className="toolbar-button-label">
-                      {programs.previewVisible
-                        ? "Nascondi simulazione"
-                        : "Mostra simulazione"}
-                    </span>
-                  </button>
-                </div>
-              )}
             </div>
           )}
           <div

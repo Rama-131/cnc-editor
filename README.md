@@ -46,6 +46,8 @@ Il nome del programma compare soltanto nella scheda superiore. Per rinominarlo, 
 
 I pulsanti **Annulla** e **Ripristina** sopra l’editor operano sul file attivo, come Ctrl+Z e Ctrl+Y. **Salva** e Ctrl+S scaricano il programma della scheda selezionata; anche la pagina Trasmissione usa quel programma. Ricezione mantiene il proprio documento indipendente.
 
+**Nuovo programma** crea subito un file `.txt` (ad esempio `nuovo_programma.txt`). I nuovi documenti vengono numerati quando necessario e **Salva** mantiene il formato TXT. Il pulsante **Mostra/Nascondi simulazione** è nella stessa barra scorrevole degli altri comandi, accanto a Esempi e Colori.
+
 **Salva con nome**, accanto a Salva, permette di scegliere il nome e il formato **TXT** o **NC**, oppure mantenere l’estensione originale di un file già aperto. **Ctrl+Maiusc+S** apre la stessa finestra. L’anteprima mostra il nome completo prima della conferma e aggiunge l’estensione evitando duplicati. Dopo il download la scheda prende il nuovo nome e **Salva** usa quello nei salvataggi successivi; Annulla o Esc chiudono senza cambiare il documento. I file `.txt` e `.TXT` si aprono con Apri come gli altri programmi CNC.
 
 Nella barra della pagina **Simulazione**, accanto a **Spazi**, sono disponibili:

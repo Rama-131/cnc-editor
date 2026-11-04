@@ -208,9 +208,25 @@ test("la crocetta protegge le modifiche anche di una scheda inattiva e permette 
     .getByRole("button", { name: "Nuovo programma", exact: true })
     .click();
   await expect(
-    page.getByRole("tab", { name: "nuovo_programma.nc", exact: true }),
+    page.getByRole("tab", { name: "nuovo_programma.txt", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("textbox", { name: editorName })).toBeVisible();
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Salva file", exact: true }).click();
+  expect((await download).suggestedFilename()).toBe("nuovo_programma.txt");
+  await page
+    .getByRole("button", { name: "Salva con nome", exact: true })
+    .click();
+  await expect(page.getByRole("dialog").getByLabel("Formato file")).toHaveValue(
+    "txt",
+  );
+  await page.keyboard.press("Escape");
+  await page
+    .getByRole("button", { name: "Nuovo programma", exact: true })
+    .click();
+  await expect(
+    page.getByRole("tab", { name: "nuovo_programma_2.txt", exact: true }),
+  ).toHaveAttribute("aria-selected", "true");
 });
 
 test("nasconde e riapre la simulazione a tutta larghezza e ripristina le schede dopo il ricaricamento", async ({
@@ -232,9 +248,20 @@ test("nasconde e riapre la simulazione a tutta larghezza e ripristina le schede 
   await page
     .getByRole("button", { name: "Avvia simulazione", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Nascondi simulazione", exact: true })
-    .click();
+  const commonCommands = page
+    .getByRole("toolbar", { name: "Comandi del programma" })
+    .locator(".icon-group");
+  const simulationToggle = commonCommands.getByRole("button", {
+    name: "Nascondi simulazione",
+    exact: true,
+  });
+  const simulationBox = await simulationToggle.boundingBox();
+  const colorsBox = await commonCommands
+    .getByRole("button", { name: "Personalizza colori", exact: true })
+    .boundingBox();
+  expect(simulationBox!.y).toBe(colorsBox!.y);
+  expect(simulationBox!.x - (colorsBox!.x + colorsBox!.width)).toBeLessThan(10);
+  await simulationToggle.click();
   await expect(page.locator(".preview-column")).toBeHidden();
   await expect(page.locator(".play-button")).toHaveAttribute(
     "aria-label",

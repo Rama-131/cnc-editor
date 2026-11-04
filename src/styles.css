@@ -754,15 +754,6 @@ main {
   text-align: center;
   pointer-events: none;
 }
-.simulation-tools {
-  border-right: 0;
-  border-left: 1px solid #35424e;
-  padding: 0 0 14px 6px;
-}
-.simulation-tools::after {
-  left: 6px;
-  right: 0;
-}
 .adjust-button b {
   color: #9ce5bf;
   font-family: Consolas, monospace;
