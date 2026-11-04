@@ -104,7 +104,7 @@ export const defaultPalette: Palette = {
   m: "#c99aff",
   axis: "#64dcb6",
   value: "#f3c978",
-  comment: "#798593",
+  comment: "#7dff6a",
   tool: "#f0a57d",
 };
 const language = StreamLanguage.define({

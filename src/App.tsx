@@ -61,8 +61,16 @@ function readPalette(): Palette {
     if (
       p &&
       Object.keys(defaultPalette).every((k) => /^#[a-f\d]{6}$/i.test(p[k]))
-    )
-      return p;
+    ) {
+      // Upgrade the previous default without replacing custom comment colors.
+      return {
+        ...p,
+        comment:
+          p.comment.toLowerCase() === "#798593"
+            ? defaultPalette.comment
+            : p.comment,
+      };
+    }
   } catch {}
   return defaultPalette;
 }
