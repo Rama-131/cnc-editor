@@ -228,13 +228,6 @@ export function createEditorSearchPanel(view: EditorView): Panel {
   dom.addEventListener("keydown", (event) => {
     if (runScopeHandlers(view, event, "search-panel")) event.preventDefault();
     else if (
-      (event.ctrlKey || event.metaKey) &&
-      event.key.toLowerCase() === "h" &&
-      !view.state.readOnly
-    ) {
-      event.preventDefault();
-      replaceField.input.focus();
-    } else if (
       event.key === "Enter" &&
       (event.target === searchField.input ||
         event.target === replaceField.input)

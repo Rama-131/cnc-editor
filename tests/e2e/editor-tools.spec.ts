@@ -236,3 +236,97 @@ test("naviga i cambi utensile di tornio e fresatrice e mantiene la barra compatt
     ),
   ).toBeVisible();
 });
+
+test("mantiene selezionati i comandi dei pannelli e li chiude con il secondo clic, Esc o la crocetta", async ({
+  page,
+}) => {
+  await open(page, source);
+  const toolbar = page.locator(".editor-toolbar");
+  const find = toolbar.getByRole("button", { name: "Trova", exact: true });
+  const replace = toolbar.getByRole("button", {
+    name: "Sostituisci",
+    exact: true,
+  });
+  const feed = toolbar.getByRole("button", {
+    name: "Aggiusta avanzamento",
+    exact: true,
+  });
+  const spindle = toolbar.getByRole("button", {
+    name: "Aggiusta giri mandrino",
+    exact: true,
+  });
+  const colors = toolbar.getByRole("button", {
+    name: "Personalizza colori",
+    exact: true,
+  });
+  const examples = toolbar.getByRole("button", {
+    name: "Esempi di programma",
+    exact: true,
+  });
+  const editor = page.getByRole("textbox", { name: editorName });
+  await page.mouse.move(10, 10);
+  const neutral = await find.evaluate(
+    (button) => getComputedStyle(button).backgroundColor,
+  );
+  await find.click();
+  await page.mouse.move(10, 10);
+  await expect(find).toHaveAttribute("aria-pressed", "true");
+  await expect(find).not.toHaveCSS("background-color", neutral);
+  await find.click();
+  await expect(find).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".cm-search")).toHaveCount(0);
+  await replace.click();
+  await expect(replace).toHaveAttribute("aria-pressed", "true");
+  await find.click();
+  await expect(find).toHaveAttribute("aria-pressed", "true");
+  await expect(replace).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".cm-search")).toHaveCount(1);
+  await page
+    .getByRole("button", { name: "Chiudi ricerca", exact: true })
+    .click();
+  await expect(find).toHaveAttribute("aria-pressed", "false");
+  await editor.press("Control+f");
+  await expect(find).toHaveAttribute("aria-pressed", "true");
+  await page
+    .getByRole("textbox", { name: "Trova testo", exact: true })
+    .press("Control+h");
+  await expect(replace).toHaveAttribute("aria-pressed", "true");
+  await expect(find).toHaveAttribute("aria-pressed", "false");
+  await page.keyboard.press("Escape");
+  await expect(replace).toHaveAttribute("aria-pressed", "false");
+  await find.click();
+  await page.getByRole("tab", { name: "altro.nc", exact: true }).click();
+  await expect(find).toHaveAttribute("aria-pressed", "false");
+  await replace.click();
+  await page.getByRole("tab", { name: "lavorazione.nc", exact: true }).click();
+  await expect(find).toHaveAttribute("aria-pressed", "true");
+  await expect(replace).toHaveAttribute("aria-pressed", "false");
+  await feed.click();
+  await expect(find).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".cm-search")).toHaveCount(0);
+  await expect(feed).toHaveAttribute("aria-pressed", "true");
+  await feed.click();
+  await expect(feed).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(".program-adjustment")).toHaveCount(0);
+  await feed.click();
+  await spindle.click();
+  await expect(feed).toHaveAttribute("aria-pressed", "false");
+  await expect(spindle).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("Escape");
+  await expect(spindle).toHaveAttribute("aria-pressed", "false");
+  await colors.click();
+  await expect(colors).toHaveAttribute("aria-pressed", "true");
+  await colors.click();
+  await expect(colors).toHaveAttribute("aria-pressed", "false");
+  await examples.click();
+  await expect(examples).toHaveAttribute("aria-pressed", "true");
+  await examples.click();
+  await expect(examples).toHaveAttribute("aria-pressed", "false");
+  await colors.click();
+  await editor.press("Control+f");
+  await expect(colors).toHaveAttribute("aria-pressed", "false");
+  await expect(find).toHaveAttribute("aria-pressed", "true");
+  await page.mouse.move(10, 10);
+  await page.screenshot({ path: "/tmp/cnc-selected-search.png" });
+  await expect.poll(() => draft(page)).toBe(source);
+});

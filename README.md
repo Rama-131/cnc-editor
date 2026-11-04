@@ -52,6 +52,8 @@ Nella barra della pagina **Simulazione**, accanto a **Spazi**, sono disponibili:
 
 Su schermi stretti la barra dei comandi scorre orizzontalmente senza allargare la pagina.
 
+I comandi che aprono un pannello (**Trova**, **Sostituisci**, **F · Avanz.**, **S · Giri**, **Esempi** e **Colori**) restano evidenziati in verde mentre il pannello è aperto. Un secondo clic sullo stesso comando lo chiude; aprire un altro strumento passa al relativo pannello. L’evidenziazione segue anche Ctrl+F/Ctrl+H, la chiusura con Esc o la crocetta e il pannello di ricerca ripristinato cambiando scheda. I pulsanti che eseguono un’azione, come Spazi e Annulla, operano sul programma senza restare selezionati.
+
 Il pannello Trova/Sostituisci usa campi monospaziati da 16 px, etichette visibili e pulsanti con icone e aree cliccabili più ampie. Le opzioni attive sono evidenziate e il conteggio mostra i risultati nel file corrente, anche dopo un incolla; una ricerca senza risultati o un’espressione non valida vengono segnalate nel pannello. Nei pannelli stretti i comandi si dispongono su più righe. La selezione multipla segue il limite di 1.000 risultati di CodeMirror; oltre questo numero occorre restringere la ricerca per selezionarli insieme.
 
 Il pulsante **Nascondi simulazione** nella barra dei comandi dell’editor, sotto le schede e accanto agli altri strumenti, mette in pausa l’anteprima e lascia tutto lo spazio all’editor. **Mostra simulazione** riapre lo stesso pannello con zoom e avanzamento mantenuti. Il comando resta visibile a destra della barra anche quando gli altri strumenti scorrono; nei pannelli stretti mostra solo l’icona con il nome al passaggio del mouse. Il passaggio a un altro programma aggiorna l’anteprima al file scelto e ne azzera la riproduzione.

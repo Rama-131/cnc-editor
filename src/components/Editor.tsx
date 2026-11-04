@@ -1,5 +1,10 @@
 import { useEffect, useImperativeHandle, useRef, type Ref } from "react";
-import { EditorState, Compartment } from "@codemirror/state";
+import {
+  EditorState,
+  Compartment,
+  StateEffect,
+  StateField,
+} from "@codemirror/state";
 import {
   EditorView,
   keymap,
@@ -34,6 +39,8 @@ import {
   findNext,
   findPrevious,
   getSearchQuery,
+  closeSearchPanel,
+  searchPanelOpen,
 } from "@codemirror/search";
 import { codeInfo, type Machine } from "../lib/codes";
 import { gcodeSpacingChanges } from "../lib/gcodeSpacing";
@@ -59,12 +66,34 @@ export type Palette = {
   tool: string;
 };
 export type EditorHistory = { canUndo: boolean; canRedo: boolean };
+export type EditorSearchMode = "find" | "replace";
+const setEditorSearchMode = StateEffect.define<EditorSearchMode>();
+const editorSearchMode = StateField.define<EditorSearchMode>({
+  create: () => "find",
+  update(value, transaction) {
+    for (const effect of transaction.effects)
+      if (effect.is(setEditorSearchMode)) value = effect.value;
+    return value;
+  },
+});
+function openEditorSearch(view: EditorView, mode: EditorSearchMode) {
+  view.dispatch({ effects: setEditorSearchMode.of(mode) });
+  openSearchPanel(view);
+  if (mode === "replace")
+    view.dom.querySelector<HTMLInputElement>('input[name="replace"]')?.focus();
+  return true;
+}
+function findEditorText(view: EditorView, direction: -1 | 1) {
+  if (!getSearchQuery(view.state).valid) return openEditorSearch(view, "find");
+  return direction === 1 ? findNext(view) : findPrevious(view);
+}
 export type EditorHandle = {
   focus: () => void;
   insertSpaces: () => void;
   undo: () => void;
   redo: () => void;
-  openSearch: (replace?: boolean) => void;
+  toggleSearch: (replace?: boolean) => void;
+  closeSearch: () => void;
   find: (direction: -1 | 1) => boolean;
   goToTool: (direction: -1 | 1) => boolean;
   selection: () => TextRange | undefined;
@@ -123,6 +152,7 @@ export function Editor({
   documentId = "default",
   openDocumentIds,
   onHistoryChange,
+  onSearchChange,
   value,
   onChange,
   onCursor,
@@ -139,6 +169,7 @@ export function Editor({
   documentId?: string;
   openDocumentIds?: string[];
   onHistoryChange?: (history: EditorHistory) => void;
+  onSearchChange?: (mode: EditorSearchMode | null) => void;
   value: string;
   onChange: (v: string) => void;
   onCursor: (line: number, col: number) => void;
@@ -158,6 +189,8 @@ export function Editor({
   const changeRef = useRef(onChange),
     cursorRef = useRef(onCursor);
   const historyRef = useRef(onHistoryChange);
+  const searchRef = useRef(onSearchChange);
+  const reportedSearch = useRef<EditorSearchMode | null | undefined>(undefined);
   const currentId = useRef(documentId);
   const requestedId = useRef(documentId);
   const documents = useRef(
@@ -165,8 +198,16 @@ export function Editor({
   );
   requestedId.current = documentId;
   historyRef.current = onHistoryChange;
+  searchRef.current = onSearchChange;
   changeRef.current = onChange;
   cursorRef.current = onCursor;
+  function reportSearchState(state: EditorState) {
+    const mode = searchPanelOpen(state) ? state.field(editorSearchMode) : null;
+    if (mode !== reportedSearch.current) {
+      reportedSearch.current = mode;
+      searchRef.current?.(mode);
+    }
+  }
   function reportState(state: EditorState) {
     const position = state.selection.main.head;
     const line = state.doc.lineAt(position);
@@ -175,6 +216,7 @@ export function Editor({
       canUndo: undoDepth(state) > 0,
       canRedo: redoDepth(state) > 0,
     });
+    reportSearchState(state);
   }
   useImperativeHandle(
     ref,
@@ -206,20 +248,26 @@ export function Editor({
           });
         v.focus();
       },
-      openSearch(replace = false) {
+      toggleSearch(replace = false) {
         const v = view.current;
         if (!v) return;
-        openSearchPanel(v);
-        if (replace)
-          v.dom
-            .querySelector<HTMLInputElement>('input[name="replace"]')
-            ?.focus();
+        const mode = replace ? "replace" : "find";
+        if (
+          searchPanelOpen(v.state) &&
+          v.state.field(editorSearchMode) === mode
+        ) {
+          closeSearchPanel(v);
+          v.focus();
+        } else openEditorSearch(v, mode);
+      },
+      closeSearch() {
+        if (view.current) closeSearchPanel(view.current);
       },
       find(direction) {
         const v = view.current;
         if (!v) return false;
-        if (!getSearchQuery(v.state).valid) return openSearchPanel(v);
-        const found = direction === 1 ? findNext(v) : findPrevious(v);
+        if (!getSearchQuery(v.state).valid) return openEditorSearch(v, "find");
+        const found = findEditorText(v, direction);
         if (found) v.focus();
         return found;
       },
@@ -319,6 +367,7 @@ export function Editor({
         highlightActiveLine(),
         highlightActiveLineGutter(),
         simulationLineField,
+        editorSearchMode,
         search({
           top: true,
           literal: true,
@@ -343,15 +392,31 @@ export function Editor({
         }),
         keymap.of([
           {
+            key: "Mod-f",
+            run: (v) => openEditorSearch(v, "find"),
+            scope: "editor search-panel",
+          },
+          {
             key: "Mod-h",
             run: (v) => {
               if (v.state.readOnly) return false;
-              openSearchPanel(v);
-              v.dom
-                .querySelector<HTMLInputElement>('input[name="replace"]')
-                ?.focus();
-              return true;
+              return openEditorSearch(v, "replace");
             },
+            scope: "editor search-panel",
+          },
+          {
+            key: "F3",
+            run: (v) => findEditorText(v, 1),
+            shift: (v) => findEditorText(v, -1),
+            scope: "editor search-panel",
+            preventDefault: true,
+          },
+          {
+            key: "Mod-g",
+            run: (v) => findEditorText(v, 1),
+            shift: (v) => findEditorText(v, -1),
+            scope: "editor search-panel",
+            preventDefault: true,
           },
           ...searchKeymap,
           indentWithTab,
@@ -415,6 +480,7 @@ export function Editor({
         ),
         EditorView.updateListener.of((u) => {
           if (currentId.current !== requestedId.current) return;
+          reportSearchState(u.state);
           if (u.docChanged) changeRef.current(u.state.doc.toString());
           if (u.selectionSet || u.docChanged) {
             const p = u.state.selection.main.head,

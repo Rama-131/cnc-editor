@@ -31,6 +31,7 @@ import {
   defaultPalette,
   type EditorHandle,
   type EditorHistory,
+  type EditorSearchMode,
   type Palette,
 } from "./components/Editor";
 import { Simulation } from "./components/Simulation";
@@ -83,6 +84,7 @@ export default function App() {
     [showColors, setShowColors] = useState(false),
     [showExamples, setShowExamples] = useState(false),
     [showGuide, setShowGuide] = useState(false),
+    [editorSearch, setEditorSearch] = useState<EditorSearchMode | null>(null),
     [cursor, setCursor] = useState({ line: 1, col: 1 }),
     [activeLine, setActiveLine] = useState<number | null>(null),
     [followSimulation, setFollowSimulation] = useState(true),
@@ -125,6 +127,14 @@ export default function App() {
       ),
     [],
   );
+  const onSearchChange = useCallback((mode: EditorSearchMode | null) => {
+    setEditorSearch(mode);
+    if (mode !== null) {
+      setShowColors(false);
+      setShowExamples(false);
+      setAdjustment(null);
+    }
+  }, []);
   const result = useMemo(
     () => simulate(source, machine, diameter),
     [source, machine, diameter],
@@ -202,6 +212,17 @@ export default function App() {
     };
   }, [showExamples]);
   useEffect(() => {
+    if (!showColors) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowColors(false);
+        programEditor.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [showColors]);
+  useEffect(() => {
     if (!showGuide) return;
     const previous = document.activeElement as HTMLElement | null;
     const handler = (event: KeyboardEvent) => {
@@ -238,7 +259,25 @@ export default function App() {
   function openAdjustment(word: AdjustmentWord) {
     setShowExamples(false);
     setShowColors(false);
+    programEditor.current?.closeSearch();
+    if (adjustment?.word === word) {
+      setAdjustment(null);
+      programEditor.current?.focus();
+      return;
+    }
     setAdjustment({ word, selection: programEditor.current?.selection() });
+  }
+  function toggleExamples() {
+    programEditor.current?.closeSearch();
+    setAdjustment(null);
+    setShowColors(false);
+    setShowExamples(!showExamples);
+  }
+  function toggleColors() {
+    programEditor.current?.closeSearch();
+    setAdjustment(null);
+    setShowExamples(false);
+    setShowColors(!showColors);
   }
   function goToTool(direction: -1 | 1) {
     editorAction(() => {
@@ -635,6 +674,8 @@ export default function App() {
                           className="examples-toggle adjust-button"
                           title="Aggiusta avanzamento F"
                           aria-label="Aggiusta avanzamento"
+                          aria-expanded={adjustment?.word === "F"}
+                          aria-pressed={adjustment?.word === "F"}
                           onClick={() => openAdjustment("F")}
                         >
                           <b>F</b>
@@ -644,6 +685,8 @@ export default function App() {
                           className="examples-toggle adjust-button"
                           title="Aggiusta giri mandrino S"
                           aria-label="Aggiusta giri mandrino"
+                          aria-expanded={adjustment?.word === "S"}
+                          aria-pressed={adjustment?.word === "S"}
                           onClick={() => openAdjustment("S")}
                         >
                           <b>S</b>
@@ -660,9 +703,11 @@ export default function App() {
                           className="icon-button"
                           title="Trova (Ctrl+F)"
                           aria-label="Trova"
+                          aria-expanded={editorSearch === "find"}
+                          aria-pressed={editorSearch === "find"}
                           onClick={() =>
                             editorAction(() =>
-                              programEditor.current?.openSearch(),
+                              programEditor.current?.toggleSearch(),
                             )
                           }
                         >
@@ -688,9 +733,11 @@ export default function App() {
                           className="icon-button"
                           title="Sostituisci (Ctrl+H)"
                           aria-label="Sostituisci"
+                          aria-expanded={editorSearch === "replace"}
+                          aria-pressed={editorSearch === "replace"}
                           onClick={() =>
                             editorAction(() =>
-                              programEditor.current?.openSearch(true),
+                              programEditor.current?.toggleSearch(true),
                             )
                           }
                         >
@@ -726,10 +773,8 @@ export default function App() {
                         hidden={tab !== "workspace"}
                         aria-label="Esempi di programma"
                         aria-expanded={showExamples}
-                        onClick={() => {
-                          setShowExamples(!showExamples);
-                          setShowColors(false);
-                        }}
+                        aria-pressed={showExamples}
+                        onClick={toggleExamples}
                       >
                         <FileCode2 size={13} />
                         Esempi
@@ -738,10 +783,9 @@ export default function App() {
                         className={`icon-button ${showColors ? "active" : ""}`}
                         title="Personalizza colori"
                         aria-label="Personalizza colori"
-                        onClick={() => {
-                          setShowColors(!showColors);
-                          setShowExamples(false);
-                        }}
+                        aria-expanded={showColors}
+                        aria-pressed={showColors}
+                        onClick={toggleColors}
                       >
                         <PaletteIcon size={16} />
                       </button>
@@ -760,6 +804,7 @@ export default function App() {
                             : "Mostra simulazione"
                         }
                         aria-expanded={programs.previewVisible}
+                        aria-pressed={programs.previewVisible}
                         aria-controls="simulation-panel"
                         onClick={programs.togglePreview}
                       >
@@ -877,6 +922,7 @@ export default function App() {
                     documentId={active.id}
                     openDocumentIds={programs.documents.map((doc) => doc.id)}
                     onHistoryChange={onHistoryChange}
+                    onSearchChange={onSearchChange}
                     value={source}
                     onChange={setSource}
                     machine={machine}

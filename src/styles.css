@@ -558,6 +558,17 @@ main {
 .editor-toolbar button:not(:disabled):active {
   background: #345141;
 }
+.editor-toolbar button[aria-pressed="true"] {
+  border-color: #91dcb2;
+  background: #2c533e;
+  color: #d2f6df;
+  box-shadow: inset 0 0 0 1px #91dcb222;
+}
+.editor-toolbar button[aria-pressed="true"]:hover {
+  border-color: #b4f1ce;
+  background: #356248;
+  color: #ebfff3;
+}
 .editor-toolbar button:disabled {
   opacity: 0.4;
   background: transparent;
