@@ -41,15 +41,6 @@ function AxisIndicator({ view }: { view: View }) {
       role="img"
       aria-label={`Versi positivi degli assi ${axes.map((axis) => `+${axis.toUpperCase()}`).join(", ")}`}
     >
-      <rect
-        x="1"
-        y="1"
-        width="138"
-        height="126"
-        rx="12"
-        fill="#111a23e8"
-        stroke="#394a59"
-      />
       {axes.map((axis) => {
         const unit = { x: 0, y: 0, z: 0 };
         unit[axis] = 1;
