@@ -32,7 +32,7 @@ function AxisIndicator({ view }: { view: View }) {
           : ["y", "z"];
   const colors = { x: "#ef8f88", y: "#77dca9", z: "#83b6ed" };
   const origin = view === "ISO" ? [70, 80] : [32, 100];
-  const length = view === "ISO" ? 50 : 60;
+  const length = view === "ISO" ? 35 : 40;
 
   return (
     <svg
