@@ -22,7 +22,9 @@ async function expectVisibleExecutionLine(
   await expect
     .poll(async () => {
       const row = await active.boundingBox();
-      const pane = await page.locator(".cm-scroller").boundingBox();
+      const pane = await page
+        .locator(".editor-column .cm-scroller")
+        .boundingBox();
       return (
         !!row &&
         !!pane &&
@@ -48,7 +50,7 @@ test("segue la riga sui programmi lunghi senza spostare il cursore o la pagina",
   await page.goto("/");
   await openProgram(page, source);
   await expect(page.locator(".cm-simulationLine")).toHaveCount(0);
-  const scroller = page.locator(".cm-scroller");
+  const scroller = page.locator(".editor-column .cm-scroller");
   await scroller.evaluate((element) => (element.scrollTop = 0));
   await page
     .locator(".cm-line")

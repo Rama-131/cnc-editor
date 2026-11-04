@@ -55,6 +55,8 @@ export class SerialConnection {
   private cancelled = false;
   private closing = false;
   private sending = false;
+  private receiving = false;
+  private faulted = false;
   constructor(
     private onData: (text: string) => void,
     private onError: (error: string) => void,
@@ -72,16 +74,22 @@ export class SerialConnection {
     this.port = port;
     this.closing = false;
     this.paused = false;
+    this.faulted = false;
     if (port.readable) {
       this.reader = port.readable.getReader();
       const reader = this.reader;
+      const decoder = new TextDecoder();
       this.readTask = (async () => {
         try {
           while (true) {
             const { value, done } = await reader.read();
             if (done) {
+              const tail = decoder.decode();
+              if (tail) this.onData(tail);
               if (!this.closing) {
                 this.cancelled = true;
+                this.faulted = true;
+                this.receiving = false;
                 this.onError(
                   "Porta seriale scollegata. Disconnetti prima di ricollegare.",
                 );
@@ -96,12 +104,17 @@ export class SerialConnection {
                   this.paused = false;
               }
               const plain = value.filter((b) => b !== 17 && b !== 19);
-              if (plain.length) this.onData(new TextDecoder().decode(plain));
+              if (plain.length) {
+                const text = decoder.decode(plain, { stream: true });
+                if (text) this.onData(text);
+              }
             }
           }
         } catch (e) {
           if (!this.closing) {
             this.cancelled = true;
+            this.faulted = true;
+            this.receiving = false;
             this.onError(e instanceof Error ? e.message : String(e));
           }
         } finally {
@@ -116,14 +129,18 @@ export class SerialConnection {
     onProgress: (sent: number, total: number) => void,
   ) {
     if (this.sending) throw new Error("Trasmissione già in corso.");
+    if (this.receiving)
+      throw new Error("Termina la ricezione prima di inviare un programma.");
+    if (this.faulted)
+      throw new Error("Ricollega la porta seriale dopo l’errore.");
     if (!this.port?.writable)
       throw new Error("Collega prima una porta seriale.");
     const packets = encodeProgram(source, settings),
       total = packets.reduce((n, p) => n + p.length, 0);
     let sent = 0;
+    const writer = this.port.writable.getWriter();
     this.cancelled = false;
     this.sending = true;
-    const writer = this.port.writable.getWriter();
     this.writer = writer;
     try {
       for (const packet of packets) {
@@ -152,6 +169,36 @@ export class SerialConnection {
       writer.releaseLock();
     }
   }
+  async startReceiving(settings: SerialSettings) {
+    if (this.sending)
+      throw new Error("Attendi la fine della trasmissione prima di ricevere.");
+    if (!this.reader || this.faulted)
+      throw new Error(
+        "Collega una porta seriale disponibile per la ricezione.",
+      );
+    this.receiving = true;
+    try {
+      await this.receiveFlow(true, settings);
+    } catch (error) {
+      this.receiving = false;
+      throw error;
+    }
+  }
+  async stopReceiving(settings: SerialSettings) {
+    this.receiving = false;
+    await this.receiveFlow(false, settings);
+  }
+  private async receiveFlow(ready: boolean, settings: SerialSettings) {
+    if (settings.flowControl !== "software") return;
+    if (!this.port?.writable)
+      throw new Error("Porta non disponibile per il controllo XON/XOFF.");
+    const writer = this.port.writable.getWriter();
+    try {
+      await writer.write(new Uint8Array([ready ? 17 : 19]));
+    } finally {
+      writer.releaseLock();
+    }
+  }
   stop() {
     this.cancelled = true;
     if (this.writer)
@@ -159,6 +206,7 @@ export class SerialConnection {
   }
   async disconnect() {
     this.closing = true;
+    this.receiving = false;
     this.stop();
     if (this.reader) {
       try {

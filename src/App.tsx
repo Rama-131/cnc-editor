@@ -17,7 +17,10 @@ import {
 } from "lucide-react";
 import { Editor, defaultPalette, type Palette } from "./components/Editor";
 import { Simulation } from "./components/Simulation";
-import { SerialPanel, downloadText } from "./components/SerialPanel";
+import { SerialPanel } from "./components/SerialPanel";
+import { ReceivedDocument } from "./components/ReceivedDocument";
+import { downloadText } from "./lib/files";
+import { useReceivedDocument } from "./lib/useReceivedDocument";
 import { simulate } from "./lib/simulator";
 import { codeInfo, type Machine } from "./lib/codes";
 import { millSample, latheSample } from "./lib/samples";
@@ -49,9 +52,29 @@ function readPalette(): Palette {
   return defaultPalette;
 }
 const initial = readDraft();
-function currentPage(): "workspace" | "serial" {
+function currentPage(): "workspace" | "serial" | "receive" {
+  if (window.location.hash === "#ricezione") return "receive";
   return window.location.hash === "#trasmissione" ? "serial" : "workspace";
 }
+const pageContent = {
+  workspace: {
+    eyebrow: "SIMULAZIONE CNC",
+    title: "Dal codice al percorso.",
+    description: "Scrivi il programma e segui il percorso utensile.",
+  },
+  serial: {
+    eyebrow: "TRASMISSIONE CNC",
+    title: "Dal programma alla macchina.",
+    description:
+      "Controlla il programma aperto e trasferiscilo al controllo CNC.",
+  },
+  receive: {
+    eyebrow: "RICEZIONE CNC",
+    title: "Dalla macchina al tuo file.",
+    description:
+      "Ricevi il programma dalla CNC in un documento dedicato e salvalo sul PC.",
+  },
+};
 export default function App() {
   const [source, setSource] = useState(initial?.source ?? millSample),
     [saved, setSaved] = useState(initial?.source ?? millSample),
@@ -68,7 +91,9 @@ export default function App() {
     [followSimulation, setFollowSimulation] = useState(true),
     [search, setSearch] = useState(""),
     [notice, setNotice] = useState(""),
+    [receiving, setReceiving] = useState(false),
     [tab, setTab] = useState(currentPage);
+  const reception = useReceivedDocument(setNotice);
   const fileInput = useRef<HTMLInputElement>(null);
   const dirty = source !== saved;
   const result = useMemo(
@@ -97,14 +122,14 @@ export default function App() {
   }, [palette]);
   useEffect(() => {
     const listener = (e: BeforeUnloadEvent) => {
-      if (dirty) {
+      if (dirty || reception.dirty || receiving) {
         e.preventDefault();
         e.returnValue = "";
       }
     };
     window.addEventListener("beforeunload", listener);
     return () => window.removeEventListener("beforeunload", listener);
-  }, [dirty]);
+  }, [dirty, reception.dirty, receiving]);
   const onCursor = useCallback(
       (line: number, col: number) => setCursor({ line, col }),
       [],
@@ -114,18 +139,25 @@ export default function App() {
     const listener = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
         event.preventDefault();
-        downloadText(source, filename);
-        setSaved(source);
-        setNotice("Download del programma avviato.");
+        if (tab === "receive") reception.save();
+        else {
+          downloadText(source, filename);
+          setSaved(source);
+          setNotice("Download del programma avviato.");
+        }
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "o") {
         event.preventDefault();
-        fileInput.current?.click();
+        if (tab === "receive")
+          setNotice(
+            "Per aprire un file usa la pagina Simulazione o Trasmissione.",
+          );
+        else fileInput.current?.click();
       }
     };
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [source, filename]);
+  }, [source, filename, tab, reception.save]);
   useEffect(() => {
     if (!showGuide) return;
     const previous = document.activeElement as HTMLElement | null;
@@ -280,6 +312,15 @@ export default function App() {
         >
           <Settings2 size={21} />
         </a>
+        <a
+          className={tab === "receive" ? "rail-button active" : "rail-button"}
+          title="Ricezione dalla macchina"
+          aria-label="Ricezione dalla macchina"
+          href="#ricezione"
+          aria-current={tab === "receive" ? "page" : undefined}
+        >
+          <ArrowDownToLine size={21} />
+        </a>
         <div className="rail-spacer" />
         <button
           className="rail-button"
@@ -316,19 +357,9 @@ export default function App() {
         <main>
           <div className="page-heading">
             <div>
-              <div className="eyebrow">
-                {tab === "workspace" ? "SIMULAZIONE CNC" : "TRASMISSIONE CNC"}
-              </div>
-              <h1>
-                {tab === "workspace"
-                  ? "Dal codice al percorso."
-                  : "Dal programma alla macchina."}
-              </h1>
-              <p>
-                {tab === "workspace"
-                  ? "Scrivi il programma e segui il percorso utensile."
-                  : "Controlla il programma aperto e trasferiscilo al controllo CNC."}
-              </p>
+              <div className="eyebrow">{pageContent[tab].eyebrow}</div>
+              <h1>{pageContent[tab].title}</h1>
+              <p>{pageContent[tab].description}</p>
             </div>
             <div className="file-actions">
               <input
@@ -344,14 +375,37 @@ export default function App() {
               />
               <button
                 className="button"
+                hidden={tab === "receive"}
                 onClick={() => fileInput.current?.click()}
               >
                 <FolderOpen size={16} />
                 Apri programma
               </button>
-              <button className="button primary" onClick={saveFile}>
+              <button
+                className="button primary"
+                onClick={saveFile}
+                hidden={tab === "receive"}
+              >
                 <ArrowDownToLine size={16} />
                 Salva file
+              </button>
+              <button
+                className="button"
+                hidden={tab !== "receive"}
+                disabled={receiving}
+                onClick={reception.clear}
+              >
+                <Plus size={16} />
+                Nuova ricezione
+              </button>
+              <button
+                className="button primary"
+                hidden={tab !== "receive"}
+                disabled={!reception.text}
+                onClick={reception.save}
+              >
+                <ArrowDownToLine size={16} />
+                Salva ricevuto
               </button>
             </div>
           </div>
@@ -370,6 +424,13 @@ export default function App() {
               >
                 <Cable size={16} />
                 Trasmissione
+              </a>
+              <a
+                href="#ricezione"
+                aria-current={tab === "receive" ? "page" : undefined}
+              >
+                <ArrowDownToLine size={16} />
+                Ricezione {receiving && <i className="status-dot" />}
               </a>
             </nav>
             <div className="machine-select">
@@ -408,9 +469,9 @@ export default function App() {
             </div>
           )}
           <div
-            className={`workspace ${tab === "serial" ? "transmission-page" : "simulation-page"}`}
+            className={`workspace ${tab === "workspace" ? "simulation-page" : "transmission-page"}`}
           >
-            <div className="editor-column">
+            <div className="editor-column" hidden={tab === "receive"}>
               <section className="editor panel">
                 <div className="panel-head editor-head">
                   <div className="file-tab">
@@ -550,6 +611,13 @@ export default function App() {
                 </button>
               </div>
             </div>
+            <ReceivedDocument
+              file={reception}
+              machine={machine}
+              palette={palette}
+              receiving={receiving}
+              visible={tab === "receive"}
+            />
             <div className="preview-column" hidden={tab !== "workspace"}>
               <Simulation
                 result={result}
@@ -565,8 +633,16 @@ export default function App() {
                 </span>
               </div>
             </div>
-            <div className="serial-column" hidden={tab !== "serial"}>
-              <SerialPanel source={source} filename={filename} />
+            <div className="serial-column" hidden={tab === "workspace"}>
+              <SerialPanel
+                source={source}
+                filename={filename}
+                mode={tab === "receive" ? "receive" : "send"}
+                receiving={receiving}
+                receivedLength={reception.text.length}
+                onReceive={reception.append}
+                onReceivingChange={setReceiving}
+              />
               <div className="machine-note">
                 <Info size={15} />
                 <p>

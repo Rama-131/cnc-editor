@@ -29,10 +29,11 @@ Per i test dell’interfaccia: `npx playwright install chromium`, quindi `npm ru
 
 ## Editor
 
-L’app ha due pagine, raggiungibili dai pulsanti **Simulazione** e **Trasmissione**:
+L’app ha tre pagine, raggiungibili dai pulsanti **Simulazione**, **Trasmissione** e **Ricezione**:
 
 - **Simulazione** (`#simulazione`): editor del programma e anteprima grafica del percorso.
 - **Trasmissione** (`#trasmissione`): lo stesso programma aperto, affiancato al configuratore e ai comandi seriali.
+- **Ricezione** (`#ricezione`): un documento inizialmente vuoto e indipendente, che si riempie con i dati inviati dalla macchina.
 
 Il file, le modifiche non salvate, la cronologia annulla/ripristina e le impostazioni restano disponibili passando da una pagina all’altra. Il cambio pagina mette in pausa la simulazione e mantiene aperta la connessione seriale fino alla disconnessione esplicita. Funzionano anche i pulsanti Indietro/Avanti del browser e i link diretti alle due pagine.
 
@@ -69,7 +70,23 @@ G-code, codici M e sintassi dei cicli variano per serie, opzioni e costruttore: 
 
 Sono implementati flusso hardware RTS/CTS, software XON/XOFF (DC1/DC3), pausa configurabile tra blocchi, progressione, interruzione, lettura dei dati in arrivo e salvataggio del testo ricevuto. Il software sospende l’invio dopo XOFF e riprende dopo XON, con timeout di 30 secondi. L’invio usa piccoli blocchi; i byte già bufferizzati dal driver o dall’adattatore non possono essere ritirati. Dopo un errore o un’interruzione occorre ricollegare la porta. Il trasferimento supporta ASCII: caratteri accentati e simboli non ASCII devono essere rimossi, anche dai commenti. Non è un’implementazione DNC per esecuzione continua in macchina, né un protocollo con checksum/ACK del costruttore.
 
-**La seriale è verificata con stream e porta simulati; il collegamento fisico e le impostazioni del singolo controllo richiedono una prova sul PC Windows con la macchina.**
+## Ricezione dei programmi dalla CNC
+
+1. Apri **Ricezione**. Il documento ricevuto è separato dal programma aperto nell’editor; la prima volta è vuoto. Una precedente bozza di ricezione viene ripristinata senza attivare la porta.
+2. Configura gli stessi parametri seriali presenti sulla CNC e premi **Seleziona e collega porta**. Trasmissione e ricezione condividono una sola connessione, mantenuta passando fra le pagine.
+3. Premi **Avvia ricezione**, poi avvia l’uscita/invio del programma dalla macchina con la procedura prevista dal controllo. Con XON/XOFF il PC invia XON (DC1) per dichiararsi pronto; con RTS/CTS il flusso hardware è gestito dal driver seriale.
+4. Il testo compare progressivamente, con evidenziazione G-code e conteggio dei caratteri. **Segui dati** mantiene visibile la fine del documento. Puoi cambiare pagina mentre la ricezione continua; l’invio di un programma dal PC rimane disabilitato finché ricevi.
+5. Attendi che la CNC abbia terminato l’invio, premi **Termina ricezione**, verifica il programma e usa **Salva ricevuto**. Puoi scegliere il nome del file `.nc`. Ctrl+S nella pagina Ricezione salva questo documento. La fine dell’acquisizione è manuale: l’app non presume che una pausa, M30 o `%` garantiscano la fine dell’invio.
+
+Il documento è in sola lettura e conserva i dati testuali nell’ordine ricevuto, compresi fine riga e delimitatori. La vista normalizza CR/LF per la leggibilità; il file scaricato mantiene le righe originali. XON/XOFF sono segnali di flusso e non entrano nel file. La decodifica testuale supporta ASCII e UTF-8 a frammenti; non è una cattura binaria o un convertitore di codifiche proprietarie.
+
+**Termina ricezione** invia XOFF (DC3) quando è configurato il flusso software e interrompe l’acquisizione nel documento; non garantisce un arresto immediato dell’uscita della CNC, dei driver o degli adattatori. Dopo la pausa, **Riprendi ricezione** aggiunge i nuovi dati al documento esistente. **Nuova ricezione** lo svuota, chiedendo conferma se i dati non sono stati salvati. Una copia scaricata durante l’acquisizione contiene soltanto i dati ricevuti fino a quel momento.
+
+La bozza ricevuta è conservata nel browser, separatamente da quella dell’editor; può essere salvata anche dopo un errore di porta. In caso di errore l’acquisizione si ferma, i dati già ricevuti restano disponibili e la porta va ricollegata. Il documento può contenere fino a **2.097.152 caratteri**: superato il limite, l’app interrompe l’acquisizione e segnala esplicitamente che il file è parziale, senza troncare silenziosamente la ricezione. Il riquadro diagnostico “Dati ricevuti” mantiene solo gli ultimi 200.000 caratteri; questo limite non si applica al documento da salvare.
+
+Per modificare o simulare un file ricevuto, salvalo e aprilo dalla pagina Simulazione o Trasmissione. Il collegamento fisico richiede Chrome/Edge sul PC Windows connesso alla macchina e i parametri/cablaggi corretti per il controllo specifico.
+
+**Trasmissione e ricezione sono verificate con stream e porta simulati; il collegamento fisico e le impostazioni del singolo controllo richiedono una prova sul PC Windows con la macchina.**
 
 ## Struttura
 

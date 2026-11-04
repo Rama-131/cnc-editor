@@ -8,6 +8,7 @@ import {
   highlightActiveLineGutter,
   drawSelection,
   hoverTooltip,
+  placeholder,
 } from "@codemirror/view";
 import {
   defaultKeymap,
@@ -91,6 +92,10 @@ export function Editor({
   palette,
   simulationLine,
   followSimulation,
+  readOnly = false,
+  ariaLabel = "Editor programma G-code",
+  emptyHint = "",
+  followEnd = false,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -99,6 +104,10 @@ export function Editor({
   palette: Palette;
   simulationLine: number | null;
   followSimulation: boolean;
+  readOnly?: boolean;
+  ariaLabel?: string;
+  emptyHint?: string;
+  followEnd?: boolean;
 }) {
   const root = useRef<HTMLDivElement>(null),
     view = useRef<EditorView | null>(null),
@@ -153,6 +162,9 @@ export function Editor({
       state: EditorState.create({
         doc: value,
         extensions: [
+          EditorState.readOnly.of(readOnly),
+          EditorView.editable.of(!readOnly),
+          placeholder(emptyHint),
           lineNumbers(),
           history(),
           drawSelection(),
@@ -164,7 +176,8 @@ export function Editor({
           colorConfig.current.of(colors(palette)),
           tooltipConfig.current.of(tooltip(machine)),
           EditorView.contentAttributes.of({
-            "aria-label": "Editor programma G-code",
+            "aria-label": ariaLabel,
+            "aria-readonly": String(readOnly),
             spellcheck: "false",
           }),
           EditorView.theme(
@@ -232,11 +245,27 @@ export function Editor({
   }, []);
   useEffect(() => {
     const v = view.current;
-    if (v && v.state.doc.toString() !== value)
+    if (!v) return;
+    const current = v.state.doc.toString();
+    if (current !== value)
       v.dispatch({
-        changes: { from: 0, to: v.state.doc.length, insert: value },
+        changes:
+          readOnly && value.startsWith(current)
+            ? { from: v.state.doc.length, insert: value.slice(current.length) }
+            : { from: 0, to: v.state.doc.length, insert: value },
       });
-  }, [value]);
+  }, [value, readOnly]);
+  useEffect(() => {
+    const v = view.current;
+    if (v && followEnd)
+      v.requestMeasure({
+        key: "receive-follow-end",
+        read: (view) => view.scrollDOM.scrollHeight,
+        write: (height, view) => {
+          view.scrollDOM.scrollTop = height;
+        },
+      });
+  }, [value, followEnd]);
   useEffect(() => {
     view.current?.dispatch({
       effects: colorConfig.current.reconfigure(colors(palette)),

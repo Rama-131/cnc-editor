@@ -7,6 +7,7 @@ import {
   Square,
   Download,
   Terminal,
+  ArrowDownToLine,
 } from "lucide-react";
 import {
   defaultSerial,
@@ -15,14 +16,8 @@ import {
   SerialConnection,
   type SerialSettings,
 } from "../lib/serial";
-export function downloadText(text: string, name: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
+import { downloadText } from "../lib/files";
+import { MAX_RECEIVED_CHARS } from "../lib/reception";
 function loadProfile(): string {
   try {
     const name = localStorage.getItem("cnc.serial.profile");
@@ -56,9 +51,19 @@ function loadSettings(profile: string): SerialSettings {
 export function SerialPanel({
   source,
   filename,
+  mode = "send",
+  receiving = false,
+  receivedLength = 0,
+  onReceive = () => true,
+  onReceivingChange = () => {},
 }: {
   source: string;
   filename: string;
+  mode?: "send" | "receive";
+  receiving?: boolean;
+  receivedLength?: number;
+  onReceive?: (text: string) => boolean;
+  onReceivingChange?: (active: boolean) => void;
 }) {
   const [profile, setProfile] = useState(loadProfile);
   const [settings, setSettings] = useState(() => loadSettings(profile)),
@@ -70,9 +75,17 @@ export function SerialPanel({
       "Seleziona la porta seriale del PC collegato alla macchina.",
     ),
     [error, setError] = useState(false),
+    [fault, setFault] = useState(false),
     [received, setReceived] = useState(""),
     [showLog, setShowLog] = useState(false);
   const connection = useRef<SerialConnection | null>(null);
+  const receiveActive = useRef(receiving);
+  const callbacks = useRef({ onReceive, onReceivingChange });
+  callbacks.current = { onReceive, onReceivingChange };
+  function setReceiving(active: boolean) {
+    receiveActive.current = active;
+    callbacks.current.onReceivingChange(active);
+  }
   useEffect(() => {
     try {
       localStorage.setItem(`cnc.serial.${profile}`, JSON.stringify(settings));
@@ -92,8 +105,15 @@ export function SerialPanel({
   async function connect() {
     setBusy(true);
     setError(false);
+    setFault(false);
     try {
       if (connected) {
+        if (receiveActive.current) {
+          setReceiving(false);
+          try {
+            await connection.current?.stopReceiving(settings);
+          } catch {}
+        }
         await connection.current?.disconnect();
         connection.current = null;
         setConnected(false);
@@ -106,19 +126,72 @@ export function SerialPanel({
           "Per la seriale usa Chrome o Edge su Windows, in HTTPS o su localhost, sul PC collegato alla CNC.",
         );
       const c = new SerialConnection(
-        (text) => setReceived((s) => (s + text).slice(-200000)),
+        (text) => {
+          setReceived((s) => (s + text).slice(-200000));
+          if (receiveActive.current && !callbacks.current.onReceive(text)) {
+            setReceiving(false);
+            setError(true);
+            setMessage(
+              `Limite di ${MAX_RECEIVED_CHARS.toLocaleString("it-IT")} caratteri raggiunto: ricezione interrotta. Il file contiene solo i dati acquisiti fino al limite; salvalo prima di iniziare di nuovo.`,
+            );
+            setBusy(true);
+            void c
+              .stopReceiving(settings)
+              .catch(() => setFault(true))
+              .finally(() => setBusy(false));
+          }
+        },
         (message) => {
-          setMessage(message);
+          setReceiving(false);
+          setFault(true);
+          setMessage(
+            message +
+              " I dati già ricevuti sono conservati; ricollega la porta prima di continuare.",
+          );
           setError(true);
         },
       );
       await c.connect(provider, settings);
       connection.current = c;
       setConnected(true);
-      setMessage("Porta aperta. Imposta la CNC in ricezione prima di inviare.");
+      setMessage(
+        mode === "receive"
+          ? "Porta aperta. Premi Avvia ricezione, poi avvia l’invio sulla CNC."
+          : "Porta aperta. Imposta la CNC in ricezione prima di inviare.",
+      );
     } catch (e) {
       setError(true);
       setMessage(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function toggleReception() {
+    if (!connection.current) return;
+    setBusy(true);
+    setError(false);
+    try {
+      if (receiveActive.current) {
+        setReceiving(false);
+        await connection.current.stopReceiving(settings);
+        setMessage(
+          "Ricezione terminata. Verifica che il programma sia completo, poi salva il file ricevuto.",
+        );
+      } else {
+        setReceiving(true);
+        await connection.current.startReceiving(settings);
+        setMessage(
+          "Ricezione attiva. Avvia l’invio del programma sulla macchina; i dati compariranno nel documento.",
+        );
+      }
+    } catch (error) {
+      setReceiving(false);
+      setFault(true);
+      setError(true);
+      setMessage(
+        (error instanceof Error ? error.message : String(error)) +
+          " I dati già ricevuti sono conservati.",
+      );
     } finally {
       setBusy(false);
     }
@@ -156,11 +229,17 @@ export function SerialPanel({
       <div className="panel-head">
         <div className="panel-title">
           <Cable size={16} />
-          <span>Collegamento macchina</span>
+          <span>
+            {mode === "receive"
+              ? "Ricezione dalla macchina"
+              : "Collegamento macchina"}
+          </span>
         </div>
-        <span className={`connection-state ${connected ? "online" : ""}`}>
+        <span
+          className={`connection-state ${connected && !fault ? "online" : ""}`}
+        >
           <i />
-          {connected ? "Collegato" : "Non collegato"}
+          {fault ? "Errore porta" : connected ? "Collegato" : "Non collegato"}
         </span>
       </div>
       <div className="serial-body">
@@ -169,8 +248,16 @@ export function SerialPanel({
             <Cable size={23} />
           </div>
           <div>
-            <strong>Trasferimento seriale RS-232</strong>
-            <p>Il tuo programma, dal PC al controllo CNC.</p>
+            <strong>
+              {mode === "receive"
+                ? "Ricezione seriale RS-232"
+                : "Trasferimento seriale RS-232"}
+            </strong>
+            <p>
+              {mode === "receive"
+                ? "Dal controllo CNC al tuo file."
+                : "Il tuo programma, dal PC al controllo CNC."}
+            </p>
           </div>
         </div>
         <fieldset disabled={connected || busy} className="serial-fields">
@@ -239,7 +326,7 @@ export function SerialPanel({
               <option>2</option>
             </select>
           </label>
-          <label>
+          <label className={mode === "receive" ? "full" : undefined}>
             Controllo di flusso
             <select
               value={settings.flowControl}
@@ -255,7 +342,7 @@ export function SerialPanel({
               <option value="none">Nessuno</option>
             </select>
           </label>
-          <label>
+          <label hidden={mode === "receive"}>
             Fine riga
             <select
               value={settings.lineEnding}
@@ -271,7 +358,7 @@ export function SerialPanel({
               <option>CR</option>
             </select>
           </label>
-          <label>
+          <label hidden={mode === "receive"}>
             Pausa tra blocchi
             <select
               value={settings.delay}
@@ -284,7 +371,7 @@ export function SerialPanel({
               ))}
             </select>
           </label>
-          <label className="check-label">
+          <label className="check-label" hidden={mode === "receive"}>
             <input
               type="checkbox"
               checked={settings.wrap}
@@ -318,23 +405,53 @@ export function SerialPanel({
         {sending && (
           <progress max="100" value={progress} aria-label="Avanzamento invio" />
         )}
-        <button
-          className={`button ${sending ? "danger" : "primary"} send-button`}
-          disabled={!connected || busy}
-          onClick={
-            sending
-              ? () => {
-                  connection.current?.stop();
-                  setMessage("Interruzione in corso…");
-                }
-              : send
-          }
-        >
-          {sending ? <Square size={15} /> : <Send size={15} />}{" "}
-          {sending
-            ? `Interrompi · ${Math.round(progress)}%`
-            : "Invia programma alla macchina"}
-        </button>
+        {mode === "receive" ? (
+          <>
+            <button
+              className={`button ${receiving ? "danger" : "primary"} send-button`}
+              disabled={!connected || busy || sending || fault}
+              onClick={toggleReception}
+            >
+              {receiving ? <Square size={15} /> : <ArrowDownToLine size={15} />}
+              {receiving
+                ? "Termina ricezione"
+                : receivedLength
+                  ? "Riprendi ricezione"
+                  : "Avvia ricezione"}
+            </button>
+            <p className="receive-instructions">
+              {receiving
+                ? "Attendi la fine dell’invio sulla CNC prima di terminare la ricezione. Puoi cambiare pagina: l’acquisizione continua."
+                : "I dati vengono acquisiti soltanto dopo Avvia ricezione. Fine riga e delimitatori ricevuti vengono conservati nel file."}
+            </p>
+          </>
+        ) : (
+          <>
+            <button
+              className={`button ${sending ? "danger" : "primary"} send-button`}
+              disabled={!connected || busy || receiving || fault}
+              onClick={
+                sending
+                  ? () => {
+                      connection.current?.stop();
+                      setMessage("Interruzione in corso…");
+                    }
+                  : send
+              }
+            >
+              {sending ? <Square size={15} /> : <Send size={15} />}{" "}
+              {sending
+                ? `Interrompi · ${Math.round(progress)}%`
+                : "Invia programma alla macchina"}
+            </button>
+            {receiving && (
+              <p className="receive-instructions">
+                Ricezione in corso. Apri la pagina Ricezione per terminarla
+                prima di inviare un programma.
+              </p>
+            )}
+          </>
+        )}
         <div className="receive-toggle">
           <button onClick={() => setShowLog(!showLog)}>
             <Terminal size={14} />

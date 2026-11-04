@@ -349,6 +349,7 @@ h1 {
   grid-template-columns: minmax(320px, 1.15fr) minmax(340px, 0.85fr);
 }
 .editor-column,
+.received-column,
 .preview-column,
 .serial-column {
   min-width: 0;
@@ -425,7 +426,8 @@ h1 {
   background: #eccb82;
   border-radius: 50%;
 }
-.execution-bar {
+.execution-bar,
+.reception-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -437,22 +439,26 @@ h1 {
   font-size: 10px;
   color: #8caa9a;
 }
-.execution-bar.tracking .execution-position {
+.execution-bar.tracking .execution-position,
+.reception-bar.tracking .reception-position {
   color: #aaf3cb;
 }
-.execution-position {
+.execution-position,
+.reception-position {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-.execution-bar label {
+.execution-bar label,
+.reception-bar label {
   display: flex;
   align-items: center;
   gap: 5px;
   white-space: nowrap;
   cursor: pointer;
 }
-.execution-bar input {
+.execution-bar input,
+.reception-bar input {
   width: 12px;
   height: 12px;
   margin: 0;
@@ -863,6 +869,16 @@ h1 {
 .serial-message.error {
   color: #e5ae8c;
 }
+.receive-instructions {
+  margin: 12px 0 4px;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #93a5b4;
+}
+.received-document .cm-placeholder {
+  color: #7c91a4;
+  white-space: pre-wrap;
+}
 .send-button {
   width: 100%;
   font-size: 12px;
@@ -1161,6 +1177,7 @@ footer > span:first-child {
     gap: 20px;
   }
   .editor-column,
+  .received-column,
   .preview-column,
   .serial-column {
     grid-column: 1;
@@ -1187,6 +1204,9 @@ footer > span:first-child {
     flex: 1;
     padding: 9px 8px;
     font-size: 11px;
+  }
+  .page-tabs a svg {
+    display: none;
   }
   .serial-body {
     display: block;
