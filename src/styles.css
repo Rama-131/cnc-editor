@@ -579,7 +579,7 @@ h1 {
 .viewport > .axis-indicator {
   position: absolute;
   right: 4px;
-  bottom: 16px;
+  bottom: 4px;
   width: 140px;
   height: 128px;
   pointer-events: none;
