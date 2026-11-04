@@ -1,13 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 
 async function openProgram(page: Page, source: string) {
-  await page
-    .locator("input[type=file]")
-    .setInputFiles({
-      name: "origini.nc",
-      mimeType: "text/plain",
-      buffer: Buffer.from(source),
-    });
+  await page.locator("input[type=file]").setInputFiles({
+    name: "origini.nc",
+    mimeType: "text/plain",
+    buffer: Buffer.from(source),
+  });
 }
 
 test("mostra lo zero giallo e segue i cambi di origine anche nei blocchi senza movimento", async ({
@@ -93,6 +91,7 @@ test("mostra solo origini effettivamente presenti nel programma eseguito", async
   );
   await openProgram(page, "(G59 IN UN COMMENTO)\nG58\nG0 X10\nM30\nG55");
   await expect(page.locator(".work-origin-code")).toHaveText("G58");
+  await page.getByRole("button", { name: "Esempi di programma" }).click();
   await page.getByRole("button", { name: "Profilo tornitura" }).click();
   await expect(page.locator(".work-origin-code")).toHaveText("G54");
   await page

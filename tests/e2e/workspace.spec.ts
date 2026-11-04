@@ -23,6 +23,7 @@ test("editor, descrizioni, colori, simulazione e file", async ({ page }) => {
     )
     .toBe("#ff8844");
   await page.getByRole("button", { name: "Personalizza colori" }).click();
+  await page.getByRole("button", { name: "Esempi di programma" }).click();
   await page.getByRole("button", { name: "Profilo tornitura" }).click();
   await expect(page.getByLabel("Tipo macchina")).toHaveValue("lathe");
   await expect(page.getByLabel("Modalità asse X tornio")).toHaveValue(

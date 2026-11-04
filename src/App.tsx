@@ -3,7 +3,6 @@ import {
   Activity,
   ArrowDownToLine,
   BookOpen,
-  Check,
   Code2,
   FileCode2,
   FolderOpen,
@@ -71,6 +70,7 @@ export default function App() {
     [diameter, setDiameter] = useState(true),
     [palette, setPalette] = useState(readPalette),
     [showColors, setShowColors] = useState(false),
+    [showExamples, setShowExamples] = useState(false),
     [showGuide, setShowGuide] = useState(false),
     [cursor, setCursor] = useState({ line: 1, col: 1 }),
     [activeLine, setActiveLine] = useState<number | null>(null),
@@ -87,7 +87,10 @@ export default function App() {
     [source, machine, diameter],
   );
   useEffect(() => {
-    const updatePage = () => setTab(currentPage());
+    const updatePage = () => {
+      setTab(currentPage());
+      setShowExamples(false);
+    };
     window.addEventListener("hashchange", updatePage);
     return () => window.removeEventListener("hashchange", updatePage);
   }, []);
@@ -145,6 +148,25 @@ export default function App() {
     return () => window.removeEventListener("keydown", listener);
   }, [source, filename, tab, reception.save]);
   useEffect(() => {
+    if (!showExamples) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (
+        event.target instanceof Element &&
+        !event.target.closest(".editor-examples, .examples-toggle")
+      )
+        setShowExamples(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowExamples(false);
+    };
+    window.addEventListener("pointerdown", closeOutside);
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      window.removeEventListener("pointerdown", closeOutside);
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [showExamples]);
+  useEffect(() => {
     if (!showGuide) return;
     const previous = document.activeElement as HTMLElement | null;
     const handler = (event: KeyboardEvent) => {
@@ -187,6 +209,7 @@ export default function App() {
     setSource(text);
     setSaved(text);
     setFilename(kind === "mill" ? "O1001_piastra.nc" : "O2001_albero.nc");
+    setShowExamples(false);
   }
   async function openFile(file: File) {
     if (!canReplace()) return;
@@ -463,10 +486,26 @@ export default function App() {
                   </div>
                   <div className="icon-group">
                     <button
+                      className="examples-toggle"
+                      hidden={tab !== "workspace"}
+                      aria-label="Esempi di programma"
+                      aria-expanded={showExamples}
+                      onClick={() => {
+                        setShowExamples(!showExamples);
+                        setShowColors(false);
+                      }}
+                    >
+                      <FileCode2 size={13} />
+                      Esempi
+                    </button>
+                    <button
                       className={`icon-button ${showColors ? "active" : ""}`}
                       title="Personalizza colori"
                       aria-label="Personalizza colori"
-                      onClick={() => setShowColors(!showColors)}
+                      onClick={() => {
+                        setShowColors(!showColors);
+                        setShowExamples(false);
+                      }}
                     >
                       <PaletteIcon size={16} />
                     </button>
@@ -486,6 +525,28 @@ export default function App() {
                     </button>
                   </div>
                 </div>
+                {showExamples && tab === "workspace" && (
+                  <div
+                    className="examples editor-examples"
+                    role="group"
+                    aria-label="Programmi di esempio"
+                  >
+                    <span>PROGRAMMI DI ESEMPIO</span>
+                    <button onClick={() => example("mill")}>
+                      <FileCode2 size={14} />
+                      Profilo fresatura
+                    </button>
+                    <button onClick={() => example("lathe")}>
+                      <FileCode2 size={14} />
+                      Profilo tornitura
+                    </button>
+                    <p>
+                      Passa il mouse sui codici G e M per visualizzarne il
+                      significato. La guida completa è disponibile dalla barra
+                      di sinistra.
+                    </p>
+                  </div>
+                )}
                 {showColors && (
                   <div className="color-settings">
                     <div className="color-settings-head">
@@ -554,30 +615,6 @@ export default function App() {
                   <span>UTF-8</span>
                 </div>
               </section>
-              <div className="editor-tip">
-                <div className="tip-icon">
-                  <Info size={16} />
-                </div>
-                <p>
-                  <strong>Un aiuto, proprio dove serve.</strong>
-                  <br />
-                  Passa il mouse sui codici{" "}
-                  <span style={{ color: palette.g }}>G</span> e{" "}
-                  <span style={{ color: palette.m }}>M</span> per scoprirne il
-                  significato.
-                </p>
-              </div>
-              <div className="examples" hidden={tab !== "workspace"}>
-                <span>INIZIA DA UN ESEMPIO</span>
-                <button onClick={() => example("mill")}>
-                  <FileCode2 size={14} />
-                  Profilo fresatura
-                </button>
-                <button onClick={() => example("lathe")}>
-                  <FileCode2 size={14} />
-                  Profilo tornitura
-                </button>
-              </div>
             </div>
             <ReceivedDocument
               file={reception}
@@ -593,13 +630,6 @@ export default function App() {
                 onLine={onLine}
                 active={tab === "workspace"}
               />
-              <div className="preview-caption">
-                <Check size={14} />
-                <span>Aggiornamento automatico durante la scrittura</span>
-                <span>
-                  {activeLine === null ? "Pronto" : `Riga ${activeLine}`}
-                </span>
-              </div>
             </div>
             <div className="serial-column" hidden={tab === "workspace"}>
               <SerialPanel
@@ -611,24 +641,9 @@ export default function App() {
                 onReceive={reception.append}
                 onReceivingChange={setReceiving}
               />
-              <div className="machine-note">
-                <Info size={15} />
-                <p>
-                  Il significato di alcuni codici varia con il controllo.
-                  Verifica sempre il manuale Fanuc, Mitsubishi o del
-                  costruttore.
-                </p>
-              </div>
             </div>
           </div>
         </main>
-        <footer>
-          <span>
-            <i className="status-dot" />
-            Bozza conservata in questo browser
-          </span>
-          <span>Editor ISO · Simulazione geometrica · Seriale RS-232</span>
-        </footer>
       </div>
       {showGuide && (
         <div className="modal-backdrop" onClick={() => setShowGuide(false)}>

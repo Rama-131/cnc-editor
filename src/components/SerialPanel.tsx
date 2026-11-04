@@ -8,6 +8,7 @@ import {
   Download,
   Terminal,
   ArrowDownToLine,
+  Info,
 } from "lucide-react";
 import {
   defaultSerial,
@@ -476,6 +477,13 @@ export function SerialPanel({
             placeholder="I dati ricevuti dalla porta appariranno qui. XON/XOFF sono gestiti dal collegamento."
           />
         )}
+        <div className="machine-note">
+          <Info size={15} />
+          <p>
+            Il significato di alcuni codici varia con il controllo. Verifica
+            sempre il manuale Fanuc, Mitsubishi o del costruttore.
+          </p>
+        </div>
       </div>
     </section>
   );

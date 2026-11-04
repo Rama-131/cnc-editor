@@ -37,14 +37,14 @@ L’app ha tre pagine, raggiungibili dalle icone **Simulazione**, **Trasmissione
 
 Il file, le modifiche non salvate, la cronologia annulla/ripristina e le impostazioni restano disponibili passando da una pagina all’altra. Il cambio pagina mette in pausa la simulazione e mantiene aperta la connessione seriale fino alla disconnessione esplicita. Funzionano anche i pulsanti Indietro/Avanti del browser e i link diretti alle pagine.
 
-La barra superiore compatta riunisce nome della pagina, selezione della macchina e comandi **Apri/Salva**; rimane visibile durante lo scorrimento. Editor e simulazione adattano l’altezza alla finestra per lasciare più spazio al programma e al percorso. Su schermi piccoli i comandi dei file sono rappresentati dalle icone, con etichette accessibili e suggerimenti al passaggio del mouse.
+La barra superiore compatta riunisce nome della pagina, selezione della macchina e comandi **Apri/Salva**; rimane visibile durante lo scorrimento. I due pannelli occupano tutta l’area sottostante, senza margini esterni e con una sola linea centrale. Il programma e i comandi scorrono al loro interno. Su schermi piccoli i pannelli sono impilati e i comandi dei file sono rappresentati dalle icone, con etichette accessibili e suggerimenti al passaggio del mouse.
 
 - Apertura di file `.nc`, `.cnc`, `.tap`, `.txt`, `.iso`, `.mpf`, `.gcode`, fino a 2 MB; salvataggio tramite download del browser.
 - Colori configurabili per G, M, assi, numeri, commenti, utensili/correttori. Il pulsante con la tavolozza apre le impostazioni.
 - Descrizioni dei codici G/M al passaggio del mouse e guida ricercabile. Le descrizioni distinguono tornio e fresatrice dove necessario, ad esempio G90 e G98/G99.
 - Annulla/ripristina; Ctrl+S salva il file, Ctrl+O apre un file.
 - Bozza, colori e configurazioni seriali separate per Fanuc, Mitsubishi e altro controllo vengono conservati nel browser con `localStorage`. Il salvataggio su disco rimane esplicito. Cancellare i dati del browser elimina la bozza locale.
-- Gli esempi “Profilo fresatura” e “Profilo tornitura” permettono di provare subito l’anteprima. Seleziona esplicitamente il tipo macchina quando apri un programma esterno.
+- Il menu **Esempi** nella barra dell’editor contiene “Profilo fresatura” e “Profilo tornitura” per provare subito l’anteprima. Seleziona esplicitamente il tipo macchina quando apri un programma esterno.
 
 ## Simulazione geometrica
 

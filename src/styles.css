@@ -13,7 +13,6 @@
   --muted: #84909f;
   --line: #29313c;
   --green: #8ee5b8;
-  --workspace-height: clamp(580px, calc(100dvh - 82px), 960px);
 }
 * {
   box-sizing: border-box;
@@ -23,6 +22,7 @@
 }
 body {
   margin: 0;
+  overflow: hidden;
 }
 button,
 input,
@@ -84,7 +84,7 @@ svg {
 }
 .app {
   display: flex;
-  min-height: 100vh;
+  height: 100dvh;
 }
 .rail {
   width: 52px;
@@ -154,6 +154,10 @@ svg {
   margin-left: 52px;
   min-width: 0;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
 }
 .topbar {
   min-height: 46px;
@@ -167,6 +171,7 @@ svg {
   position: sticky;
   top: 0;
   z-index: 10;
+  flex-shrink: 0;
 }
 .app-context {
   display: flex;
@@ -239,9 +244,12 @@ svg {
   gap: 3px;
 }
 main {
-  max-width: 1920px;
-  margin: auto;
-  padding: 8px 16px 10px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
 }
 .file-actions {
   display: flex;
@@ -301,18 +309,41 @@ main {
 }
 .workspace {
   display: grid;
-  grid-template-columns: minmax(300px, 1fr) minmax(360px, 1.1fr);
-  gap: 14px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #171d25;
 }
 .workspace.transmission-page {
-  grid-template-columns: minmax(320px, 1.15fr) minmax(340px, 0.85fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
 }
 .editor-column,
 .received-column,
 .preview-column,
 .serial-column {
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.preview-column,
+.serial-column {
+  border-left: 1px solid var(--line);
+}
+.serial-column {
+  overflow-y: auto;
+}
+.serial-column > .serial {
+  min-height: 100%;
+  flex-shrink: 0;
+}
+.workspace > div > .panel {
+  border: 0;
+  border-radius: 0;
 }
 .panel {
   border: 1px solid var(--line);
@@ -342,7 +373,9 @@ main {
   color: #93a3b4;
 }
 .editor {
-  height: var(--workspace-height);
+  height: 100%;
+  min-height: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -359,6 +392,7 @@ main {
   min-width: 0;
   align-self: stretch;
   position: relative;
+  flex: 1;
 }
 .file-tab:after {
   content: "";
@@ -377,8 +411,9 @@ main {
   background: none;
   border: 0;
   font-size: 12px;
-  min-width: 40px;
-  width: 145px;
+  min-width: 0;
+  width: 100%;
+  max-width: 220px;
   padding: 5px 0;
 }
 .unsaved {
@@ -454,25 +489,19 @@ main {
   margin: 5px 0 0;
   color: #c3cfda;
 }
-.editor-tip {
+.examples-toggle {
   display: flex;
-  gap: 11px;
-  margin: 10px 0;
-  align-items: flex-start;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: #a6b9c8;
+  font-size: 10px;
 }
-.tip-icon {
-  color: #83b89f;
-  margin-top: 3px;
-}
-.editor-tip p {
-  margin: 0;
-  font-size: 11px;
-  line-height: 1.8;
-  color: #8190a1;
-}
-.editor-tip strong {
-  font-weight: 500;
-  color: #b2bdc8;
+.examples-toggle:hover,
+.examples-toggle[aria-expanded="true"] {
+  background: #2b3642;
+  color: #b9efce;
 }
 .examples {
   border: 1px solid #29343e;
@@ -481,6 +510,23 @@ main {
   display: flex;
   gap: 13px;
   flex-wrap: wrap;
+}
+.editor-examples {
+  position: absolute;
+  top: 44px;
+  right: 8px;
+  width: 280px;
+  max-width: calc(100% - 16px);
+  padding: 14px;
+  z-index: 4;
+  background: #202c37;
+  box-shadow: 0 12px 30px #0007;
+}
+.editor-examples p {
+  margin: 0;
+  color: #96a8b8;
+  font-size: 10px;
+  line-height: 1.7;
 }
 .examples > span {
   width: 100%;
@@ -517,8 +563,10 @@ main {
 .simulation {
   display: flex;
   flex-direction: column;
-  height: var(--workspace-height);
-  min-height: 580px;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
 }
 .simulation > :not(.viewport) {
   flex-shrink: 0;
@@ -547,7 +595,7 @@ main {
   border-bottom: 1px solid #27313c;
   overflow: hidden;
   flex: 1;
-  min-height: 200px;
+  min-height: 180px;
 }
 .viewport > svg:not(.axis-indicator) {
   display: block;
@@ -697,18 +745,6 @@ main {
   font-size: 10px;
   line-height: 1.7;
   color: #7e8c9c;
-}
-.preview-caption {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 9px;
-  color: #748b7e;
-  padding: 8px 3px;
-}
-.preview-caption > span:last-child {
-  margin-left: auto;
-  color: #738290;
 }
 .connection-state {
   font-size: 9px;
@@ -955,20 +991,6 @@ main {
   border: 0;
   padding: 0;
 }
-footer {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 16px;
-  border-top: 1px solid var(--line);
-  font-size: 9px;
-  color: #647585;
-  gap: 12px;
-}
-footer > span:first-child {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 .notice {
   display: flex;
   align-items: center;
@@ -977,8 +999,9 @@ footer > span:first-child {
   color: #a8cbb8;
   background: #1c2b26;
   border: 1px solid #334c3d;
-  border-radius: 6px;
-  margin-bottom: 8px;
+  border-radius: 0;
+  margin: 0;
+  flex-shrink: 0;
   font-size: 11px;
 }
 .notice button {
@@ -1048,20 +1071,7 @@ footer > span:first-child {
   line-height: 1.7;
   margin: 5px 0 0;
 }
-@media (min-width: 1550px) {
-  main {
-    padding: 8px 20px 10px;
-  }
-  .workspace {
-    grid-template-columns: minmax(350px, 1fr) minmax(420px, 1.1fr);
-    gap: 16px;
-  }
-}
 @media (max-width: 1200px) {
-  .workspace,
-  .workspace.transmission-page {
-    grid-template-columns: minmax(270px, 1fr) minmax(290px, 1fr);
-  }
   .serial .panel-head {
     padding: 0 16px;
   }
@@ -1118,7 +1128,7 @@ footer > span:first-child {
     display: none;
   }
   main {
-    padding: 6px 8px 10px;
+    padding: 0;
   }
   .button {
     font-size: 11px;
@@ -1132,7 +1142,11 @@ footer > span:first-child {
   .workspace,
   .workspace.transmission-page {
     grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    grid-template-rows: none;
+    grid-auto-rows: max-content;
+    align-content: start;
+    overflow-y: auto;
+    gap: 0;
   }
   .editor-column,
   .received-column,
@@ -1142,9 +1156,21 @@ footer > span:first-child {
   }
   .editor {
     height: clamp(320px, 55dvh, 520px);
+    flex: none;
   }
   .simulation {
     height: auto;
+    min-height: 0;
+    flex: none;
+    overflow: visible;
+  }
+  .preview-column,
+  .serial-column {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    overflow: visible;
+  }
+  .serial-column > .serial {
     min-height: 0;
   }
   .viewport {
@@ -1200,16 +1226,8 @@ footer > span:first-child {
   .scope-note {
     font-size: 10px;
   }
-  footer {
-    padding: 8px;
-    flex-wrap: wrap;
-    line-height: 1.7;
-  }
   .examples {
     gap: 10px;
-  }
-  .preview-caption {
-    font-size: 9px;
   }
   .modal-backdrop {
     padding: 12px;

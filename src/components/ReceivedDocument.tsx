@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileCode2, Info } from "lucide-react";
+import { FileCode2 } from "lucide-react";
 import { Editor, type Palette } from "./Editor";
 import type { Machine } from "../lib/codes";
 import type { useReceivedDocument } from "../lib/useReceivedDocument";
@@ -83,16 +83,6 @@ export function ReceivedDocument({
           <span>File ricevuto</span>
         </div>
       </section>
-      <div className="editor-tip">
-        <div className="tip-icon">
-          <Info size={16} />
-        </div>
-        <p>
-          Avvia la ricezione, poi lancia l’invio sulla CNC. Quando la macchina
-          ha finito, premi <strong>Termina ricezione</strong> e salva il file
-          sul PC. Il programma aperto nell’editor rimane separato.
-        </p>
-      </div>
     </div>
   );
 }
