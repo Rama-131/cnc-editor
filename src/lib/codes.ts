@@ -165,7 +165,7 @@ const turning: Record<string, [string, string]> = {
   ],
   G71: [
     "Sgrossatura longitudinale",
-    "Ciclo di sgrossatura del profilo. Non simulato.",
+    "Ciclo Fanuc a due righe: U/R impostano profondità radiale e ritiro; P/Q richiamano il profilo e U/W lasciano sovrametallo. L’anteprima supporta la sgrossatura esterna tipo I con G0/G1, angoli A e raccordi R, con ritrazioni geometriche convenzionali. Tasche, lavorazioni interne, G2/G3 nel profilo e altre forme del ciclo non sono simulate.",
   ],
   G72: ["Sgrossatura frontale", "Ciclo di sgrossatura frontale. Non simulato."],
   G73: [

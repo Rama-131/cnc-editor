@@ -1,4 +1,5 @@
 import type { Machine } from "./codes";
+import { planG71, RoughingError, type RoughingHeader } from "./turningRoughing";
 export type Point = { x: number; y: number; z: number };
 export type WorkOrigin = `G${54 | 55 | 56 | 57 | 58 | 59}`;
 export type Segment = {
@@ -25,6 +26,7 @@ export type Simulation = {
   issues: { line: number; message: string }[];
   complete: boolean;
   distance: number;
+  notes: string[];
 };
 const axes = ["X", "Y", "Z"] as const;
 const planeAxes = {
@@ -40,6 +42,8 @@ export function simulate(
   const segments: Segment[] = [];
   const steps: SimulationStep[] = [];
   const issues: Simulation["issues"] = [];
+  const notes = new Set<string>();
+  let roughing: RoughingHeader | null = null;
   let pos: Point = { x: 0, y: 0, z: 0 },
     absolute = true,
     unit = 1,
@@ -54,13 +58,14 @@ export function simulate(
   function fail(line: number, message: string) {
     issues.push({ line, message });
   }
-  function add(to: Point, rapid: boolean, line: number) {
+  function add(to: Point, rapid: boolean, line: number, action?: string) {
     const from = { ...pos };
     distance += Math.hypot(to.x - from.x, to.y - from.y, to.z - from.z);
     const segment = { from, to: { ...to }, rapid, line, origin, workShift };
     segments.push(segment);
     steps.push({
       kind: "motion",
+      action,
       line,
       origin,
       workShift,
@@ -126,6 +131,101 @@ export function simulate(
       if (w[1] === "G") gs.push(v);
       else if (w[1] === "M") ms.push(v);
       else vals[w[1]] = v;
+    }
+    if (roughing && !gs.includes(71)) {
+      fail(
+        roughing.line,
+        "G71 non simulato: manca la seconda riga P/Q subito dopo U/R.",
+      );
+      roughing = null;
+      break;
+    }
+    if (gs.includes(71)) {
+      const addresses = words.map((w) => w[1]);
+      if (
+        machine !== "lathe" ||
+        plane !== 18 ||
+        gs.length !== 1 ||
+        ms.length ||
+        new Set(addresses).size !== addresses.length ||
+        Object.values(vals).some((v) => !Number.isFinite(v))
+      ) {
+        fail(
+          line,
+          "G71 non simulato: richiesti Tornio, piano G18 e un blocco separato con parametri numerici univoci.",
+        );
+        roughing = null;
+        break;
+      }
+      if (!("P" in vals) && !("Q" in vals)) {
+        if (
+          roughing ||
+          Object.keys(vals).some((k) => !["N", "U", "R"].includes(k)) ||
+          !(vals.U > 0) ||
+          !(vals.R >= 0) ||
+          vals.U * unit > 1000000 ||
+          vals.R * unit > 1000000
+        ) {
+          fail(
+            line,
+            "G71 non simulato: prima riga attesa U positivo (profondità radiale) e R non negativo.",
+          );
+          roughing = null;
+          break;
+        }
+        roughing = { depth: vals.U * unit, retract: vals.R * unit, line };
+        recordState("auxiliary", line, "G71 · impostazione sgrossatura");
+        continue;
+      }
+      if (
+        !roughing ||
+        Object.keys(vals).some(
+          (k) => !["N", "P", "Q", "U", "W", "F"].includes(k),
+        )
+      ) {
+        fail(
+          line,
+          "G71 non simulato: manca la prima riga U/R oppure la seconda riga contiene parametri non supportati.",
+        );
+        roughing = null;
+        break;
+      }
+      try {
+        const plan = planG71({
+          lines,
+          callIndex: n,
+          start: pos,
+          unit,
+          diameter,
+          p: vals.P,
+          q: vals.Q,
+          allowanceX: (vals.U ?? 0) * unit * (diameter ? 0.5 : 1),
+          allowanceZ: (vals.W ?? 0) * unit,
+          header: roughing,
+        });
+        if (segments.length + plan.moves.length > 100000)
+          throw new RoughingError(
+            line,
+            "limite di 100.000 segmenti raggiunto.",
+          );
+        for (const move of plan.moves)
+          add(move.to, move.rapid, move.line, move.action);
+        recordState(
+          "auxiliary",
+          line,
+          `G71 · completate ${plan.passes} passate`,
+        );
+        notes.add(
+          "G71 tipo I esterno: sovrametalli U/W applicati, passate geometriche e ritrazioni convenzionali a 45°; nessuna verifica di collisioni o asportazione.",
+        );
+        n = plan.endIndex;
+      } catch (error) {
+        if (!(error instanceof RoughingError)) throw error;
+        fail(error.line, error.message);
+      }
+      roughing = null;
+      if (issues.length) break;
+      continue;
     }
     if (gs.includes(10)) {
       if (machine !== "lathe") {
@@ -414,5 +514,14 @@ export function simulate(
       break;
     }
   }
-  return { segments, steps, issues, complete: issues.length === 0, distance };
+  if (roughing && !issues.length)
+    fail(roughing.line, "G71 non simulato: seconda riga P/Q mancante.");
+  return {
+    segments,
+    steps,
+    issues,
+    complete: issues.length === 0,
+    distance,
+    notes: [...notes],
+  };
 }

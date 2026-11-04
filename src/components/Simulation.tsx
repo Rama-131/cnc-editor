@@ -1,4 +1,11 @@
-import { useEffect, useId, useMemo, useState } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 import {
   Play,
   Pause,
@@ -108,8 +115,58 @@ export function Simulation({
     [playing, setPlaying] = useState(false),
     [speed, setSpeed] = useState(1),
     [zoom, setZoom] = useState(1),
+    [pan, setPan] = useState({ x: 0, y: 0 }),
+    [dragging, setDragging] = useState(false),
     [rapids, setRapids] = useState(true);
   const [trackedResult, setTrackedResult] = useState<Result | null>(null);
+  const drag = useRef<{
+    pointerId: number;
+    inverse: DOMMatrix;
+    start: DOMPoint;
+    pan: { x: number; y: number };
+  } | null>(null);
+  function startPan(event: PointerEvent<SVGSVGElement>) {
+    if (event.button !== 0 || !event.isPrimary || drag.current) return;
+    const matrix = event.currentTarget.getScreenCTM();
+    if (!matrix) return;
+    const inverse = matrix.inverse();
+    drag.current = {
+      pointerId: event.pointerId,
+      inverse,
+      start: new DOMPoint(event.clientX, event.clientY).matrixTransform(
+        inverse,
+      ),
+      pan,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
+    setDragging(true);
+  }
+  function movePan(event: PointerEvent<SVGSVGElement>) {
+    const current = drag.current;
+    if (!current || current.pointerId !== event.pointerId) return;
+    const point = new DOMPoint(event.clientX, event.clientY).matrixTransform(
+      current.inverse,
+    );
+    setPan({
+      x: current.pan.x + point.x - current.start.x,
+      y: current.pan.y + point.y - current.start.y,
+    });
+  }
+  function endPan(event: PointerEvent<SVGSVGElement>) {
+    if (drag.current?.pointerId !== event.pointerId) return;
+    drag.current = null;
+    setDragging(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId))
+      event.currentTarget.releasePointerCapture(event.pointerId);
+  }
+  function fitView() {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  }
+  useEffect(() => {
+    setPan({ x: 0, y: 0 });
+  }, [view, result]);
   useEffect(() => {
     if (!active) setPlaying(false);
   }, [active]);
@@ -260,7 +317,7 @@ export function Simulation({
             className="icon-button"
             title="Adatta alla vista"
             aria-label="Adatta alla vista"
-            onClick={() => setZoom(1)}
+            onClick={fitView}
           >
             <Maximize2 size={14} />
           </button>
@@ -285,10 +342,22 @@ export function Simulation({
           )}
         </div>
         <svg
+          className="toolpath-plot"
+          data-dragging={dragging}
           viewBox="0 0 640 410"
           role="img"
           aria-label="Percorso utensile simulato"
+          onPointerDown={startPan}
+          onPointerMove={movePan}
+          onPointerUp={endPan}
+          onPointerCancel={endPan}
+          onLostPointerCapture={endPan}
+          onDoubleClick={fitView}
         >
+          <title>
+            Trascina con il tasto sinistro per spostare il disegno. Doppio clic
+            per ricentrare.
+          </title>
           <defs>
             <pattern
               id="grid"
@@ -313,6 +382,7 @@ export function Simulation({
           {rapids && (
             <path
               d={drawing.rapid}
+              transform={`translate(${pan.x} ${pan.y})`}
               fill="none"
               stroke="#6c91b5"
               strokeWidth="1.1"
@@ -321,13 +391,14 @@ export function Simulation({
           )}
           <path
             d={drawing.cut}
+            transform={`translate(${pan.x} ${pan.y})`}
             fill="none"
             stroke="#72dfb0"
             strokeWidth="2.3"
             strokeLinejoin="round"
           />
           {drawing.tool && (
-            <g>
+            <g transform={`translate(${pan.x} ${pan.y})`}>
               <circle
                 cx={drawing.tool[0]}
                 cy={drawing.tool[1]}
@@ -346,6 +417,7 @@ export function Simulation({
           )}
           <g
             className="work-origin"
+            transform={`translate(${pan.x} ${pan.y})`}
             aria-label={
               originLabel
                 ? `Origine attiva ${originLabel}`
@@ -486,12 +558,13 @@ export function Simulation({
         {machine === "lathe"
           ? "Profilo utensile XZ; nessuna asportazione del materiale. "
           : "Percorso utensile; nessuna verifica collisioni. "}
-        Cicli, macro e compensazioni non simulati. I rapidi reali possono
-        differire.
+        {result.notes.length ? "Altri cicli" : "Cicli"}, macro e compensazioni
+        non simulati. I rapidi reali possono differire.
         {hasMultipleOrigins &&
           " Ogni origine è mostrata separatamente, con partenza convenzionale da zero; gli offset G54–G59 presenti sulla macchina non sono noti."}
         {activeShift &&
           " G10 P0: gli spostamenti programmati sono applicati alle quote locali; shift iniziale e posizione di ingresso sono assunti a zero per l’anteprima. Le viste dei diversi spostamenti sono separate."}
+        {result.notes.length > 0 && ` ${result.notes.join(" ")}`}
       </p>
     </section>
   );

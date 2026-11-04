@@ -53,6 +53,8 @@ Supporta G0/G1, G2/G3 con I/J/K relativi al punto iniziale o R con segno, cerchi
 
 La vista mostra **il percorso del punto utensile nelle coordinate pezzo**, in millimetri, da una posizione iniziale convenzionale X0/Y0/Z0. Nel tornio la coordinata X visualizzata nella vista è il raggio fisico se l’ingresso è a diametro. Sono disponibili vista isometrica, XY, XZ, YZ, zoom, riproduzione, pausa, riavvolgimento e avanzamento manuale. La velocità di riproduzione è illustrativa e non calcola i tempi macchina a partire da F/S.
 
+Per centrare manualmente il percorso, tieni premuto il **tasto sinistro del mouse e trascina** nel disegno. Percorso, utensile e zero si spostano insieme; le coordinate del programma restano invariate e la riproduzione continua. Il trascinamento funziona anche dopo lo zoom e nelle diverse viste. **Adatta alla vista** oppure un **doppio clic** nel disegno ripristinano centratura e zoom iniziali. Il cambio vista o la modifica del programma azzerano lo spostamento manuale.
+
 Lo zero pezzo è indicato in giallo con caratteri ingranditi. Accanto compare l’origine attiva **G54–G59**, aggiornata durante riproduzione, pausa, avanzamento manuale e riavvolgimento. Anche i blocchi che selezionano un’origine senza movimento fanno parte della riproduzione. Se nessuna origine è indicata nel programma, il simulatore non inventa un G54: mostra soltanto lo zero e la dicitura “origine non indicata”.
 
 In modalità **Tornio · XZ** è supportato lo spostamento esterno origine Fanuc **G10 P0**, ad esempio `N10 G10 P0 Z-266.2`. X/Z impostano valori assoluti; U/W aggiungono variazioni incrementali, rispettando unità e programmazione X a diametro/raggio. Il blocco deve essere separato da altri G/M e indicare almeno un asse. Non genera un movimento, non cambia G0/G1 e non seleziona G54. Durante la riproduzione lo spostamento è visibile sopra il disegno; se manca G54–G59, accanto allo zero compare **G10 P0**. Con G54–G59 rimane visibile l’origine selezionata e G10 agisce sullo shift esterno condiviso.
@@ -63,11 +65,27 @@ Nella configurazione Tornio dell’app, **M26** è associato a **contropunta ava
 
 Sempre nella configurazione Tornio, **G92 S** imposta il limite giri dichiarato per questa macchina: `G92 S1200` registra un limite di **1200 giri/min**, visibile durante la riproduzione. Il limite rimane attivo fino a un altro G92 S. Il blocco è separato da altri G/M e contiene soltanto N opzionale e S positivo; non muove gli assi e mantiene il movimento modale. Le forme G92 con X/Z/F e i cicli di filettatura restano non simulati, perché il significato dipende dal sistema di codici del controllo. L’anteprima geometrica non calcola giri effettivi, tempi macchina o la variazione del mandrino in G96.
 
+È supportato **G71 Fanuc a due righe, sgrossatura esterna tipo I**, nel piano G18. Il ciclo legge il profilo P/Q, genera passate longitudinali, una ripresa del profilo con sovrametallo e il ritorno al punto iniziale. Le righe P/Q non vengono poi eseguite una seconda volta. Durante le passate l’editor segue il blocco G71; durante la ripresa segue le righe del profilo. Un esempio completo:
+
+```gcode
+G0 X40 Z2
+G71 U2 R0.5
+G71 P10 Q30 U1 W0.1 F0.27
+N10 G0 X20
+N20 G1 Z-10
+N30 X40
+M30
+```
+
+Nella prima riga **U è sempre la profondità radiale**, anche programmando X a diametro; R è il ritiro. Nella seconda riga U è il sovrametallo X, interpretato secondo diametro/raggio, e W il sovrametallo Z. Il profilo deve iniziare con G0/G1 e la sola X, proseguire con G1, X crescente e Z decrescente. Sono ammesse quote angolari **A**, misurate dal verso Z positivo sul piano fisico ZX: per esempio `X39.8 A135` calcola anche la Z usando lo spostamento radiale reale. Un **R positivo** su un blocco lineare raccorda lo spigolo con il blocco successivo, come `Z-205.4 R1.8` seguito da una variazione X. Il raccordo deve entrare nei due tratti e viene approssimato con segmenti.
+
+L’anteprima G71 è geometrica: le ritrazioni sono convenzionalmente a 45°, i sovrametalli restano sul percorso e non vengono ricostruiti asportazione, collisioni, tempi o logiche opzionali del controllo. Non sostituisce la verifica sul controllo della macchina. Sono previsti al massimo 1000 passate e 100.000 segmenti totali. G71 a una riga, tipo II con tasche/inversioni, lavorazioni interne, G2/G3 nel profilo, macro e G70 restano non simulati; profili mancanti, angoli incoerenti e raggi impossibili interrompono l’anteprima senza disegnare passate inventate. Il test di riferimento usa il profilo N190–N310 fornito dall’utente, con ingresso X65/Z1 e `G71 U2.52 R0.5` / `G71 P190 Q310 U1 W0.1 F0.27`.
+
 I percorsi delle diverse origini sono visualizzati **separatamente nelle coordinate locali**: a un cambio di origine la vista passa al relativo percorso e assume una nuova partenza convenzionale da X0/Y0/Z0. Ripetere la stessa origine non azzera la posizione. Non sono disegnati collegamenti fra origini diverse; il ritorno a una stessa origine conserva i tratti già mostrati in quelle coordinate. Il campo Percorso si riferisce all’origine visualizzata. Questa rappresentazione non ricostruisce gli spostamenti reali fra G54/G55/ecc.: gli offset impostati sulla macchina non sono disponibili né applicati.
 
 Durante la riproduzione, l’editor evidenzia in verde la riga corrispondente al percorso mostrato e ne colora il numero. Con **Segui riga** attivo, il programma scorre automaticamente mantenendo visibile il blocco simulato. La sincronizzazione funziona anche spostando il cursore di avanzamento, in pausa e al riavvolgimento. Disattiva **Segui riga** per consultare liberamente il programma mantenendo l’evidenziazione. La simulazione non sposta il cursore di scrittura e non modifica il file; cambiando il programma l’indicatore si azzera fino al successivo avvio o avanzamento manuale.
 
-È una prima versione dell’interprete, non un emulatore del controllo CNC: non calcola asportazione, collisioni, compensazioni, offset macchina non presenti nel programma, cicli fissi, sottoprogrammi o macro. Di fronte a una funzione non supportata o a un arco incoerente, **interrompe l’anteprima alla riga interessata**, mantenendo visibile soltanto il tratto interpretato. G90 su tornio è trattato come ciclo non supportato. I rapidi sono visualizzati come segmenti rettilinei e possono differire dal movimento reale.
+È una prima versione dell’interprete, non un emulatore del controllo CNC: non calcola asportazione, collisioni, compensazioni, offset macchina non presenti nel programma, altri cicli fissi, sottoprogrammi o macro. Di fronte a una funzione non supportata o a un arco incoerente, **interrompe l’anteprima alla riga interessata**, mantenendo visibile soltanto il tratto interpretato. G90 su tornio è trattato come ciclo non supportato. I rapidi sono visualizzati come segmenti rettilinei e possono differire dal movimento reale.
 
 G-code, codici M e sintassi dei cicli variano per serie, opzioni e costruttore: il riferimento integrato è generale, non certifica la compatibilità con ogni controllo Fanuc o Mitsubishi.
 

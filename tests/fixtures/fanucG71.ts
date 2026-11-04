@@ -1,0 +1,28 @@
+export const fanucG71Profile = `N190 G0 X36.5
+N200 G1 Z0 F0.16
+N210 X39.8 A135
+N220 Z-20.15
+N230 X44 A135
+N240 Z-25
+N250 X45.5 A135
+N270 Z-205.4 R1.8
+N280 G1 X52.3
+N290 X54.5 A135
+N300 Z-240.9
+N302 X55.5 A135
+N304 Z-292.8
+N306 X59.1
+N308 X60 A135
+N309 Z-302
+N310 X65`;
+
+// Entry X65/Z1 matches the position shown before G71 in the user's screenshot.
+export const fanucG71Program = `G21 G18
+G10 P0 Z-266.2
+G92 S1200
+G0 X65 Z1
+N170 G71 U2.52 R0.5
+N180 G71 P190 Q310 U1 W0.1 F0.27
+${fanucG71Profile}
+N320 G0 Z5
+M30`;
