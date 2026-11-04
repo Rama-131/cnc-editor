@@ -15,6 +15,13 @@ import {
   Space,
   Undo2,
   Redo2,
+  Search,
+  Replace,
+  ArrowUp,
+  ArrowDown,
+  StepBack,
+  StepForward,
+  Wrench,
   X,
 } from "lucide-react";
 import {
@@ -29,6 +36,8 @@ import { SerialPanel } from "./components/SerialPanel";
 import { ReceivedDocument } from "./components/ReceivedDocument";
 import { ProgramTabs } from "./components/ProgramTabs";
 import { MachineSettings } from "./components/MachineSettings";
+import { ProgramAdjustment } from "./components/ProgramAdjustment";
+import type { AdjustmentWord, TextRange } from "./lib/programTools";
 import { useMachineProfiles } from "./lib/useMachineProfiles";
 import { downloadText } from "./lib/files";
 import { useReceivedDocument } from "./lib/useReceivedDocument";
@@ -80,6 +89,10 @@ export default function App() {
     [receiving, setReceiving] = useState(false),
     [lockedMachine, setLockedMachine] = useState<string | null>(null),
     [machineSettingsDirty, setMachineSettingsDirty] = useState(false),
+    [adjustment, setAdjustment] = useState<{
+      word: AdjustmentWord;
+      selection?: TextRange;
+    } | null>(null),
     [history, setHistory] = useState<EditorHistory>({
       canUndo: false,
       canRedo: false,
@@ -98,6 +111,7 @@ export default function App() {
   const reception = useReceivedDocument(setNotice);
   const fileInput = useRef<HTMLInputElement>(null);
   const programEditor = useRef<EditorHandle>(null);
+  useEffect(() => setAdjustment(null), [active?.id, tab, source]);
   const simulationVisible =
     tab === "workspace" && programs.previewVisible && !!active;
   const onHistoryChange = useCallback(
@@ -213,6 +227,29 @@ export default function App() {
       previous?.focus();
     };
   }, [showGuide]);
+  function editorAction(action: () => void) {
+    setShowExamples(false);
+    setShowColors(false);
+    setAdjustment(null);
+    action();
+  }
+  function openAdjustment(word: AdjustmentWord) {
+    setShowExamples(false);
+    setShowColors(false);
+    setAdjustment({ word, selection: programEditor.current?.selection() });
+  }
+  function goToTool(direction: -1 | 1) {
+    editorAction(() => {
+      if (!programEditor.current?.goToTool(direction))
+        setNotice("Nessun cambio utensile riconosciuto nel programma attivo.");
+    });
+  }
+  function findText(direction: -1 | 1) {
+    editorAction(() => {
+      if (!programEditor.current?.find(direction))
+        setNotice("Testo non trovato nel programma attivo.");
+    });
+  }
   function selectProgram(id: string) {
     if (id !== programs.activeId) setActiveLine(null);
     setShowExamples(false);
@@ -589,6 +626,102 @@ export default function App() {
                         <Space size={15} />
                         <span>Spazi</span>
                       </button>
+                      <div
+                        className="toolbar-group"
+                        hidden={tab !== "workspace"}
+                        role="group"
+                        aria-label="Modifica avanzamento e giri"
+                      >
+                        <button
+                          className="examples-toggle adjust-button"
+                          title="Aggiusta avanzamento F"
+                          aria-label="Aggiusta avanzamento"
+                          onClick={() => openAdjustment("F")}
+                        >
+                          <b>F</b>
+                          <span>Avanz.</span>
+                        </button>
+                        <button
+                          className="examples-toggle adjust-button"
+                          title="Aggiusta giri mandrino S"
+                          aria-label="Aggiusta giri mandrino"
+                          onClick={() => openAdjustment("S")}
+                        >
+                          <b>S</b>
+                          <span>Giri</span>
+                        </button>
+                      </div>
+                      <div
+                        className="toolbar-group"
+                        hidden={tab !== "workspace"}
+                        role="group"
+                        aria-label="Ricerca e sostituzione"
+                      >
+                        <button
+                          className="icon-button"
+                          title="Trova (Ctrl+F)"
+                          aria-label="Trova"
+                          onClick={() =>
+                            editorAction(() =>
+                              programEditor.current?.openSearch(),
+                            )
+                          }
+                        >
+                          <Search size={16} />
+                        </button>
+                        <button
+                          className="icon-button"
+                          title="Trova precedente (Maiusc+F3)"
+                          aria-label="Trova precedente"
+                          onClick={() => findText(-1)}
+                        >
+                          <ArrowUp size={15} />
+                        </button>
+                        <button
+                          className="icon-button"
+                          title="Trova prossimo (F3)"
+                          aria-label="Trova prossimo"
+                          onClick={() => findText(1)}
+                        >
+                          <ArrowDown size={15} />
+                        </button>
+                        <button
+                          className="icon-button"
+                          title="Sostituisci (Ctrl+H)"
+                          aria-label="Sostituisci"
+                          onClick={() =>
+                            editorAction(() =>
+                              programEditor.current?.openSearch(true),
+                            )
+                          }
+                        >
+                          <Replace size={16} />
+                        </button>
+                      </div>
+                      <div
+                        className="toolbar-group"
+                        hidden={tab !== "workspace"}
+                        role="group"
+                        aria-label="Cambi utensile"
+                      >
+                        <Wrench className="toolbar-symbol" size={13} />
+                        <button
+                          className="icon-button"
+                          title="Cambio utensile precedente"
+                          aria-label="Cambio utensile precedente"
+                          onClick={() => goToTool(-1)}
+                        >
+                          <StepBack size={16} />
+                        </button>
+                        <button
+                          className="icon-button"
+                          title="Prossimo cambio utensile"
+                          aria-label="Prossimo cambio utensile"
+                          onClick={() => goToTool(1)}
+                        >
+                          <StepForward size={16} />
+                        </button>
+                      </div>
                       <button
                         className="examples-toggle"
                         hidden={tab !== "workspace"}
@@ -615,6 +748,30 @@ export default function App() {
                       </button>
                     </div>
                   </div>
+                  {adjustment && tab === "workspace" && (
+                    <ProgramAdjustment
+                      key={`${active.id}-${adjustment.word}`}
+                      word={adjustment.word}
+                      source={source}
+                      selection={adjustment.selection}
+                      onClose={() => {
+                        setAdjustment(null);
+                        programEditor.current?.focus();
+                      }}
+                      onApply={(value, range) => {
+                        const count =
+                          programEditor.current?.adjust(
+                            adjustment.word,
+                            value,
+                            range,
+                          ) ?? 0;
+                        setAdjustment(null);
+                        setNotice(
+                          `${count} ${count === 1 ? "valore" : "valori"} ${adjustment.word} ${count === 1 ? "modificato" : "modificati"}. Annulla ripristina i valori precedenti.`,
+                        );
+                      }}
+                    />
+                  )}
                   {showExamples && tab === "workspace" && (
                     <div
                       className="examples editor-examples"

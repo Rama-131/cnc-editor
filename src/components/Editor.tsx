@@ -27,8 +27,23 @@ import {
   syntaxHighlighting,
 } from "@codemirror/language";
 import { tags } from "@lezer/highlight";
+import {
+  search,
+  searchKeymap,
+  openSearchPanel,
+  findNext,
+  findPrevious,
+  getSearchQuery,
+} from "@codemirror/search";
 import { codeInfo, type Machine } from "../lib/codes";
 import { gcodeSpacingChanges } from "../lib/gcodeSpacing";
+import {
+  adjustmentChanges,
+  adjacentToolChange,
+  toolChangePositions,
+  type AdjustmentWord,
+  type TextRange,
+} from "../lib/programTools";
 import {
   followSimulationLine,
   setSimulationLine,
@@ -44,9 +59,15 @@ export type Palette = {
 };
 export type EditorHistory = { canUndo: boolean; canRedo: boolean };
 export type EditorHandle = {
+  focus: () => void;
   insertSpaces: () => void;
   undo: () => void;
   redo: () => void;
+  openSearch: (replace?: boolean) => void;
+  find: (direction: -1 | 1) => boolean;
+  goToTool: (direction: -1 | 1) => boolean;
+  selection: () => TextRange | undefined;
+  adjust: (word: AdjustmentWord, value: string, range?: TextRange) => number;
 };
 export const defaultPalette: Palette = {
   g: "#70b7ff",
@@ -157,6 +178,9 @@ export function Editor({
   useImperativeHandle(
     ref,
     () => ({
+      focus() {
+        view.current?.focus();
+      },
       undo() {
         const v = view.current;
         if (!v || v.state.readOnly) return;
@@ -181,8 +205,67 @@ export function Editor({
           });
         v.focus();
       },
+      openSearch(replace = false) {
+        const v = view.current;
+        if (!v) return;
+        openSearchPanel(v);
+        if (replace)
+          v.dom
+            .querySelector<HTMLInputElement>('input[name="replace"]')
+            ?.focus();
+      },
+      find(direction) {
+        const v = view.current;
+        if (!v) return false;
+        if (!getSearchQuery(v.state).valid) return openSearchPanel(v);
+        const found = direction === 1 ? findNext(v) : findPrevious(v);
+        if (found) v.focus();
+        return found;
+      },
+      goToTool(direction) {
+        const v = view.current;
+        if (!v) return false;
+        const line = v.state.doc.lineAt(v.state.selection.main.head);
+        const position = adjacentToolChange(
+          toolChangePositions(v.state.doc.toString(), machine),
+          direction === 1 ? line.to : line.from,
+          direction,
+        );
+        if (position === null) return false;
+        v.dispatch({
+          selection: { anchor: position },
+          effects: EditorView.scrollIntoView(position, { y: "center" }),
+          userEvent: "select.tool",
+        });
+        v.focus();
+        return true;
+      },
+      selection() {
+        const selection = view.current?.state.selection.main;
+        return selection && !selection.empty
+          ? { from: selection.from, to: selection.to }
+          : undefined;
+      },
+      adjust(word, value, range) {
+        const v = view.current;
+        if (!v || v.state.readOnly) return 0;
+        const { changes } = adjustmentChanges(
+          v.state.doc.toString(),
+          word,
+          value,
+          range,
+        );
+        if (changes.length)
+          v.dispatch({
+            changes,
+            annotations: isolateHistory.of("full"),
+            userEvent: "input.adjust",
+          });
+        v.focus();
+        return changes.length;
+      },
     }),
-    [],
+    [machine],
   );
   function tooltip(m: Machine) {
     return hoverTooltip(
@@ -235,7 +318,41 @@ export function Editor({
         highlightActiveLine(),
         highlightActiveLineGutter(),
         simulationLineField,
-        keymap.of([indentWithTab, ...defaultKeymap, ...historyKeymap]),
+        search({ top: true, literal: true }),
+        EditorState.phrases.of({
+          Find: "Trova testo",
+          Replace: "Sostituisci con",
+          next: "Successivo",
+          previous: "Precedente",
+          all: "Seleziona tutti",
+          "match case": "Maiuscole/minuscole",
+          regexp: "Espressione regolare",
+          "by word": "Parola intera",
+          replace: "Sostituisci",
+          "replace all": "Sostituisci tutto",
+          close: "Chiudi ricerca",
+          "current match": "Corrispondenza corrente",
+          "on line": "alla riga",
+          "replaced match on line $": "Sostituita corrispondenza alla riga $",
+          "replaced $ matches": "Sostituite $ corrispondenze",
+        }),
+        keymap.of([
+          {
+            key: "Mod-h",
+            run: (v) => {
+              if (v.state.readOnly) return false;
+              openSearchPanel(v);
+              v.dom
+                .querySelector<HTMLInputElement>('input[name="replace"]')
+                ?.focus();
+              return true;
+            },
+          },
+          ...searchKeymap,
+          indentWithTab,
+          ...defaultKeymap,
+          ...historyKeymap,
+        ]),
         language,
         colorConfig.current.of(colors(palette)),
         tooltipConfig.current.of(tooltip(machine)),
