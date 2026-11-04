@@ -95,7 +95,7 @@ function currentPage(): "workspace" | "serial" | "receive" | "settings" {
   return window.location.hash === "#trasmissione" ? "serial" : "workspace";
 }
 const pageTitle = {
-  workspace: "Simulazione",
+  workspace: "Scrittura / Simulazione",
   serial: "Trasmissione",
   receive: "Ricezione",
   settings: "Impostazioni",
@@ -226,7 +226,7 @@ export default function App() {
         event.preventDefault();
         if (tab === "receive")
           setNotice(
-            "Per aprire un file usa la pagina Simulazione o Trasmissione.",
+            "Per aprire un file usa la pagina Scrittura / Simulazione o Trasmissione.",
           );
         else void chooseFiles();
       }
@@ -573,8 +573,8 @@ export default function App() {
         </div>
         <a
           className={tab === "workspace" ? "rail-button active" : "rail-button"}
-          title="Simulazione"
-          aria-label="Simulazione"
+          title={pageTitle.workspace}
+          aria-label={pageTitle.workspace}
           href="#simulazione"
           aria-current={tab === "workspace" ? "page" : undefined}
         >

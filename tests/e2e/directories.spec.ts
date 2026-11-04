@@ -92,7 +92,9 @@ test("conserva cartelle per macchina e le propone in Apri e Salva senza alterare
   await expect(
     page.getByText("Programmi da inviare", { exact: true }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Simulazione", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Scrittura / Simulazione", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Apri programma", exact: true })
     .click();

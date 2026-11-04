@@ -29,9 +29,9 @@ Per i test dell’interfaccia: `npx playwright install chromium`, quindi `npm ru
 
 ## Editor
 
-L’app ha quattro pagine, raggiungibili dalle icone **Simulazione**, **Trasmissione**, **Ricezione** e **Impostazioni** nella barra laterale sinistra. Il nome della pagina compare al passaggio del mouse:
+L’app ha quattro pagine, raggiungibili dalle icone **Scrittura / Simulazione**, **Trasmissione**, **Ricezione** e **Impostazioni** nella barra laterale sinistra. Il nome della pagina compare al passaggio del mouse:
 
-- **Simulazione** (`#simulazione`): editor del programma e anteprima grafica del percorso.
+- **Scrittura / Simulazione** (`#simulazione`): editor del programma e anteprima grafica del percorso.
 - **Trasmissione** (`#trasmissione`): lo stesso programma aperto, affiancato alla scelta della macchina salvata e ai comandi seriali.
 - **Ricezione** (`#ricezione`): un documento inizialmente vuoto e indipendente, che si riempie con i dati inviati dalla macchina.
 - **Impostazioni** (`#impostazioni`): elenco delle proprie macchine con nome, controllo CNC e configurazione seriale.
@@ -54,7 +54,7 @@ I pulsanti **Annulla** e **Ripristina** sopra l’editor operano sul file attivo
 
 **Salva con nome**, accanto a Salva, permette di scegliere il nome e il formato **TXT** o **NC**, oppure mantenere l’estensione originale di un file già aperto. **Ctrl+Maiusc+S** apre la stessa finestra. L’anteprima mostra il nome completo prima della conferma e aggiunge l’estensione evitando duplicati. Dopo il download la scheda prende il nuovo nome e **Salva** usa quello nei salvataggi successivi; Annulla o Esc chiudono senza cambiare il documento. I file `.txt` e `.TXT` si aprono con Apri come gli altri programmi CNC.
 
-Nella barra della pagina **Simulazione**, accanto a **Spazi**, sono disponibili:
+Nella barra della pagina **Scrittura / Simulazione**, accanto a **Spazi**, sono disponibili:
 
 - **Avanzamento (F)** e **Giri mandrino (S)**: impostano un valore preciso per gli avanzamenti F o i giri mandrino S già presenti. Scegli programma intero o, se hai selezionato del testo, solo selezione; il pannello mostra quante istruzioni cambieranno prima di premere **Applica**. Sono accettati punto o virgola decimale. L’operazione modifica solo la scheda attiva e si annulla in un solo passaggio. Non aggiunge istruzioni mancanti e conserva commenti, macro e blocchi di sintassi non riconosciuta. Le unità F restano quelle del programma. La modifica dei giri esclude S in G96, i limiti G50/G92, G10 e i valori dopo sintassi non riconosciuta finché un G97 non ristabilisce la modalità giri; non converte la velocità di taglio in giri.
 - **Trova**, **Trova precedente**, **Trova prossimo** e **Sostituisci**: ricerca testuale nel documento attivo, anche nei commenti, con sostituzione singola o di tutte le corrispondenze. Il pannello offre distinzione maiuscole/minuscole, parola intera ed espressioni regolari. **Ctrl+F** apre la ricerca, **F3** trova il prossimo risultato, **Maiusc+F3** il precedente, **Ctrl+H** apre la sostituzione ed **Esc** chiude il pannello. La ricerca resta separata per scheda durante la sessione.
@@ -74,7 +74,7 @@ La barra superiore compatta riunisce nome della pagina e comandi **Apri/Salva/Sa
 
 - Apertura di file `.nc`, `.cnc`, `.tap`, `.txt`, `.iso`, `.mpf`, `.gcode`, fino a 2 MB ciascuno; salvataggio della scheda attiva tramite download del browser.
 - Colori configurabili per G, M, assi, numeri, commenti, utensili/correttori. La palette predefinita usa toni vivaci: G azzurro, M fucsia, assi ciano, numeri gialli, utensili/correttori arancioni e commenti verde acceso, compresi quelli tra parentesi. I vecchi colori predefiniti già salvati vengono aggiornati; le personalizzazioni restano disponibili dal pulsante Colori.
-- Il pulsante **Spazi** nella barra dell’editor separa le parole dei blocchi numerici, ad esempio `N10G1X20Z-5F0.2M8` diventa `N10 G1 X20 Z-5 F0.2 M8`. Funziona in Simulazione e Trasmissione, senza modificare valori, commenti o righe; Ctrl+Z annulla l’operazione. I blocchi con macro, stringhe, checksum o sintassi non riconosciuta rimangono invariati. I file aperti non vengono formattati automaticamente. Il simulatore legge già i codici numerici senza spazi: la formattazione migliora la leggibilità e non aggiunge il supporto a istruzioni non simulate.
+- Il pulsante **Spazi** nella barra dell’editor separa le parole dei blocchi numerici, ad esempio `N10G1X20Z-5F0.2M8` diventa `N10 G1 X20 Z-5 F0.2 M8`. Funziona in Scrittura / Simulazione e Trasmissione, senza modificare valori, commenti o righe; Ctrl+Z annulla l’operazione. I blocchi con macro, stringhe, checksum o sintassi non riconosciuta rimangono invariati. I file aperti non vengono formattati automaticamente. Il simulatore legge già i codici numerici senza spazi: la formattazione migliora la leggibilità e non aggiunge il supporto a istruzioni non simulate.
 - Descrizioni dei codici G/M al passaggio del mouse e guida ricercabile. Le descrizioni distinguono tornio e fresatrice dove necessario, ad esempio G90 e G98/G99.
 - Annulla/ripristina; Ctrl+S salva il file, Ctrl+O apre un file.
 - Bozza, colori e macchine con le rispettive configurazioni seriali vengono conservati nel browser con `localStorage`. Il salvataggio dei programmi su disco rimane esplicito. Cancellare i dati del browser elimina anche queste configurazioni locali.
@@ -181,7 +181,7 @@ Il documento è in sola lettura e conserva i dati testuali nell’ordine ricevut
 
 La bozza ricevuta è conservata nel browser, separatamente da quella dell’editor; può essere salvata anche dopo un errore di porta. In caso di errore l’acquisizione si ferma, i dati già ricevuti restano disponibili e la porta va ricollegata. Il documento può contenere fino a **2.097.152 caratteri**: superato il limite, l’app interrompe l’acquisizione e segnala esplicitamente che il file è parziale, senza troncare silenziosamente la ricezione. Il riquadro diagnostico “Dati ricevuti” mantiene solo gli ultimi 200.000 caratteri; questo limite non si applica al documento da salvare.
 
-Per modificare o simulare un file ricevuto, salvalo e aprilo dalla pagina Simulazione o Trasmissione. Il collegamento fisico richiede Chrome/Edge sul PC Windows connesso alla macchina e i parametri/cablaggi corretti per il controllo specifico.
+Per modificare o simulare un file ricevuto, salvalo e aprilo dalla pagina Scrittura / Simulazione o Trasmissione. Il collegamento fisico richiede Chrome/Edge sul PC Windows connesso alla macchina e i parametri/cablaggi corretti per il controllo specifico.
 
 **Trasmissione e ricezione sono verificate con stream e porta simulati; il collegamento fisico e le impostazioni del singolo controllo richiedono una prova sul PC Windows con la macchina.**
 

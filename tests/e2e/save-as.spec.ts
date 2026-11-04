@@ -129,7 +129,9 @@ test("salva il documento ricevuto in TXT conservando i fine riga originali", asy
     page.getByLabel("Nome del file ricevuto", { exact: true }),
   ).toHaveValue("ESTRATTO.TXT");
   await expect(page.locator(".received-document .unsaved")).toHaveCount(0);
-  await page.getByRole("link", { name: "Simulazione", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Scrittura / Simulazione", exact: true })
+    .click();
   await expect(
     page.getByRole("tab", { name: "O1001_piastra.nc", exact: true }),
   ).toHaveAttribute("aria-selected", "true");

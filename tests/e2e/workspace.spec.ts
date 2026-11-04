@@ -4,7 +4,7 @@ test("editor, descrizioni, colori, simulazione e file", async ({ page }) => {
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { name: "Simulazione" }),
+    page.getByRole("heading", { name: "Scrittura / Simulazione" }),
   ).toBeVisible();
   await expect(page.getByText(/Anteprima geometrica/)).toBeVisible();
   await expect(
@@ -156,7 +156,9 @@ test("configuratore e trasmissione con una porta seriale di test", async ({
   await expect(
     page.getByRole("button", { name: "Elimina macchina", exact: true }),
   ).toBeDisabled();
-  await page.getByRole("link", { name: "Simulazione", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Scrittura / Simulazione", exact: true })
+    .click();
   await expect(page.locator(".serial-column")).toBeHidden();
   expect(
     await page.evaluate(

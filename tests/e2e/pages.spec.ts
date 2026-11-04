@@ -44,7 +44,9 @@ test("le pagine condividono il programma, le modifiche e la cronologia dell’ed
     fullPage: true,
   });
 
-  await page.getByRole("link", { name: "Simulazione", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Scrittura / Simulazione", exact: true })
+    .click();
   await expect(page).toHaveURL(/#simulazione$/);
   await expect(page.locator(".preview-column")).toBeVisible();
   await expect(page.locator(".serial-column")).toBeHidden();
@@ -82,7 +84,9 @@ test("supporta i link diretti e la cronologia del browser e mette in pausa la si
   await expect(
     page.getByRole("link", { name: "Trasmissione", exact: true }),
   ).toHaveAttribute("aria-current", "page");
-  await page.getByRole("link", { name: "Simulazione", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Scrittura / Simulazione", exact: true })
+    .click();
   await page.getByRole("button", { name: "Avvia simulazione" }).click();
   const timeline = page.getByLabel("Avanzamento simulazione");
   await expect
@@ -97,7 +101,9 @@ test("supporta i link diretti e la cronologia del browser e mette in pausa la si
   // Several animation ticks must leave the hidden simulation paused.
   await page.waitForTimeout(180);
   expect(await timeline.inputValue()).toBe(paused);
-  await page.getByRole("link", { name: "Simulazione", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Scrittura / Simulazione", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Avvia simulazione" }),
   ).toBeVisible();

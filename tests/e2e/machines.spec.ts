@@ -70,7 +70,9 @@ test("organizza i parametri RS232 in schede e li salva separatamente per macchin
     page.getByLabel("Tempo limite ricezione (secondi)", { exact: true }),
   ).toHaveValue("5");
   await page.screenshot({ path: "/tmp/cnc-rs232-receive.png", fullPage: true });
-  await page.getByRole("link", { name: "Simulazione", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Scrittura / Simulazione", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "Salva con nome", exact: true })
     .click();

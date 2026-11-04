@@ -49,7 +49,9 @@ test("trasmette il programma della scheda selezionata e disabilita l’invio qua
   await page
     .getByRole("button", { name: "Salva macchina", exact: true })
     .click();
-  await page.getByRole("link", { name: "Simulazione", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Scrittura / Simulazione", exact: true })
+    .click();
   await openPair(page);
   await page.getByRole("link", { name: "Trasmissione", exact: true }).click();
   await page

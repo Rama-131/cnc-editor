@@ -2408,10 +2408,12 @@ main {
     grid-column: 1;
     grid-row: 1;
     gap: 8px;
+    min-width: 0;
   }
   .app-context h1 {
     font-size: 13px;
     padding-left: 8px;
+    white-space: normal;
   }
   .brand {
     font-size: 17px;
