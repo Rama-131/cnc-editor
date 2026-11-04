@@ -76,8 +76,73 @@ describe("simulazione CNC", () => {
     expect(r.complete).toBe(true);
     expect(r.segments).toHaveLength(1);
   });
-  it("rifiuta cambi origine senza offset e movimenti senza modalità dopo G80", () => {
-    expect(simulate("G1 X10\nG55 X1", "mill").complete).toBe(false);
+  it("rifiuta movimenti senza modalità dopo G80", () => {
     expect(simulate("G1 X1\nG80\nX3", "mill").complete).toBe(false);
+  });
+  it("registra i cambi origine anche senza movimento, compreso l’ultimo blocco", () => {
+    const r = simulate("G54\nG1 X10\nG55\nG1 X20\nG56\nM30", "mill");
+    expect(r.complete).toBe(true);
+    expect(
+      r.steps
+        .filter((step) => step.kind === "origin")
+        .map((step) => [step.line, step.origin, step.segmentCount]),
+    ).toEqual([
+      [1, "G54", 0],
+      [3, "G55", 1],
+      [5, "G56", 2],
+    ]);
+    expect(r.steps.at(-1)?.origin).toBe("G56");
+    expect(r.steps.at(-1)?.position).toEqual({ x: 0, y: 0, z: 0 });
+    expect(r.segments.map((segment) => segment.origin)).toEqual(["G54", "G55"]);
+    expect(r.segments[1].from).toEqual({ x: 0, y: 0, z: 0 });
+  });
+  it("mantiene la posizione ripetendo la stessa origine", () => {
+    const r = simulate("G54\nG1 X10\nG54\nG91 X2", "mill");
+    expect(r.complete).toBe(true);
+    expect(r.steps[2].position.x).toBe(10);
+    expect(r.segments.at(-1)?.to.x).toBe(12);
+  });
+  it("riconosce G54–G59 e mantiene l’origine su tutti i punti di un arco", () => {
+    const origins = simulate(
+      [54, 55, 56, 57, 58, 59]
+        .map((n) => `G${n}\nG0 X10\nG3 X10 Y0 I-10 J0`)
+        .join("\n"),
+      "mill",
+    );
+    expect(origins.complete).toBe(true);
+    expect([
+      ...new Set(origins.segments.map((segment) => segment.origin)),
+    ]).toEqual(["G54", "G55", "G56", "G57", "G58", "G59"]);
+    for (const step of origins.steps.filter((step) => step.kind === "motion"))
+      expect(step.origin).toBe(origins.segments[step.segmentCount - 1].origin);
+  });
+  it("non inventa un’origine quando il programma non la specifica", () => {
+    const r = simulate("G1 X10\nG55\nX20", "mill");
+    expect(r.segments[0].origin).toBeNull();
+    expect(r.segments[1].origin).toBe("G55");
+    expect(r.segments[1].from.x).toBe(0);
+  });
+  it("esclude origini nei commenti, dopo M30 e dopo un blocco non supportato", () => {
+    const done = simulate("(G59)\nG054\nG1 X10 ; G58\nM30\nG55", "mill");
+    expect(done.complete).toBe(true);
+    expect(
+      done.steps
+        .filter((step) => step.kind === "origin")
+        .map((step) => step.origin),
+    ).toEqual(["G54"]);
+    const partial = simulate("G54\nG1 X10\nG71\nG55", "mill");
+    expect(partial.complete).toBe(false);
+    expect(partial.steps.at(-1)?.origin).toBe("G54");
+    expect(simulate("G54 G55 X10", "mill").complete).toBe(false);
+  });
+  it("mantiene unità, piano e programmazione a diametro cambiando origine sul tornio", () => {
+    const r = simulate(
+      "G21 G18\nG54\nG0 X40 Z5\nG1 X30 Z-10\nG55\nG0 X60 Z10\nG1 U-10 W-5",
+      "lathe",
+    );
+    expect(r.complete).toBe(true);
+    expect(r.segments.at(-1)?.to).toEqual({ x: 25, y: 0, z: 5 });
+    expect(r.segments.at(-1)?.origin).toBe("G55");
+    expect(r.segments[2].from).toEqual({ x: 0, y: 0, z: 0 });
   });
 });

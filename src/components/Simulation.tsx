@@ -134,15 +134,25 @@ export function Simulation({
     );
     return () => clearInterval(timer);
   }, [playing, speed, active]);
-  const count = Math.round((result.segments.length * progress) / 100),
-    segment = result.segments[Math.max(0, count - 1)];
-  const currentPoint = count > 0 ? segment?.to : segment?.from;
-  const currentLine = trackedResult === result ? (segment?.line ?? null) : null;
+  const count = Math.round((result.steps.length * progress) / 100),
+    step = result.steps[Math.max(0, count - 1)];
+  const currentPoint =
+    count > 0 ? step?.position : (result.segments[0]?.from ?? step?.position);
+  const activeOrigin = step?.origin ?? null;
+  const visibleSegments = count > 0 ? (step?.segmentCount ?? 0) : 0;
+  const hasMultipleOrigins = useMemo(
+    () => new Set(result.steps.map((step) => step.origin)).size > 1,
+    [result],
+  );
+  const currentLine = trackedResult === result ? (step?.line ?? null) : null;
   useEffect(() => {
     onLine(currentLine);
   }, [currentLine, onLine]);
   const drawing = useMemo(() => {
-    const points = result.segments.flatMap((s) => [
+    const localSegments = result.segments.filter(
+      (s) => s.origin === activeOrigin,
+    );
+    const points = localSegments.flatMap((s) => [
       project(s.from, view),
       project(s.to, view),
     ]);
@@ -168,8 +178,8 @@ export function Simulation({
     ];
     const path = (rapid: boolean) =>
       result.segments
-        .slice(0, count)
-        .filter((s) => s.rapid === rapid)
+        .slice(0, visibleSegments)
+        .filter((s) => s.origin === activeOrigin && s.rapid === rapid)
         .map((s) => {
           const a = at(project(s.from, view)),
             b = at(project(s.to, view));
@@ -181,8 +191,19 @@ export function Simulation({
       rapid: path(true),
       tool: currentPoint ? at(project(currentPoint, view)) : null,
       origin: at([0, 0]),
+      distance: localSegments.reduce(
+        (total, segment) =>
+          total +
+          Math.hypot(
+            segment.to.x - segment.from.x,
+            segment.to.y - segment.from.y,
+            segment.to.z - segment.from.z,
+          ),
+        0,
+      ),
+      segmentCount: localSegments.length,
     };
-  }, [result, view, zoom, count, currentPoint]);
+  }, [result, view, zoom, visibleSegments, currentPoint, activeOrigin]);
   return (
     <section className="simulation panel">
       <div className="panel-head">
@@ -236,7 +257,9 @@ export function Simulation({
       <div className="viewport">
         <div className="viewport-label">
           {view === "ISO" ? "VISTA ISOMETRICA" : `PIANO ${view}`}
-          <span>Coordinate pezzo · mm</span>
+          <span>
+            Coordinate locali · {activeOrigin ?? "origine non indicata"} · mm
+          </span>
         </div>
         <svg
           viewBox="0 0 640 410"
@@ -264,20 +287,6 @@ export function Simulation({
           </defs>
           <rect width="640" height="410" fill="url(#shade)" />
           <rect width="640" height="410" fill="url(#grid)" />
-          <g opacity=".5">
-            <path
-              d={`M${drawing.origin[0] - 10} ${drawing.origin[1]}h20M${drawing.origin[0]} ${drawing.origin[1] - 10}v20`}
-              stroke="#a6b3c1"
-            />
-            <text
-              x={drawing.origin[0] + 8}
-              y={drawing.origin[1] + 17}
-              fill="#8291a1"
-              fontSize="10"
-            >
-              0
-            </text>
-          </g>
           {rapids && (
             <path
               d={drawing.rapid}
@@ -312,6 +321,44 @@ export function Simulation({
               />
             </g>
           )}
+          <g
+            className="work-origin"
+            aria-label={
+              activeOrigin
+                ? `Origine attiva ${activeOrigin}`
+                : "Zero pezzo: origine non indicata nel programma"
+            }
+          >
+            <title>
+              {activeOrigin
+                ? `Zero pezzo ${activeOrigin}`
+                : "Zero pezzo: origine non indicata nel programma"}
+            </title>
+            <path
+              d={`M${drawing.origin[0] - 10} ${drawing.origin[1]}h20M${drawing.origin[0]} ${drawing.origin[1] - 10}v20`}
+              stroke="#f4d35e"
+              strokeWidth="1.8"
+            />
+            <text
+              x={drawing.origin[0] - 12}
+              y={drawing.origin[1] - 14}
+              textAnchor="end"
+              fill="#f4d35e"
+              fontSize="18"
+              fontWeight="700"
+              stroke="#141b22"
+              strokeWidth="3"
+              strokeLinejoin="round"
+              paintOrder="stroke"
+            >
+              <tspan className="work-origin-zero">0</tspan>
+              {activeOrigin && (
+                <tspan className="work-origin-code" dx="7" fontSize="16">
+                  {activeOrigin}
+                </tspan>
+              )}
+            </text>
+          </g>
         </svg>
         <AxisIndicator view={view} />
         <div className="viewport-legend">
@@ -332,7 +379,7 @@ export function Simulation({
       <div className="playback">
         <button
           className="play-button"
-          disabled={!result.segments.length}
+          disabled={!result.steps.length}
           aria-label={playing ? "Pausa simulazione" : "Avvia simulazione"}
           onClick={() => {
             setTrackedResult(result);
@@ -392,7 +439,7 @@ export function Simulation({
         <div>
           <span>PERCORSO</span>
           <strong>
-            {result.distance.toFixed(1)} <small>mm</small>
+            {drawing.distance.toFixed(1)} <small>mm</small>
           </strong>
         </div>
       </div>
@@ -405,9 +452,7 @@ export function Simulation({
         ) : (
           <>
             <span className="status-dot" />
-            <span>
-              Anteprima geometrica · {result.segments.length} segmenti
-            </span>
+            <span>Anteprima geometrica · {drawing.segmentCount} segmenti</span>
           </>
         )}
       </div>
@@ -417,6 +462,8 @@ export function Simulation({
           : "Percorso utensile; nessuna verifica collisioni. "}
         Cicli, macro e compensazioni non simulati. I rapidi reali possono
         differire.
+        {hasMultipleOrigins &&
+          " Ogni origine è mostrata separatamente, con partenza convenzionale da zero; gli offset macchina non sono applicati."}
       </p>
     </section>
   );

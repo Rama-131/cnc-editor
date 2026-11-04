@@ -1,8 +1,23 @@
 import type { Machine } from "./codes";
 export type Point = { x: number; y: number; z: number };
-export type Segment = { from: Point; to: Point; rapid: boolean; line: number };
+export type WorkOrigin = `G${54 | 55 | 56 | 57 | 58 | 59}`;
+export type Segment = {
+  from: Point;
+  to: Point;
+  rapid: boolean;
+  line: number;
+  origin: WorkOrigin | null;
+};
+export type SimulationStep = {
+  kind: "motion" | "origin";
+  line: number;
+  origin: WorkOrigin | null;
+  position: Point;
+  segmentCount: number;
+};
 export type Simulation = {
   segments: Segment[];
+  steps: SimulationStep[];
   issues: { line: number; message: string }[];
   complete: boolean;
   distance: number;
@@ -19,6 +34,7 @@ export function simulate(
   diameter = true,
 ): Simulation {
   const segments: Segment[] = [];
+  const steps: SimulationStep[] = [];
   const issues: Simulation["issues"] = [];
   let pos: Point = { x: 0, y: 0, z: 0 },
     absolute = true,
@@ -26,7 +42,7 @@ export function simulate(
     motion = 0,
     plane: 17 | 18 | 19 = machine === "lathe" ? 18 : 17,
     distance = 0;
-  let origin = 54;
+  let origin: WorkOrigin | null = null;
   let ended = false;
   function fail(line: number, message: string) {
     issues.push({ line, message });
@@ -34,7 +50,15 @@ export function simulate(
   function add(to: Point, rapid: boolean, line: number) {
     const from = { ...pos };
     distance += Math.hypot(to.x - from.x, to.y - from.y, to.z - from.z);
-    segments.push({ from, to: { ...to }, rapid, line });
+    const segment = { from, to: { ...to }, rapid, line, origin };
+    segments.push(segment);
+    steps.push({
+      kind: "motion",
+      line,
+      origin,
+      position: segment.to,
+      segmentCount: segments.length,
+    });
     pos = { ...to };
   }
   const lines = source.split(/\r?\n/);
@@ -134,16 +158,30 @@ export function simulate(
       if (g <= 3) motion = g;
       if (g === 80) motion = -1;
     }
-    const nextOrigin = gs.find((g) => g >= 54 && g <= 59);
+    const originCodes = gs.filter((g) => g >= 54 && g <= 59);
+    if (new Set(originCodes).size > 1) {
+      fail(
+        line,
+        "Più origini pezzo nello stesso blocco. Anteprima interrotta.",
+      );
+      break;
+    }
+    const nextOrigin = originCodes[0];
     if (nextOrigin !== undefined) {
-      if (origin !== undefined && origin !== nextOrigin && segments.length) {
-        fail(
-          line,
-          "Cambio origine pezzo: offset sconosciuti. Anteprima interrotta.",
-        );
-        break;
+      const selected = `G${nextOrigin}` as WorkOrigin;
+      if (origin !== selected) {
+        // Each work origin is previewed independently in local coordinates.
+        // Machine offsets and entry positions between origins are unknown.
+        pos = { x: 0, y: 0, z: 0 };
+        origin = selected;
       }
-      origin = nextOrigin;
+      steps.push({
+        kind: "origin",
+        line,
+        origin,
+        position: { ...pos },
+        segmentCount: segments.length,
+      });
     }
     if (gs.includes(4)) continue;
     const hasAxis = axes.some((a) => a in vals) || "U" in vals || "W" in vals;
@@ -252,5 +290,5 @@ export function simulate(
       break;
     }
   }
-  return { segments, issues, complete: issues.length === 0, distance };
+  return { segments, steps, issues, complete: issues.length === 0, distance };
 }
