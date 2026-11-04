@@ -21,7 +21,6 @@ import {
   ArrowDown,
   StepBack,
   StepForward,
-  Wrench,
   PanelRightClose,
   PanelRightOpen,
   X,
@@ -619,6 +618,238 @@ export default function App() {
               onNew={newProgram}
             />
           )}
+          {(tab === "workspace" || tab === "serial") && active && (
+            <div
+              className="panel-head editor-head editor-toolbar"
+              role="toolbar"
+              aria-label="Comandi del programma"
+            >
+              <div className="icon-group">
+                <div
+                  className="toolbar-group"
+                  role="group"
+                  aria-label="Modifica programma"
+                  data-label="Modifica"
+                >
+                  <button
+                    className="icon-button"
+                    aria-label="Annulla modifica"
+                    title="Annulla (Ctrl+Z)"
+                    disabled={!history.canUndo}
+                    onClick={() => programEditor.current?.undo()}
+                  >
+                    <Undo2 size={16} />
+                    <span className="toolbar-button-label">Annulla</span>
+                  </button>
+                  <button
+                    className="icon-button"
+                    aria-label="Ripristina modifica"
+                    title="Ripristina (Ctrl+Y)"
+                    disabled={!history.canRedo}
+                    onClick={() => programEditor.current?.redo()}
+                  >
+                    <Redo2 size={16} />
+                    <span className="toolbar-button-label">Ripristina</span>
+                  </button>
+                  <button
+                    className="examples-toggle spacing-button"
+                    title="Inserisci spazi tra i codici"
+                    aria-label="Inserisci spazi"
+                    onClick={() => {
+                      setShowExamples(false);
+                      setShowColors(false);
+                      programEditor.current?.insertSpaces();
+                    }}
+                  >
+                    <Space size={15} />
+                    <span className="toolbar-button-label">Spazi</span>
+                  </button>
+                </div>
+                <div
+                  className="toolbar-group"
+                  hidden={tab !== "workspace"}
+                  role="group"
+                  aria-label="Modifica avanzamento e giri"
+                  data-label="Parametri"
+                >
+                  <button
+                    className="examples-toggle adjust-button"
+                    title="Aggiusta avanzamento F"
+                    aria-label="Aggiusta avanzamento"
+                    aria-expanded={adjustment?.word === "F"}
+                    aria-pressed={adjustment?.word === "F"}
+                    onClick={() => openAdjustment("F")}
+                  >
+                    <b>F</b>
+                    <span className="toolbar-button-label">Avanzamento</span>
+                  </button>
+                  <button
+                    className="examples-toggle adjust-button"
+                    title="Aggiusta giri mandrino S"
+                    aria-label="Aggiusta giri mandrino"
+                    aria-expanded={adjustment?.word === "S"}
+                    aria-pressed={adjustment?.word === "S"}
+                    onClick={() => openAdjustment("S")}
+                  >
+                    <b>S</b>
+                    <span className="toolbar-button-label">Giri mandrino</span>
+                  </button>
+                </div>
+                <div
+                  className="toolbar-group"
+                  hidden={tab !== "workspace"}
+                  role="group"
+                  aria-label="Ricerca e sostituzione"
+                  data-label="Trova"
+                >
+                  <button
+                    className="icon-button"
+                    title="Trova (Ctrl+F)"
+                    aria-label="Trova"
+                    aria-expanded={editorSearch === "find"}
+                    aria-pressed={editorSearch === "find"}
+                    onClick={() =>
+                      editorAction(() => programEditor.current?.toggleSearch())
+                    }
+                  >
+                    <Search size={16} />
+                    <span className="toolbar-button-label">Trova</span>
+                  </button>
+                  <button
+                    className="icon-button"
+                    title="Trova precedente (Maiusc+F3)"
+                    aria-label="Trova precedente"
+                    onClick={() => findText(-1)}
+                  >
+                    <ArrowUp size={15} />
+                    <span className="toolbar-button-label">
+                      Trova precedente
+                    </span>
+                  </button>
+                  <button
+                    className="icon-button"
+                    title="Trova prossimo (F3)"
+                    aria-label="Trova prossimo"
+                    onClick={() => findText(1)}
+                  >
+                    <ArrowDown size={15} />
+                    <span className="toolbar-button-label">Trova prossimo</span>
+                  </button>
+                  <button
+                    className="icon-button"
+                    title="Sostituisci (Ctrl+H)"
+                    aria-label="Sostituisci"
+                    aria-expanded={editorSearch === "replace"}
+                    aria-pressed={editorSearch === "replace"}
+                    onClick={() =>
+                      editorAction(() =>
+                        programEditor.current?.toggleSearch(true),
+                      )
+                    }
+                  >
+                    <Replace size={16} />
+                    <span className="toolbar-button-label">Sostituisci</span>
+                  </button>
+                </div>
+                <div
+                  className="toolbar-group"
+                  hidden={tab !== "workspace"}
+                  role="group"
+                  aria-label="Cambi utensile"
+                  data-label="Utensili"
+                >
+                  <button
+                    className="icon-button"
+                    title="Cambio utensile precedente"
+                    aria-label="Cambio utensile precedente"
+                    onClick={() => goToTool(-1)}
+                  >
+                    <StepBack size={16} />
+                    <span className="toolbar-button-label">
+                      Cambio utensile precedente
+                    </span>
+                  </button>
+                  <button
+                    className="icon-button"
+                    title="Prossimo cambio utensile"
+                    aria-label="Prossimo cambio utensile"
+                    onClick={() => goToTool(1)}
+                  >
+                    <StepForward size={16} />
+                    <span className="toolbar-button-label">
+                      Prossimo cambio utensile
+                    </span>
+                  </button>
+                </div>
+                <div
+                  className="toolbar-group"
+                  role="group"
+                  aria-label="Aspetto dell’editor"
+                  data-label="Aspetto"
+                >
+                  <button
+                    className="examples-toggle"
+                    hidden={tab !== "workspace"}
+                    aria-label="Esempi di programma"
+                    aria-expanded={showExamples}
+                    aria-pressed={showExamples}
+                    onClick={toggleExamples}
+                  >
+                    <FileCode2 size={13} />
+                    <span className="toolbar-button-label">Esempi</span>
+                  </button>
+                  <button
+                    className={`icon-button ${showColors ? "active" : ""}`}
+                    title="Personalizza colori"
+                    aria-label="Personalizza colori"
+                    aria-expanded={showColors}
+                    aria-pressed={showColors}
+                    onClick={toggleColors}
+                  >
+                    <PaletteIcon size={16} />
+                    <span className="toolbar-button-label">Colori</span>
+                  </button>
+                </div>
+              </div>
+              {tab === "workspace" && (
+                <div
+                  className="toolbar-group simulation-tools"
+                  role="group"
+                  aria-label="Visibilità simulazione"
+                  data-label="Simulazione"
+                >
+                  <button
+                    className="examples-toggle simulation-toggle"
+                    aria-label={
+                      programs.previewVisible
+                        ? "Nascondi simulazione"
+                        : "Mostra simulazione"
+                    }
+                    title={
+                      programs.previewVisible
+                        ? "Nascondi simulazione"
+                        : "Mostra simulazione"
+                    }
+                    aria-expanded={programs.previewVisible}
+                    aria-pressed={programs.previewVisible}
+                    aria-controls="simulation-panel"
+                    onClick={programs.togglePreview}
+                  >
+                    {programs.previewVisible ? (
+                      <PanelRightClose size={16} />
+                    ) : (
+                      <PanelRightOpen size={16} />
+                    )}
+                    <span className="toolbar-button-label">
+                      {programs.previewVisible
+                        ? "Nascondi simulazione"
+                        : "Mostra simulazione"}
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
           <div
             className={`workspace ${tab === "workspace" ? `simulation-page${simulationVisible ? "" : " editor-only"}` : "transmission-page"}`}
             hidden={tab === "settings"}
@@ -631,196 +862,6 @@ export default function App() {
                   id="program-panel"
                   aria-labelledby={`program-tab-${active.id}`}
                 >
-                  <div className="panel-head editor-head editor-toolbar">
-                    <div className="icon-group">
-                      <button
-                        className="icon-button"
-                        aria-label="Annulla modifica"
-                        title="Annulla (Ctrl+Z)"
-                        disabled={!history.canUndo}
-                        onClick={() => programEditor.current?.undo()}
-                      >
-                        <Undo2 size={16} />
-                      </button>
-                      <button
-                        className="icon-button"
-                        aria-label="Ripristina modifica"
-                        title="Ripristina (Ctrl+Y)"
-                        disabled={!history.canRedo}
-                        onClick={() => programEditor.current?.redo()}
-                      >
-                        <Redo2 size={16} />
-                      </button>
-                      <button
-                        className="examples-toggle spacing-button"
-                        title="Inserisci spazi tra i codici"
-                        aria-label="Inserisci spazi"
-                        onClick={() => {
-                          setShowExamples(false);
-                          setShowColors(false);
-                          programEditor.current?.insertSpaces();
-                        }}
-                      >
-                        <Space size={15} />
-                        <span>Spazi</span>
-                      </button>
-                      <div
-                        className="toolbar-group"
-                        hidden={tab !== "workspace"}
-                        role="group"
-                        aria-label="Modifica avanzamento e giri"
-                      >
-                        <button
-                          className="examples-toggle adjust-button"
-                          title="Aggiusta avanzamento F"
-                          aria-label="Aggiusta avanzamento"
-                          aria-expanded={adjustment?.word === "F"}
-                          aria-pressed={adjustment?.word === "F"}
-                          onClick={() => openAdjustment("F")}
-                        >
-                          <b>F</b>
-                          <span>Avanz.</span>
-                        </button>
-                        <button
-                          className="examples-toggle adjust-button"
-                          title="Aggiusta giri mandrino S"
-                          aria-label="Aggiusta giri mandrino"
-                          aria-expanded={adjustment?.word === "S"}
-                          aria-pressed={adjustment?.word === "S"}
-                          onClick={() => openAdjustment("S")}
-                        >
-                          <b>S</b>
-                          <span>Giri</span>
-                        </button>
-                      </div>
-                      <div
-                        className="toolbar-group"
-                        hidden={tab !== "workspace"}
-                        role="group"
-                        aria-label="Ricerca e sostituzione"
-                      >
-                        <button
-                          className="icon-button"
-                          title="Trova (Ctrl+F)"
-                          aria-label="Trova"
-                          aria-expanded={editorSearch === "find"}
-                          aria-pressed={editorSearch === "find"}
-                          onClick={() =>
-                            editorAction(() =>
-                              programEditor.current?.toggleSearch(),
-                            )
-                          }
-                        >
-                          <Search size={16} />
-                        </button>
-                        <button
-                          className="icon-button"
-                          title="Trova precedente (Maiusc+F3)"
-                          aria-label="Trova precedente"
-                          onClick={() => findText(-1)}
-                        >
-                          <ArrowUp size={15} />
-                        </button>
-                        <button
-                          className="icon-button"
-                          title="Trova prossimo (F3)"
-                          aria-label="Trova prossimo"
-                          onClick={() => findText(1)}
-                        >
-                          <ArrowDown size={15} />
-                        </button>
-                        <button
-                          className="icon-button"
-                          title="Sostituisci (Ctrl+H)"
-                          aria-label="Sostituisci"
-                          aria-expanded={editorSearch === "replace"}
-                          aria-pressed={editorSearch === "replace"}
-                          onClick={() =>
-                            editorAction(() =>
-                              programEditor.current?.toggleSearch(true),
-                            )
-                          }
-                        >
-                          <Replace size={16} />
-                        </button>
-                      </div>
-                      <div
-                        className="toolbar-group"
-                        hidden={tab !== "workspace"}
-                        role="group"
-                        aria-label="Cambi utensile"
-                      >
-                        <Wrench className="toolbar-symbol" size={13} />
-                        <button
-                          className="icon-button"
-                          title="Cambio utensile precedente"
-                          aria-label="Cambio utensile precedente"
-                          onClick={() => goToTool(-1)}
-                        >
-                          <StepBack size={16} />
-                        </button>
-                        <button
-                          className="icon-button"
-                          title="Prossimo cambio utensile"
-                          aria-label="Prossimo cambio utensile"
-                          onClick={() => goToTool(1)}
-                        >
-                          <StepForward size={16} />
-                        </button>
-                      </div>
-                      <button
-                        className="examples-toggle"
-                        hidden={tab !== "workspace"}
-                        aria-label="Esempi di programma"
-                        aria-expanded={showExamples}
-                        aria-pressed={showExamples}
-                        onClick={toggleExamples}
-                      >
-                        <FileCode2 size={13} />
-                        Esempi
-                      </button>
-                      <button
-                        className={`icon-button ${showColors ? "active" : ""}`}
-                        title="Personalizza colori"
-                        aria-label="Personalizza colori"
-                        aria-expanded={showColors}
-                        aria-pressed={showColors}
-                        onClick={toggleColors}
-                      >
-                        <PaletteIcon size={16} />
-                      </button>
-                    </div>
-                    {tab === "workspace" && (
-                      <button
-                        className="examples-toggle simulation-toggle"
-                        aria-label={
-                          programs.previewVisible
-                            ? "Nascondi simulazione"
-                            : "Mostra simulazione"
-                        }
-                        title={
-                          programs.previewVisible
-                            ? "Nascondi simulazione"
-                            : "Mostra simulazione"
-                        }
-                        aria-expanded={programs.previewVisible}
-                        aria-pressed={programs.previewVisible}
-                        aria-controls="simulation-panel"
-                        onClick={programs.togglePreview}
-                      >
-                        {programs.previewVisible ? (
-                          <PanelRightClose size={16} />
-                        ) : (
-                          <PanelRightOpen size={16} />
-                        )}
-                        <span>
-                          {programs.previewVisible
-                            ? "Nascondi simulazione"
-                            : "Mostra simulazione"}
-                        </span>
-                      </button>
-                    )}
-                  </div>
                   {adjustment && tab === "workspace" && (
                     <ProgramAdjustment
                       key={`${active.id}-${adjustment.word}`}

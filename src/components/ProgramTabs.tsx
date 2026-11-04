@@ -145,12 +145,13 @@ export function ProgramTabs({
       </div>
       <div className="program-tab-actions">
         <button
-          className="icon-button"
+          className="new-program-button"
           aria-label="Nuovo programma"
           title="Nuovo programma"
           onClick={onNew}
         >
           <Plus size={16} />
+          <span>Nuovo</span>
         </button>
       </div>
     </div>
