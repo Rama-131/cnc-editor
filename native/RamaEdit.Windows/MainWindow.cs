@@ -70,10 +70,13 @@ public class MainWindow : Window
         try { machines = testMode ? Storage.Defaults() : Storage.Read<List<MachineProfile>>("machines.json") ?? Storage.Defaults(); foreach (var m in machines) m.Settings.Validate(); }
         catch (Exception e) { machines = Storage.Defaults(); Loaded += (_, _) => Error("Configurazioni non caricate: " + e.Message); persistenceFailed = true; }
         var root = new DockPanel(); Content = root;
-        var rail = new StackPanel { Width = 65, Background = new SolidColorBrush(Color.FromRgb(17, 25, 32)) }; DockPanel.SetDock(rail, Dock.Left); root.Children.Add(rail);
-        rail.Children.Add(new TextBlock { Text = "R", FontSize = 28, FontWeight = FontWeights.Bold, Foreground = Brushes.LightGreen, HorizontalAlignment = HorizontalAlignment.Center, Margin = new(0, 10, 0, 12) });
-        foreach (var (symbol, label, target) in new[] { ("⌨", "Scrittura / Simulazione", "workspace"), ("⇧", "Trasmissione", "send"), ("⇩", "Ricezione", "receive") }) { var b = B(symbol, () => Navigate(target)); b.ToolTip = label; AutomationProperties.SetName(b, label); rail.Children.Add(b); }
-        var settingsButton = B("⚙", Settings); settingsButton.ToolTip = "Impostazioni macchine"; rail.Children.Add(settingsButton);
+        var rail = new DockPanel { Width = 65, Background = new SolidColorBrush(Color.FromRgb(17, 25, 32)) }; DockPanel.SetDock(rail, Dock.Left); root.Children.Add(rail);
+        var navigation = new StackPanel(); DockPanel.SetDock(navigation, Dock.Top); rail.Children.Add(navigation);
+        navigation.Children.Add(new TextBlock { Text = "R", FontSize = 28, FontWeight = FontWeights.Bold, Foreground = Brushes.LightGreen, HorizontalAlignment = HorizontalAlignment.Center, Margin = new(0, 10, 0, 12) });
+        foreach (var (symbol, label, target) in new[] { ("⌨", "Scrittura / Simulazione", "workspace"), ("⇧", "Trasmissione", "send"), ("⇩", "Ricezione", "receive") }) { var b = B(symbol, () => Navigate(target)); b.ToolTip = label; AutomationProperties.SetName(b, label); navigation.Children.Add(b); }
+        var settingsButton = B("⚙", Settings); settingsButton.ToolTip = "Impostazioni macchine";
+        AutomationProperties.SetName(settingsButton, "Impostazioni macchine"); DockPanel.SetDock(settingsButton, Dock.Bottom); rail.Children.Add(settingsButton);
+        rail.Children.Add(new Border());
         var main = new DockPanel(); root.Children.Add(main);
         var header = new DockPanel { Background = new SolidColorBrush(Color.FromRgb(18, 25, 33)), LastChildFill = true };
         DockPanel.SetDock(header, Dock.Top); main.Children.Add(header);
