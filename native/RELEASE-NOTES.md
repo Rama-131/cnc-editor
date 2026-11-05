@@ -1,11 +1,13 @@
-**Aggiornamento sulla distribuzione:** questa versione EXE non è firmata e può essere bloccata completamente da Controllo intelligente delle app di Windows 11. La versione ZIP contiene lo stesso eseguibile non firmato. È in preparazione il percorso [Microsoft Store](https://github.com/Rama-131/cnc-editor/blob/main/native/store/README.md), che richiede registrazione e verifica dell'autore. Questi installer di prova non risolvono quel blocco.
+Aggiornamento **Rama Edit 0.2.3 per Windows**.
 
-Versione nativa Windows di **Rama Edit**, in C#/.NET 10 e WPF.
+- Apertura centrata e dimensioni adattate all’area disponibile dello schermo, con barra del titolo e pulsanti Windows accessibili anche con ingrandimento dello schermo.
+- Frecce e quote della simulazione con gli stessi colori più vivaci: X rosso, Y verde, Z azzurro.
+- Pulsante Esempi nella barra superiore, accanto ai comandi dei file.
+- Trasmissione: rimossi Annulla, Ripristina, Colori e il collegamento alle impostazioni dalla barra; Invio programma spostato a sinistra di Collega porta.
+- Nome e pulsante di chiusura delle schede riuniti in un unico rettangolo, blu per la scheda attiva.
 
-Scarica **RamaEdit-Setup-0.2.0-x64.exe**, installa e apri Rama Edit dal desktop. Il runtime è incluso. Per l'uso portatile, estrai lo ZIP e avvia RamaEdit.exe.
+Scaricare **RamaEdit-Setup-0.2.3-x64.exe** e installare l’aggiornamento sopra la versione precedente. La cartella dei dati locali e le configurazioni macchina restano quelle esistenti.
 
-Comprende editor a schede, ricerca/sostituzione, lista utensili, stampa, anteprima geometrica fresatrice/tornio con Fanuc G71/G70, trasmissione/ricezione su COM e le sette configurazioni macchina già fornite.
+Questa è una versione di prova non firmata digitalmente: non risolve il blocco di Controllo intelligente delle app. La firma e la distribuzione Microsoft Store rimangono un percorso separato, con verifica dell’autore e certificazione.
 
-La pubblicazione richiede test del motore C#, avvio dell'interfaccia su Windows e verifica dell'installazione. Questa è una versione di prova: la comunicazione reale con adattatore e macchina va verificata sul proprio PC. L'anteprima non verifica collisioni o asportazione. L'installer iniziale non è firmato digitalmente.
-
-Documentazione e percorsi dei dati: [Guida Windows](https://github.com/Rama-131/cnc-editor/blob/main/native/README.md).
+[Guida Windows](https://github.com/Rama-131/cnc-editor/blob/main/native/README.md).

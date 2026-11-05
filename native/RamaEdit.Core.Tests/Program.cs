@@ -6,6 +6,23 @@ using System.Threading.Channels;
 int checks = 0;
 void Check(bool value, string message) { checks++; if (!value) throw new Exception(message); }
 void Near(double a, double b, string message) => Check(Math.Abs(a - b) <= Math.Max(1e-8, Math.Abs(b) * 1e-9), $"{message}: {a} != {b}");
+// Startup bounds must fit complete work areas at common laptop resolutions,
+// scaling factors and monitor positions, including a monitor above/left of primary.
+foreach (var area in new[] {
+    new WindowBounds(0, 0, 1366, 728),
+    new WindowBounds(0, 32, 1366 / 1.25, 728 / 1.25),
+    new WindowBounds(0, 0, 1366 / 1.5, 728 / 1.5),
+    new WindowBounds(-1920, -200, 1920, 1040),
+    new WindowBounds(3840, 120, 1920, 1040),
+    new WindowBounds(0, 0, 3840, 2120)
+})
+{
+    var fit = WindowGeometry.Center(area, 1440, 920);
+    Check(fit.Left >= area.Left && fit.Top >= area.Top && fit.Right <= area.Right && fit.Bottom <= area.Bottom, "Finestra intera nell’area disponibile");
+    Check(fit.Width > 0 && fit.Height > 0 && fit.Width <= 1440 && fit.Height <= 920, "Dimensioni iniziali limitate");
+    Near(fit.Left + fit.Width / 2, area.Left + area.Width / 2, "Centratura orizzontale");
+    Near(fit.Top + fit.Height / 2, area.Top + area.Height / 2, "Centratura verticale");
+}
 var fixtures = JsonDocument.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures/parity.json")));
 foreach (var fixture in fixtures.RootElement.EnumerateArray())
 {

@@ -24,6 +24,12 @@ public static class NativeSmoke
         {
             w = new MainWindow(true); app.MainWindow = w; w.Show(); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle); await Task.Delay(150);
             Check(w.Title == "Rama Edit" && w.Editor.IsLoaded, "Avvio dell’editor WPF");
+            Check(WindowPlacement.IsInsideWorkArea(w) && WindowPlacement.HasCaptionButtons(w), "Finestra iniziale intera sullo schermo, barra titolo e pulsanti Windows presenti");
+            var work = SystemParameters.WorkArea;
+            w.Left = work.Left - 350; w.Top = work.Top - 250; w.Width = Math.Max(w.MinWidth, work.Width + 300); w.Height = Math.Max(w.MinHeight, work.Height + 300);
+            WindowPlacement.EnsureVisible(w); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            Check(WindowPlacement.IsInsideWorkArea(w) && WindowPlacement.HasCaptionButtons(w), "Recupero della finestra troppo grande e fuori schermo");
+
             Check(w.Foreground is SolidColorBrush ink && ink.Color.R > 150 && w.Background is SolidColorBrush background && background.Color.R < 50, "Contrasto del tema scuro nella finestra principale");
             Check(w.CurrentSimulation.Complete && w.CurrentSimulation.Segments.Count > 10, "Simulazione fresatura iniziale");
             w.NewDocument(); w.Editor.Document.Insert(0, "G1 X12\nM30"); w.RebuildSimulation(); Check(w.Documents.Count == 2 && w.CurrentSimulation.Segments[^1].To.X == 12, "Schede e aggiornamento simulazione");

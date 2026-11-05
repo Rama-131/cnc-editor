@@ -50,15 +50,16 @@ public class ToolpathView : FrameworkElement
         Text(dc, View == "3D" ? "VISTA ISOMETRICA" : "PIANO " + View, new(12, 10), Brushes.LightSteelBlue, 10);
         Text(dc, "Coordinate locali · mm · " + (step?.Origin ?? (step?.WorkShift is not null ? "G10 P0" : "origine non indicata")), new(12, 27), Brushes.SlateGray, 11);
         Point axis = new(Math.Max(40, ActualWidth - 80), Math.Max(80, ActualHeight - 30));
-        void Arrow(Vector direction, string label, Brush color)
+        void Arrow(Vector direction, string label)
         {
+            var color = AxisColors.For(label[^1]);
             var end = axis + direction; dc.DrawLine(new(color, 2.6), axis, end); var u = direction; u.Normalize(); var v = new Vector(-u.Y, u.X);
             var head = new StreamGeometry(); using (var c = head.Open()) { c.BeginFigure(end, true, true); c.LineTo(end - u * 9 + v * 4, true, false); c.LineTo(end - u * 9 - v * 4, true, false); }
             dc.DrawGeometry(color, null, head);
             Text(dc, label, end + new Vector(direction.X >= 0 ? 3 : -24, direction.Y < 0 ? -22 : -8), color, 15);
         }
-        if (View == "3D") { Arrow(new(28, 15), "+X", Brushes.LightCoral); Arrow(new(-28, 15), "+Y", Brushes.MediumAquamarine); Arrow(new(0, -35), "+Z", Brushes.LightSkyBlue); }
-        else { Arrow(new(0, -35), View == "XZ" ? "+X" : View == "YZ" ? "+Z" : "+Y", Brushes.LightCoral); Arrow(new(38, 0), View == "XZ" ? "+Z" : View == "YZ" ? "+Y" : "+X", Brushes.LightSkyBlue); }
+        if (View == "3D") { Arrow(new(28, 15), "+X"); Arrow(new(-28, 15), "+Y"); Arrow(new(0, -35), "+Z"); }
+        else { Arrow(new(0, -35), View == "XZ" ? "+X" : View == "YZ" ? "+Z" : "+Y"); Arrow(new(38, 0), View == "XZ" ? "+Z" : View == "YZ" ? "+Y" : "+X"); }
         dc.DrawEllipse(Brushes.WhiteSmoke, null, axis, 3, 3);
     }
     protected override void OnMouseWheel(MouseWheelEventArgs e) { Zoom(Math.Pow(1.15, e.Delta / 120d), e.GetPosition(this)); e.Handled = true; }

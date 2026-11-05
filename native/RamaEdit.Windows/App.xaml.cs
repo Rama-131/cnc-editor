@@ -8,6 +8,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.LoadedEvent, new RoutedEventHandler(WindowPlacement.OnLoaded));
         DispatcherUnhandledException += (_, args) => { MessageBox.Show(args.Exception.Message, "Rama Edit", MessageBoxButton.OK, MessageBoxImage.Error); args.Handled = true; };
         if (e.Args.Contains("--smoke-test")) { _ = NativeSmoke.Run(this, e.Args); return; }
         var window = new MainWindow(); MainWindow = window; window.Show();

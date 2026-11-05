@@ -6,7 +6,7 @@ Applicazione nativa in C#/.NET 10 e WPF, con editor AvalonEdit e porte COM gesti
 
 La versione EXE 0.2.2 non è firmata. Su Windows 11 con **Controllo intelligente delle app** attivo, Windows può impedirne completamente l'avvio. Anche lo ZIP contiene un eseguibile non firmato: non costituisce una soluzione al blocco.
 
-La pubblicazione automatica degli installer non firmati è sospesa. Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
+Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.3](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.3). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
 
 ## Funzioni
 
@@ -36,7 +36,7 @@ Su Windows con SDK .NET 10:
 
 Il motore C# viene confrontato, segmento per segmento e passo per passo, con 25 programmi della versione TypeScript. I test coprono anche formattazione, utensili, filtri di ricezione, delimitatori ASCII e attesa XON con una porta simulata. La compilazione WPF può essere verificata su Linux con EnableWindowsTargeting; l'interfaccia viene eseguita e controllata dal workflow Windows, anche dopo un'installazione silenziosa. I risultati e le schermate sono allegati alla relativa esecuzione GitHub Actions.
 
-Il workflow .github/workflows/windows.yml genera installer, ZIP portatile e SHA256 e li conserva come artefatti di test. La pubblicazione automatica degli EXE non firmati è sospesa; questi file non risolvono il blocco di Controllo intelligente delle app. La verifica MSIX usa un’identità tecnica e non produce un pacchetto installabile. Per ricompilare manualmente, apri **Actions → Rama Edit · Windows nativo → Run workflow**.
+Il workflow .github/workflows/windows.yml genera installer, ZIP portatile e SHA256 e li conserva come artefatti di test. Le release di prova richiedono una modifica esplicita della versione o la richiesta manuale; questi file non risolvono il blocco di Controllo intelligente delle app. La verifica MSIX usa un’identità tecnica e non produce un pacchetto installabile. Per ricompilare manualmente, apri **Actions → Rama Edit · Windows nativo → Run workflow**.
 
 I dati iniziali e i casi di confronto si aggiornano dalla radice del repository con:
 

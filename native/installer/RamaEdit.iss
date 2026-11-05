@@ -1,4 +1,6 @@
-#define AppVersion "0.2.2"
+#ifndef AppVersion
+#define AppVersion "0.2.3"
+#endif
 [Setup]
 AppId={{52F58A0A-B980-4764-9CA0-401938F87EF9}
 AppName=Rama Edit

@@ -44,7 +44,7 @@ public class MainWindow : Window
     readonly TextBlock message = new() { Margin = new(12, 4, 12, 4), TextWrapping = TextWrapping.Wrap, Foreground = Brushes.LightSteelBlue }, editorStatus = new() { Padding = new(10, 4, 10, 4), FontSize = 11, Foreground = Brushes.SlateGray };
     readonly TextBlock coordinateText = new() { FontFamily = new("Consolas"), FontSize = 18, Margin = new(10, 5, 10, 5), TextWrapping = TextWrapping.Wrap }, simulationStatus = new() { Margin = new(10, 4, 10, 6), FontSize = 11, TextWrapping = TextWrapping.Wrap };
     readonly StackPanel tabs = new() { Orientation = Orientation.Horizontal }, toolbar = new() { Orientation = Orientation.Horizontal }, editTools = new() { Orientation = Orientation.Horizontal }, extraTools = new() { Orientation = Orientation.Horizontal }, transferTools = new() { Orientation = Orientation.Horizontal };
-    readonly ScrollViewer tabScroll, toolbarScroll; readonly Grid body = new(); readonly DockPanel simulationPanel = new(), editorPanel = new(); readonly StackPanel fileActions = new() { Orientation = Orientation.Horizontal };
+    readonly ScrollViewer tabScroll, toolbarScroll; readonly Grid body = new(); readonly DockPanel simulationPanel = new(), editorPanel = new(); readonly WrapPanel fileActions = new() { Orientation = Orientation.Horizontal };
     readonly StackPanel findPanel = new() { Visibility = Visibility.Collapsed, Background = new SolidColorBrush(Color.FromRgb(29, 45, 56)), Margin = new(0) };
     readonly TextBox search = new() { MinWidth = 200, Width = 280 }, replacement = new() { MinWidth = 200, Width = 280 }, receivedName = new() { Text = "ricevuto.txt", Width = 300 };
     readonly CheckBox matchCase = new() { Content = "Maiuscole/minuscole" }, wholeWord = new() { Content = "Parola intera" }, regexSearch = new() { Content = "Espressione regolare" }, follow = new() { Content = "Segui riga", IsChecked = true }, rapids = new() { Content = "Rapidi", IsChecked = true };
@@ -53,13 +53,16 @@ public class MainWindow : Window
     readonly GCodeColorizer colorizer = new(); readonly ExecutionLine execution = new(); readonly TextDocument receivedDocument = new();
     readonly StringBuilder received = new(); readonly object rxGate = new(); bool receivedDirty;
     readonly DispatcherTimer debounce = new() { Interval = TimeSpan.FromMilliseconds(350) }, autosave = new() { Interval = TimeSpan.FromSeconds(2) }, playback = new() { Interval = TimeSpan.FromMilliseconds(40) };
-    Button connectButton = null!, sendButton = null!, receiveButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!;
+    Button undoButton = null!, redoButton = null!, colorsButton = null!, transferSettingsButton = null!;
+    Button connectButton = null!, sendButton = null!, receiveButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, examplesButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!;
     SerialSession? serial; string page = "workspace"; bool syncing, simulationVisible = true, busy, closing, persistenceFailed;
     readonly Queue<string> logChunks = new(); int logLength; int receivedPending; readonly DispatcherTimer receivedRefresh = new() { Interval = TimeSpan.FromMilliseconds(80) }; double[] cumulative = []; bool playing; double playbackPosition;
     public MainWindow(bool testMode = false)
     {
         Style = (Style)Application.Current.FindResource(typeof(Window));
-        this.testMode = testMode; Title = "Rama Edit"; Width = 1440; Height = 920; MinWidth = 900; MinHeight = 600; WindowStartupLocation = WindowStartupLocation.CenterScreen; AllowDrop = true;
+        this.testMode = testMode; Title = "Rama Edit"; MinWidth = 900; MinHeight = 600;
+        WindowStyle = WindowStyle.SingleBorderWindow; ResizeMode = ResizeMode.CanResize; ShowInTaskbar = true;
+        WindowPlacement.SetInitialBounds(this, 1440, 920); AllowDrop = true;
         try { machines = testMode ? Storage.Defaults() : Storage.Read<List<MachineProfile>>("machines.json") ?? Storage.Defaults(); foreach (var m in machines) m.Settings.Validate(); }
         catch (Exception e) { machines = Storage.Defaults(); Loaded += (_, _) => Error("Configurazioni non caricate: " + e.Message); persistenceFailed = true; }
         var root = new DockPanel(); Content = root;
@@ -72,20 +75,20 @@ public class MainWindow : Window
         DockPanel.SetDock(header, Dock.Top); main.Children.Add(header);
         var context = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(10, 0, 5, 0) }; context.Children.Add(new TextBlock { Text = "Rama Edit", FontWeight = FontWeights.Bold, FontSize = 19, Margin = new(0, 10, 0, 10) }); context.Children.Add(pageTitle); header.Children.Add(context);
         fileActions.Children.Add(BA("📂 Apri", OpenFiles)); saveButton = BA("↓ Salva", () => Save(false)); saveAsButton = BA("▣ Salva con nome", () => Save(true)); printButton = B("▤ Stampa", Print);
-        fileActions.Children.Add(saveButton); fileActions.Children.Add(saveAsButton); fileActions.Children.Add(printButton); header.Children.Add(fileActions);
+        fileActions.Children.Add(saveButton); fileActions.Children.Add(saveAsButton); fileActions.Children.Add(printButton); examplesButton = B("▧ Esempi", Examples); fileActions.Children.Add(examplesButton); header.Children.Add(fileActions);
         tabScroll = new() { Content = tabs, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Background = new SolidColorBrush(Color.FromRgb(26, 34, 43)) }; DockPanel.SetDock(tabScroll, Dock.Top); main.Children.Add(tabScroll);
         toolbar.Children.Add(editTools); toolbar.Children.Add(extraTools); toolbar.Children.Add(transferTools);
         toolbarScroll = new() { Content = toolbar, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Background = new SolidColorBrush(Color.FromRgb(27, 40, 52)), Padding = new(5, 3, 5, 3) }; DockPanel.SetDock(toolbarScroll, Dock.Top); main.Children.Add(toolbarScroll);
-        editTools.Children.Add(Tool("↶", "Annulla", () => Editor.Undo())); editTools.Children.Add(Tool("↷", "Ripristina", () => Editor.Redo())); editTools.Children.Add(Tool("␣", "Aggiungi spazi", () => ReplaceSource(CoreTools.AddSpaces(Editor.Text))));
-        editTools.Children.Add(Tool("☷", "Crea lista utensili", ToolList)); editTools.Children.Add(Tool("◉", "Colori", Colors));
+        undoButton = Tool("↶", "Annulla", () => Editor.Undo()); redoButton = Tool("↷", "Ripristina", () => Editor.Redo()); editTools.Children.Add(undoButton); editTools.Children.Add(redoButton); editTools.Children.Add(Tool("␣", "Aggiungi spazi", () => ReplaceSource(CoreTools.AddSpaces(Editor.Text))));
+        editTools.Children.Add(Tool("☷", "Crea lista utensili", ToolList)); colorsButton = Tool("◉", "Colori", Colors); editTools.Children.Add(colorsButton);
         extraTools.Children.Add(Tool("F", "Avanzamento", () => Adjust("F"))); extraTools.Children.Add(Tool("S", "Giri mandrino", () => Adjust("S")));
         findButton = Tool("⌕", "Trova / sostituisci", ToggleFind); extraTools.Children.Add(findButton);
         extraTools.Children.Add(Tool("↑", "Trova precedente", () => Find(false))); extraTools.Children.Add(Tool("↓", "Trova prossimo", () => Find(true)));
         extraTools.Children.Add(Tool("◁", "Utensile precedente", () => ToolNavigate(false))); extraTools.Children.Add(Tool("▷", "Prossimo utensile", () => ToolNavigate(true)));
-        extraTools.Children.Add(Tool("▧", "Esempi", Examples)); previewButton = Tool("◫", "Nascondi simulazione", () => { simulationVisible = !simulationVisible; ApplyPage(); }); extraTools.Children.Add(previewButton);
-        transferTools.Children.Add(Labeled("Macchina", machineSelect)); transferTools.Children.Add(B("⚙ Impostazioni", Settings)); transferTools.Children.Add(Labeled("Porta", portSelect)); transferTools.Children.Add(B("⟳", RefreshPorts));
+        previewButton = Tool("◫", "Nascondi simulazione", () => { simulationVisible = !simulationVisible; ApplyPage(); }); extraTools.Children.Add(previewButton);
+        transferTools.Children.Add(Labeled("Macchina", machineSelect)); transferSettingsButton = B("⚙ Impostazioni", Settings); transferTools.Children.Add(transferSettingsButton); transferTools.Children.Add(Labeled("Porta", portSelect)); transferTools.Children.Add(B("⟳", RefreshPorts));
         connectButton = BA("Collega porta", Connect); sendButton = BA("⇧ Invia programma", Send); receiveButton = BA("⇩ Avvia ricezione", Receive);
-        transferTools.Children.Add(connectButton); transferTools.Children.Add(sendButton); transferTools.Children.Add(receiveButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
+        transferTools.Children.Add(sendButton); transferTools.Children.Add(connectButton); transferTools.Children.Add(receiveButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
         BuildFind(); DockPanel.SetDock(findPanel, Dock.Top); main.Children.Add(findPanel);
         DockPanel.SetDock(message, Dock.Top); main.Children.Add(message);
         body.ColumnDefinitions.Add(new()); body.ColumnDefinitions.Add(new() { Width = new(0) }); main.Children.Add(body);
@@ -165,11 +168,22 @@ public class MainWindow : Window
         tabs.Children.Clear();
         foreach (var d in documents)
         {
+            bool selected = d == active;
             var row = new StackPanel { Orientation = Orientation.Horizontal };
-            var name = B(d.Model.Name + (d.Model.Dirty ? " ●" : ""), () => Activate(d)); name.Margin = new(0); name.Padding = new(12, 7, 8, 7); name.MaxWidth = 260;
-            name.Background = d == active ? new SolidColorBrush(Color.FromRgb(0, 111, 184)) : new SolidColorBrush(Color.FromRgb(26, 34, 43)); name.Foreground = d == active ? Brushes.White : Brushes.LightSteelBlue;
-            var close = BA("×", async () => { await CloseDocument(d); }); close.Margin = new(0); close.Padding = new(8, 5, 8, 5); close.ToolTip = "Chiudi " + d.Model.Name; close.Background = name.Background;
-            row.Children.Add(name); row.Children.Add(close); tabs.Children.Add(row);
+            var background = new SolidColorBrush(selected ? Color.FromRgb(0, 111, 184) : Color.FromRgb(26, 34, 43));
+            var foreground = selected ? Brushes.White : Brushes.LightSteelBlue;
+            var name = B(d.Model.Name + (d.Model.Dirty ? " ●" : ""), () => Activate(d));
+            name.Margin = new(0); name.Padding = new(12, 7, 8, 7); name.MaxWidth = 260;
+            name.Background = Brushes.Transparent; name.BorderThickness = new(0); name.Foreground = foreground;
+            name.ToolTip = d.Model.Path ?? d.Model.Name;
+            var close = BA("×", async () => { await CloseDocument(d); });
+            close.Margin = new(0); close.Padding = new(8, 5, 10, 5); close.ToolTip = "Chiudi " + d.Model.Name;
+            close.Background = Brushes.Transparent; close.BorderThickness = new(0); close.Foreground = foreground;
+            AutomationProperties.SetName(close, "Chiudi " + d.Model.Name);
+            row.Children.Add(name); row.Children.Add(close);
+            tabs.Children.Add(new Border { Child = row, Background = background, BorderBrush = background,
+                BorderThickness = new(1), CornerRadius = new(4), Margin = new(0, 0, 4, 0) });
+
         }
         tabs.Children.Add(B("+ Nuovo", NewDocument));
     }
@@ -238,6 +252,8 @@ public class MainWindow : Window
     void ApplyPage()
     {
         pageTitle.Text = page switch { "send" => "Trasmissione", "receive" => "Ricezione", _ => "Scrittura / Simulazione" };
+        foreach (var button in new[] { undoButton, redoButton, colorsButton, transferSettingsButton }) button.Visibility = page == "send" ? Visibility.Collapsed : Visibility.Visible;
+        examplesButton.Visibility = page == "workspace" ? Visibility.Visible : Visibility.Collapsed;
         bool rx = page == "receive", sim = page == "workspace" && simulationVisible && active is not null;
         Editor.IsReadOnly = rx || active is null; editTools.Visibility = rx || active is null ? Visibility.Collapsed : Visibility.Visible; extraTools.Visibility = page == "workspace" && active is not null ? Visibility.Visible : Visibility.Collapsed;
         transferTools.Visibility = page == "workspace" ? Visibility.Collapsed : Visibility.Visible; tabScroll.Visibility = rx ? Visibility.Collapsed : Visibility.Visible; receiveHeader.Visibility = rx ? Visibility.Visible : Visibility.Collapsed;
@@ -460,7 +476,13 @@ public class MainWindow : Window
     {
         if (syncing) return; var step = CurrentStep(); Preview.StepIndex = step is null ? -1 : (int)timeline.Value; Preview.InvalidateVisual();
         var p = step?.Position ?? new Point3();
-        coordinateText.Text = $"X {p.X,9:0.000}  Y {p.Y,9:0.000}  Z {p.Z,9:0.000}\nPercorso {(step is not null && step.SegmentCount < cumulative.Length ? cumulative[step.SegmentCount] : CurrentSimulation.Distance):0.0} mm" + (step?.Action is string action ? " · " + action : "");
+        coordinateText.Inlines.Clear();
+        foreach (var (axis, value) in new[] { ('X', p.X), ('Y', p.Y), ('Z', p.Z) })
+        {
+            coordinateText.Inlines.Add(new Run($"{axis} {value,9:0.000}  ") { Foreground = AxisColors.For(axis), FontWeight = FontWeights.SemiBold });
+        }
+        coordinateText.Inlines.Add(new Run($"\nPercorso {(step is not null && step.SegmentCount < cumulative.Length ? cumulative[step.SegmentCount] : CurrentSimulation.Distance):0.0} mm" + (step?.Action is string action ? " · " + action : "")) { FontSize = 13, Foreground = Brushes.LightSteelBlue });
+
         execution.Line = page == "workspace" && simulationVisible ? step?.Line ?? 0 : 0;
         Editor.TextArea.TextView.InvalidateLayer(ICSharpCode.AvalonEdit.Rendering.KnownLayer.Background);
         if (playing && follow.IsChecked == true && step is not null) Editor.ScrollToLine(step.Line);

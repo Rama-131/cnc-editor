@@ -7,6 +7,11 @@ on:
       - "native/**"
       - ".github/workflows/windows.yml"
   workflow_dispatch:
+    inputs:
+      publish_preview:
+        description: "Pubblica una versione di prova non firmata (versione nuova)"
+        type: boolean
+        default: false
 
 concurrency:
   group: rama-edit-windows
@@ -25,6 +30,24 @@ jobs:
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Leggi versione e richiesta di pubblicazione
+        id: release_metadata
+        shell: pwsh
+        env:
+          RAMA_BUILD_EVENT: ${{ github.event_name }}
+          RAMA_MANUAL_PREVIEW: ${{ inputs.publish_preview }}
+        run: |
+          [xml]$ramaProps = Get-Content "native/Directory.Build.props" -Raw
+          $ramaVersion = [string]$ramaProps.Project.PropertyGroup.Version
+          if ($ramaVersion -notmatch '^\d+\.\d+\.\d+$') { throw "Versione non valida" }
+          $ramaChanged = git diff --name-only HEAD^ HEAD
+          if ($LASTEXITCODE -ne 0) { throw "Impossibile verificare la modifica di versione" }
+          $ramaPublish = (($env:RAMA_BUILD_EVENT -eq "push") -and ($ramaChanged -contains "native/Directory.Build.props")) -or ($env:RAMA_MANUAL_PREVIEW -eq "true")
+          "version=$ramaVersion" >> $env:GITHUB_OUTPUT
+          "RAMA_VERSION=$ramaVersion" >> $env:GITHUB_ENV
+          "publish_preview=$($ramaPublish.ToString().ToLower())" >> $env:GITHUB_OUTPUT
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
@@ -52,13 +75,13 @@ jobs:
         run: |
           $iscc = Join-Path ([Environment]::GetFolderPath("ProgramFilesX86")) "Inno Setup 6/ISCC.exe"
           if (-not (Test-Path $iscc)) { throw "Inno Setup 6 mancante sul runner Windows" }
-          & $iscc "native/installer/RamaEdit.iss"
+          & $iscc "/DAppVersion=$env:RAMA_VERSION" "native/installer/RamaEdit.iss"
           if ($LASTEXITCODE -ne 0) { throw "Creazione installer non riuscita" }
       - name: Verifica installazione e avvio dell'app installata
         shell: pwsh
         run: |
           $install = Join-Path $env:RUNNER_TEMP "RamaEdit-installed"
-          $setup = Start-Process -FilePath "native/artifacts/installer/RamaEdit-Setup-0.2.2-x64.exe" -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=$install") -Wait -PassThru
+          $setup = Start-Process -FilePath "native/artifacts/installer/RamaEdit-Setup-${env:RAMA_VERSION}-x64.exe" -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=$install") -Wait -PassThru
           if ($setup.ExitCode -ne 0) { throw "Installazione non riuscita" }
           $out = Join-Path $PWD "native/artifacts/installed-smoke"
           New-Item -ItemType Directory -Force $out | Out-Null
@@ -80,7 +103,7 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item "native/README.md" "native/artifacts/win-x64/LEGGIMI.md"
-          Compress-Archive -Path "native/artifacts/win-x64/*" -DestinationPath "native/artifacts/RamaEdit-0.2.2-win-x64.zip"
+          Compress-Archive -Path "native/artifacts/win-x64/*" -DestinationPath "native/artifacts/RamaEdit-${env:RAMA_VERSION}-win-x64.zip"
           Compress-Archive -Path "native/artifacts/smoke/*.png" -DestinationPath "native/artifacts/RamaEdit-Schermate-Windows.zip"
           Get-FileHash "native/artifacts/installer/*.exe", "native/artifacts/*.zip" -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $([IO.Path]::GetFileName($_.Path))" } | Set-Content "native/artifacts/SHA256SUMS.txt"
       - name: Conserva schermate e risultati
@@ -100,24 +123,17 @@ jobs:
             native/artifacts/installer/*.exe
             native/artifacts/*.zip
             native/artifacts/SHA256SUMS.txt
-      - name: Stato della distribuzione Windows
-        shell: pwsh
-        run: |
-          "## Distribuzione non firmata sospesa" >> $env:GITHUB_STEP_SUMMARY
-          "Gli EXE di test non sono firmati e possono essere bloccati da Controllo intelligente delle app. Il pacchetto MSIX di verifica non è installabile. Per distribuire tramite Microsoft Store usare l’identità assegnata da Partner Center e completare la certificazione." >> $env:GITHUB_STEP_SUMMARY
-      - name: Aggiorna le note dell’installer già distribuito
+      - name: Pubblica aggiornamento di prova richiesto
+        if: github.ref == 'refs/heads/main' && steps.release_metadata.outputs.publish_preview == 'true'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $updated = $false
-          for ($attempt = 0; $attempt -lt 3; $attempt++) {
-            $output = & gh release edit windows-v0.2.2 --repo "${{ github.repository }}" --notes-file "native/RELEASE-NOTES.md" 2>&1
-            if ($LASTEXITCODE -eq 0) { $updated = $true; break }
-            Start-Sleep -Seconds 2
-          }
-          if (-not $updated) {
-            Write-Output "::warning::Note della release non aggiornate tramite API; l’avviso sul blocco è disponibile nella documentazione del repository."
-            "Aggiornamento delle note della vecchia release non riuscito. Il pacchetto MSIX e i test Windows non dipendono da questa notifica." >> $env:GITHUB_STEP_SUMMARY
-          }
-          exit 0
+          $ramaTag = "windows-v$env:RAMA_VERSION"
+          gh release create $ramaTag "native/artifacts/installer/RamaEdit-Setup-${env:RAMA_VERSION}-x64.exe" "native/artifacts/RamaEdit-${env:RAMA_VERSION}-win-x64.zip" "native/artifacts/SHA256SUMS.txt" "native/artifacts/RamaEdit-Schermate-Windows.zip" --repo "${{ github.repository }}" --target "${{ github.sha }}" --prerelease --title "Rama Edit $env:RAMA_VERSION - Windows" --notes-file "native/RELEASE-NOTES.md"
+          if ($LASTEXITCODE -ne 0) { throw "Pubblicazione non riuscita; le versioni già pubblicate non vengono sovrascritte." }
+      - name: Stato della distribuzione Windows
+        shell: pwsh
+        run: |
+          "## Versione di prova $env:RAMA_VERSION" >> $env:GITHUB_STEP_SUMMARY
+          "Gli EXE di prova non sono firmati. La pubblicazione richiede una modifica esplicita della versione o una richiesta manuale; i pacchetti non vengono proposti come soluzione al blocco di Controllo intelligente delle app. Microsoft Store richiede ancora l’identità dell’autore e la certificazione." >> $env:GITHUB_STEP_SUMMARY
