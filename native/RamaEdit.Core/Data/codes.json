@@ -1,0 +1,4006 @@
+{
+  "mill": {
+    "G0": {
+      "code": "G0",
+      "title": "Posizionamento rapido",
+      "description": "Sposta gli assi alla velocità di rapido. Il percorso reale può dipendere dal controllo."
+    },
+    "G1": {
+      "code": "G1",
+      "title": "Interpolazione lineare",
+      "description": "Muove gli assi lungo una linea retta con l’avanzamento F programmato."
+    },
+    "G2": {
+      "code": "G2",
+      "title": "Arco in senso orario",
+      "description": "Interpolazione circolare oraria sul piano attivo, con centro I/J/K oppure raggio R."
+    },
+    "G3": {
+      "code": "G3",
+      "title": "Arco in senso antiorario",
+      "description": "Interpolazione circolare antioraria sul piano attivo, con centro I/J/K oppure raggio R."
+    },
+    "G4": {
+      "code": "G4",
+      "title": "Sosta temporizzata",
+      "description": "Introduce una pausa. Le unità del parametro P dipendono dal controllo."
+    },
+    "G5": {
+      "code": "G5",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G6": {
+      "code": "G6",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G7": {
+      "code": "G7",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G8": {
+      "code": "G8",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G9": {
+      "code": "G9",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G10": {
+      "code": "G10",
+      "title": "Impostazione dati programmata",
+      "description": "Scrive dati di origine o correttori secondo il controllo e i parametri del blocco. L’anteprima supporta G10 P0 per lo spostamento origine del tornio Fanuc; altre forme non sono simulate."
+    },
+    "G11": {
+      "code": "G11",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G12": {
+      "code": "G12",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G13": {
+      "code": "G13",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G14": {
+      "code": "G14",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G15": {
+      "code": "G15",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G16": {
+      "code": "G16",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G17": {
+      "code": "G17",
+      "title": "Piano XY",
+      "description": "Seleziona il piano XY per le interpolazioni circolari."
+    },
+    "G18": {
+      "code": "G18",
+      "title": "Piano ZX",
+      "description": "Seleziona il piano ZX, normalmente utilizzato sul tornio."
+    },
+    "G19": {
+      "code": "G19",
+      "title": "Piano YZ",
+      "description": "Seleziona il piano YZ per le interpolazioni circolari."
+    },
+    "G20": {
+      "code": "G20",
+      "title": "Programmazione in pollici",
+      "description": "Interpreta le quote in pollici."
+    },
+    "G21": {
+      "code": "G21",
+      "title": "Programmazione in millimetri",
+      "description": "Interpreta le quote in millimetri."
+    },
+    "G22": {
+      "code": "G22",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G23": {
+      "code": "G23",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G24": {
+      "code": "G24",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G25": {
+      "code": "G25",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G26": {
+      "code": "G26",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G27": {
+      "code": "G27",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G28": {
+      "code": "G28",
+      "title": "Ritorno al riferimento",
+      "description": "Ritorna al riferimento macchina passando per un punto intermedio. Non simulato."
+    },
+    "G29": {
+      "code": "G29",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G30": {
+      "code": "G30",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G31": {
+      "code": "G31",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G32": {
+      "code": "G32",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G33": {
+      "code": "G33",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G34": {
+      "code": "G34",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G35": {
+      "code": "G35",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G36": {
+      "code": "G36",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G37": {
+      "code": "G37",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G38": {
+      "code": "G38",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G39": {
+      "code": "G39",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G40": {
+      "code": "G40",
+      "title": "Annullamento compensazione",
+      "description": "Disattiva la compensazione raggio utensile o punta."
+    },
+    "G41": {
+      "code": "G41",
+      "title": "Compensazione a sinistra",
+      "description": "Attiva la compensazione utensile a sinistra del percorso. Non simulata."
+    },
+    "G42": {
+      "code": "G42",
+      "title": "Compensazione a destra",
+      "description": "Attiva la compensazione utensile a destra del percorso. Non simulata."
+    },
+    "G43": {
+      "code": "G43",
+      "title": "Compensazione lunghezza positiva",
+      "description": "Applica la lunghezza utensile selezionata con H. Non simulata."
+    },
+    "G44": {
+      "code": "G44",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G45": {
+      "code": "G45",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G46": {
+      "code": "G46",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G47": {
+      "code": "G47",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G48": {
+      "code": "G48",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G49": {
+      "code": "G49",
+      "title": "Annullamento lunghezza utensile",
+      "description": "Annulla la compensazione lunghezza utensile."
+    },
+    "G50": {
+      "code": "G50",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G51": {
+      "code": "G51",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G52": {
+      "code": "G52",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G53": {
+      "code": "G53",
+      "title": "Coordinate macchina",
+      "description": "Programma un movimento nel sistema di coordinate macchina. Non simulato."
+    },
+    "G54": {
+      "code": "G54",
+      "title": "Origine pezzo 1",
+      "description": "Seleziona il sistema di coordinate pezzo G54. La vista mostra coordinate locali, senza offset macchina."
+    },
+    "G55": {
+      "code": "G55",
+      "title": "Origine pezzo 2",
+      "description": "Seleziona il sistema di coordinate pezzo G55."
+    },
+    "G56": {
+      "code": "G56",
+      "title": "Origine pezzo 3",
+      "description": "Seleziona il sistema di coordinate pezzo G56."
+    },
+    "G57": {
+      "code": "G57",
+      "title": "Origine pezzo 4",
+      "description": "Seleziona il sistema di coordinate pezzo G57."
+    },
+    "G58": {
+      "code": "G58",
+      "title": "Origine pezzo 5",
+      "description": "Seleziona il sistema di coordinate pezzo G58."
+    },
+    "G59": {
+      "code": "G59",
+      "title": "Origine pezzo 6",
+      "description": "Seleziona il sistema di coordinate pezzo G59."
+    },
+    "G60": {
+      "code": "G60",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G61": {
+      "code": "G61",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G62": {
+      "code": "G62",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G63": {
+      "code": "G63",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G64": {
+      "code": "G64",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G65": {
+      "code": "G65",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G66": {
+      "code": "G66",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G67": {
+      "code": "G67",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G68": {
+      "code": "G68",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G69": {
+      "code": "G69",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G70": {
+      "code": "G70",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G71": {
+      "code": "G71",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G72": {
+      "code": "G72",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G73": {
+      "code": "G73",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G74": {
+      "code": "G74",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G75": {
+      "code": "G75",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G76": {
+      "code": "G76",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G77": {
+      "code": "G77",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G78": {
+      "code": "G78",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G79": {
+      "code": "G79",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G80": {
+      "code": "G80",
+      "title": "Annullamento ciclo fisso",
+      "description": "Disattiva i cicli fissi di lavorazione."
+    },
+    "G81": {
+      "code": "G81",
+      "title": "Ciclo di foratura",
+      "description": "Ciclo fisso di foratura. Non simulato."
+    },
+    "G82": {
+      "code": "G82",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G83": {
+      "code": "G83",
+      "title": "Foratura profonda",
+      "description": "Ciclo di foratura con scarico del truciolo. Non simulato."
+    },
+    "G84": {
+      "code": "G84",
+      "title": "Maschiatura",
+      "description": "Ciclo fisso di maschiatura. Non simulato."
+    },
+    "G85": {
+      "code": "G85",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G86": {
+      "code": "G86",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G87": {
+      "code": "G87",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G88": {
+      "code": "G88",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G89": {
+      "code": "G89",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G90": {
+      "code": "G90",
+      "title": "Quote assolute",
+      "description": "Le coordinate sono riferite all’origine pezzo attiva."
+    },
+    "G91": {
+      "code": "G91",
+      "title": "Quote incrementali",
+      "description": "Le coordinate sono relative alla posizione corrente."
+    },
+    "G92": {
+      "code": "G92",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G93": {
+      "code": "G93",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G94": {
+      "code": "G94",
+      "title": "Avanzamento al minuto",
+      "description": "Interpreta F come avanzamento al minuto."
+    },
+    "G95": {
+      "code": "G95",
+      "title": "Avanzamento al giro",
+      "description": "Interpreta F come avanzamento per giro mandrino."
+    },
+    "G96": {
+      "code": "G96",
+      "title": "Velocità di taglio costante",
+      "description": "Regola i giri mandrino per mantenere costante la velocità di taglio."
+    },
+    "G97": {
+      "code": "G97",
+      "title": "Giri mandrino costanti",
+      "description": "Interpreta S come numero di giri al minuto."
+    },
+    "G98": {
+      "code": "G98",
+      "title": "Ritorno al piano iniziale",
+      "description": "Nei cicli di fresatura, ritorna al piano iniziale."
+    },
+    "G99": {
+      "code": "G99",
+      "title": "Ritorno al piano R",
+      "description": "Nei cicli di fresatura, ritorna al piano di riferimento R."
+    },
+    "G100": {
+      "code": "G100",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G101": {
+      "code": "G101",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G102": {
+      "code": "G102",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G103": {
+      "code": "G103",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G104": {
+      "code": "G104",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G105": {
+      "code": "G105",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G106": {
+      "code": "G106",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G107": {
+      "code": "G107",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G108": {
+      "code": "G108",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G109": {
+      "code": "G109",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G110": {
+      "code": "G110",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G111": {
+      "code": "G111",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G112": {
+      "code": "G112",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G113": {
+      "code": "G113",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G114": {
+      "code": "G114",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G115": {
+      "code": "G115",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G116": {
+      "code": "G116",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G117": {
+      "code": "G117",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G118": {
+      "code": "G118",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G119": {
+      "code": "G119",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G120": {
+      "code": "G120",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G121": {
+      "code": "G121",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G122": {
+      "code": "G122",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G123": {
+      "code": "G123",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G124": {
+      "code": "G124",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G125": {
+      "code": "G125",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G126": {
+      "code": "G126",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G127": {
+      "code": "G127",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G128": {
+      "code": "G128",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G129": {
+      "code": "G129",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G130": {
+      "code": "G130",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G131": {
+      "code": "G131",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G132": {
+      "code": "G132",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G133": {
+      "code": "G133",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G134": {
+      "code": "G134",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G135": {
+      "code": "G135",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G136": {
+      "code": "G136",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G137": {
+      "code": "G137",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G138": {
+      "code": "G138",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G139": {
+      "code": "G139",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G140": {
+      "code": "G140",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G141": {
+      "code": "G141",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G142": {
+      "code": "G142",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G143": {
+      "code": "G143",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G144": {
+      "code": "G144",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G145": {
+      "code": "G145",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G146": {
+      "code": "G146",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G147": {
+      "code": "G147",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G148": {
+      "code": "G148",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G149": {
+      "code": "G149",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G150": {
+      "code": "G150",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G151": {
+      "code": "G151",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G152": {
+      "code": "G152",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G153": {
+      "code": "G153",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G154": {
+      "code": "G154",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G155": {
+      "code": "G155",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G156": {
+      "code": "G156",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G157": {
+      "code": "G157",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G158": {
+      "code": "G158",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G159": {
+      "code": "G159",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G160": {
+      "code": "G160",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G161": {
+      "code": "G161",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G162": {
+      "code": "G162",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G163": {
+      "code": "G163",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G164": {
+      "code": "G164",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G165": {
+      "code": "G165",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G166": {
+      "code": "G166",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G167": {
+      "code": "G167",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G168": {
+      "code": "G168",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G169": {
+      "code": "G169",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G170": {
+      "code": "G170",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G171": {
+      "code": "G171",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G172": {
+      "code": "G172",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G173": {
+      "code": "G173",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G174": {
+      "code": "G174",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G175": {
+      "code": "G175",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G176": {
+      "code": "G176",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G177": {
+      "code": "G177",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G178": {
+      "code": "G178",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G179": {
+      "code": "G179",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G180": {
+      "code": "G180",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G181": {
+      "code": "G181",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G182": {
+      "code": "G182",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G183": {
+      "code": "G183",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G184": {
+      "code": "G184",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G185": {
+      "code": "G185",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G186": {
+      "code": "G186",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G187": {
+      "code": "G187",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G188": {
+      "code": "G188",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G189": {
+      "code": "G189",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G190": {
+      "code": "G190",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G191": {
+      "code": "G191",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G192": {
+      "code": "G192",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G193": {
+      "code": "G193",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G194": {
+      "code": "G194",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G195": {
+      "code": "G195",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G196": {
+      "code": "G196",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G197": {
+      "code": "G197",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G198": {
+      "code": "G198",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G199": {
+      "code": "G199",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M0": {
+      "code": "M0",
+      "title": "Arresto programmato",
+      "description": "Arresta il programma in attesa dell’operatore."
+    },
+    "M1": {
+      "code": "M1",
+      "title": "Arresto opzionale",
+      "description": "Arresta il programma se l’opzione arresto opzionale è attiva."
+    },
+    "M2": {
+      "code": "M2",
+      "title": "Fine programma",
+      "description": "Termina il programma."
+    },
+    "M3": {
+      "code": "M3",
+      "title": "Mandrino orario",
+      "description": "Avvia il mandrino in senso orario."
+    },
+    "M4": {
+      "code": "M4",
+      "title": "Mandrino antiorario",
+      "description": "Avvia il mandrino in senso antiorario."
+    },
+    "M5": {
+      "code": "M5",
+      "title": "Arresto mandrino",
+      "description": "Ferma il mandrino."
+    },
+    "M6": {
+      "code": "M6",
+      "title": "Cambio utensile",
+      "description": "Richiede un cambio utensile secondo la logica della macchina."
+    },
+    "M7": {
+      "code": "M7",
+      "title": "Refrigerante nebulizzato",
+      "description": "Attiva il refrigerante nebulizzato, se previsto."
+    },
+    "M8": {
+      "code": "M8",
+      "title": "Refrigerante attivo",
+      "description": "Attiva il refrigerante."
+    },
+    "M9": {
+      "code": "M9",
+      "title": "Refrigerante spento",
+      "description": "Disattiva il refrigerante."
+    },
+    "M10": {
+      "code": "M10",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M11": {
+      "code": "M11",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M12": {
+      "code": "M12",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M13": {
+      "code": "M13",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M14": {
+      "code": "M14",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M15": {
+      "code": "M15",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M16": {
+      "code": "M16",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M17": {
+      "code": "M17",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M18": {
+      "code": "M18",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M19": {
+      "code": "M19",
+      "title": "Orientamento mandrino",
+      "description": "Orienta il mandrino nella posizione prevista dal controllo."
+    },
+    "M20": {
+      "code": "M20",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M21": {
+      "code": "M21",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M22": {
+      "code": "M22",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M23": {
+      "code": "M23",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M24": {
+      "code": "M24",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M25": {
+      "code": "M25",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M26": {
+      "code": "M26",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M27": {
+      "code": "M27",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M28": {
+      "code": "M28",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M29": {
+      "code": "M29",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M30": {
+      "code": "M30",
+      "title": "Fine e riavvolgimento",
+      "description": "Termina il programma e lo predispone per una nuova esecuzione."
+    },
+    "M31": {
+      "code": "M31",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M32": {
+      "code": "M32",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M33": {
+      "code": "M33",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M34": {
+      "code": "M34",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M35": {
+      "code": "M35",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M36": {
+      "code": "M36",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M37": {
+      "code": "M37",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M38": {
+      "code": "M38",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M39": {
+      "code": "M39",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M40": {
+      "code": "M40",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M41": {
+      "code": "M41",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M42": {
+      "code": "M42",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M43": {
+      "code": "M43",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M44": {
+      "code": "M44",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M45": {
+      "code": "M45",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M46": {
+      "code": "M46",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M47": {
+      "code": "M47",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M48": {
+      "code": "M48",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M49": {
+      "code": "M49",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M50": {
+      "code": "M50",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M51": {
+      "code": "M51",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M52": {
+      "code": "M52",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M53": {
+      "code": "M53",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M54": {
+      "code": "M54",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M55": {
+      "code": "M55",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M56": {
+      "code": "M56",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M57": {
+      "code": "M57",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M58": {
+      "code": "M58",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M59": {
+      "code": "M59",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M60": {
+      "code": "M60",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M61": {
+      "code": "M61",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M62": {
+      "code": "M62",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M63": {
+      "code": "M63",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M64": {
+      "code": "M64",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M65": {
+      "code": "M65",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M66": {
+      "code": "M66",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M67": {
+      "code": "M67",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M68": {
+      "code": "M68",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M69": {
+      "code": "M69",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M70": {
+      "code": "M70",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M71": {
+      "code": "M71",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M72": {
+      "code": "M72",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M73": {
+      "code": "M73",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M74": {
+      "code": "M74",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M75": {
+      "code": "M75",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M76": {
+      "code": "M76",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M77": {
+      "code": "M77",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M78": {
+      "code": "M78",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M79": {
+      "code": "M79",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M80": {
+      "code": "M80",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M81": {
+      "code": "M81",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M82": {
+      "code": "M82",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M83": {
+      "code": "M83",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M84": {
+      "code": "M84",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M85": {
+      "code": "M85",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M86": {
+      "code": "M86",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M87": {
+      "code": "M87",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M88": {
+      "code": "M88",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M89": {
+      "code": "M89",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M90": {
+      "code": "M90",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M91": {
+      "code": "M91",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M92": {
+      "code": "M92",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M93": {
+      "code": "M93",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M94": {
+      "code": "M94",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M95": {
+      "code": "M95",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M96": {
+      "code": "M96",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M97": {
+      "code": "M97",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M98": {
+      "code": "M98",
+      "title": "Richiamo sottoprogramma",
+      "description": "Esegue un sottoprogramma. Non simulato."
+    },
+    "M99": {
+      "code": "M99",
+      "title": "Ritorno da sottoprogramma",
+      "description": "Ritorna al programma chiamante o ripete il programma. Non simulato."
+    },
+    "M100": {
+      "code": "M100",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M101": {
+      "code": "M101",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M102": {
+      "code": "M102",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M103": {
+      "code": "M103",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M104": {
+      "code": "M104",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M105": {
+      "code": "M105",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M106": {
+      "code": "M106",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M107": {
+      "code": "M107",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M108": {
+      "code": "M108",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M109": {
+      "code": "M109",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M110": {
+      "code": "M110",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M111": {
+      "code": "M111",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M112": {
+      "code": "M112",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M113": {
+      "code": "M113",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M114": {
+      "code": "M114",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M115": {
+      "code": "M115",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M116": {
+      "code": "M116",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M117": {
+      "code": "M117",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M118": {
+      "code": "M118",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M119": {
+      "code": "M119",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M120": {
+      "code": "M120",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M121": {
+      "code": "M121",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M122": {
+      "code": "M122",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M123": {
+      "code": "M123",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M124": {
+      "code": "M124",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M125": {
+      "code": "M125",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M126": {
+      "code": "M126",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M127": {
+      "code": "M127",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M128": {
+      "code": "M128",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M129": {
+      "code": "M129",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M130": {
+      "code": "M130",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M131": {
+      "code": "M131",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M132": {
+      "code": "M132",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M133": {
+      "code": "M133",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M134": {
+      "code": "M134",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M135": {
+      "code": "M135",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M136": {
+      "code": "M136",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M137": {
+      "code": "M137",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M138": {
+      "code": "M138",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M139": {
+      "code": "M139",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M140": {
+      "code": "M140",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M141": {
+      "code": "M141",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M142": {
+      "code": "M142",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M143": {
+      "code": "M143",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M144": {
+      "code": "M144",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M145": {
+      "code": "M145",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M146": {
+      "code": "M146",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M147": {
+      "code": "M147",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M148": {
+      "code": "M148",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M149": {
+      "code": "M149",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M150": {
+      "code": "M150",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M151": {
+      "code": "M151",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M152": {
+      "code": "M152",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M153": {
+      "code": "M153",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M154": {
+      "code": "M154",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M155": {
+      "code": "M155",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M156": {
+      "code": "M156",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M157": {
+      "code": "M157",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M158": {
+      "code": "M158",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M159": {
+      "code": "M159",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M160": {
+      "code": "M160",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M161": {
+      "code": "M161",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M162": {
+      "code": "M162",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M163": {
+      "code": "M163",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M164": {
+      "code": "M164",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M165": {
+      "code": "M165",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M166": {
+      "code": "M166",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M167": {
+      "code": "M167",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M168": {
+      "code": "M168",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M169": {
+      "code": "M169",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M170": {
+      "code": "M170",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M171": {
+      "code": "M171",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M172": {
+      "code": "M172",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M173": {
+      "code": "M173",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M174": {
+      "code": "M174",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M175": {
+      "code": "M175",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M176": {
+      "code": "M176",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M177": {
+      "code": "M177",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M178": {
+      "code": "M178",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M179": {
+      "code": "M179",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M180": {
+      "code": "M180",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M181": {
+      "code": "M181",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M182": {
+      "code": "M182",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M183": {
+      "code": "M183",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M184": {
+      "code": "M184",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M185": {
+      "code": "M185",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M186": {
+      "code": "M186",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M187": {
+      "code": "M187",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M188": {
+      "code": "M188",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M189": {
+      "code": "M189",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M190": {
+      "code": "M190",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M191": {
+      "code": "M191",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M192": {
+      "code": "M192",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M193": {
+      "code": "M193",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M194": {
+      "code": "M194",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M195": {
+      "code": "M195",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M196": {
+      "code": "M196",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M197": {
+      "code": "M197",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M198": {
+      "code": "M198",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M199": {
+      "code": "M199",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    }
+  },
+  "lathe": {
+    "G0": {
+      "code": "G0",
+      "title": "Posizionamento rapido",
+      "description": "Sposta gli assi alla velocità di rapido. Il percorso reale può dipendere dal controllo."
+    },
+    "G1": {
+      "code": "G1",
+      "title": "Interpolazione lineare",
+      "description": "Muove gli assi lungo una linea retta con l’avanzamento F programmato."
+    },
+    "G2": {
+      "code": "G2",
+      "title": "Arco in senso orario",
+      "description": "Interpolazione circolare oraria sul piano attivo, con centro I/J/K oppure raggio R."
+    },
+    "G3": {
+      "code": "G3",
+      "title": "Arco in senso antiorario",
+      "description": "Interpolazione circolare antioraria sul piano attivo, con centro I/J/K oppure raggio R."
+    },
+    "G4": {
+      "code": "G4",
+      "title": "Sosta temporizzata",
+      "description": "Introduce una pausa. Le unità del parametro P dipendono dal controllo."
+    },
+    "G5": {
+      "code": "G5",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G6": {
+      "code": "G6",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G7": {
+      "code": "G7",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G8": {
+      "code": "G8",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G9": {
+      "code": "G9",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G10": {
+      "code": "G10",
+      "title": "Spostamento origine programmato",
+      "description": "Su tornio Fanuc, G10 P0 imposta lo spostamento esterno dell’origine: X/Z sono valori assoluti, U/W sono variazioni incrementali. Non muove gli assi e non seleziona G54. L’anteprima supporta questa forma, con shift iniziale e ingresso convenzionali a zero; altre forme G10 non sono simulate."
+    },
+    "G11": {
+      "code": "G11",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G12": {
+      "code": "G12",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G13": {
+      "code": "G13",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G14": {
+      "code": "G14",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G15": {
+      "code": "G15",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G16": {
+      "code": "G16",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G17": {
+      "code": "G17",
+      "title": "Piano XY",
+      "description": "Seleziona il piano XY per le interpolazioni circolari."
+    },
+    "G18": {
+      "code": "G18",
+      "title": "Piano ZX",
+      "description": "Seleziona il piano ZX, normalmente utilizzato sul tornio."
+    },
+    "G19": {
+      "code": "G19",
+      "title": "Piano YZ",
+      "description": "Seleziona il piano YZ per le interpolazioni circolari."
+    },
+    "G20": {
+      "code": "G20",
+      "title": "Programmazione in pollici",
+      "description": "Interpreta le quote in pollici."
+    },
+    "G21": {
+      "code": "G21",
+      "title": "Programmazione in millimetri",
+      "description": "Interpreta le quote in millimetri."
+    },
+    "G22": {
+      "code": "G22",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G23": {
+      "code": "G23",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G24": {
+      "code": "G24",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G25": {
+      "code": "G25",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G26": {
+      "code": "G26",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G27": {
+      "code": "G27",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G28": {
+      "code": "G28",
+      "title": "Ritorno al riferimento",
+      "description": "Ritorna al riferimento macchina passando per un punto intermedio. Non simulato."
+    },
+    "G29": {
+      "code": "G29",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G30": {
+      "code": "G30",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G31": {
+      "code": "G31",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G32": {
+      "code": "G32",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G33": {
+      "code": "G33",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G34": {
+      "code": "G34",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G35": {
+      "code": "G35",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G36": {
+      "code": "G36",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G37": {
+      "code": "G37",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G38": {
+      "code": "G38",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G39": {
+      "code": "G39",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G40": {
+      "code": "G40",
+      "title": "Annullamento compensazione",
+      "description": "Disattiva la compensazione raggio utensile o punta."
+    },
+    "G41": {
+      "code": "G41",
+      "title": "Compensazione a sinistra",
+      "description": "Attiva la compensazione utensile a sinistra del percorso. Non simulata."
+    },
+    "G42": {
+      "code": "G42",
+      "title": "Compensazione a destra",
+      "description": "Attiva la compensazione utensile a destra del percorso. Non simulata."
+    },
+    "G43": {
+      "code": "G43",
+      "title": "Compensazione lunghezza positiva",
+      "description": "Applica la lunghezza utensile selezionata con H. Non simulata."
+    },
+    "G44": {
+      "code": "G44",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G45": {
+      "code": "G45",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G46": {
+      "code": "G46",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G47": {
+      "code": "G47",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G48": {
+      "code": "G48",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G49": {
+      "code": "G49",
+      "title": "Annullamento lunghezza utensile",
+      "description": "Annulla la compensazione lunghezza utensile."
+    },
+    "G50": {
+      "code": "G50",
+      "title": "Limite giri / coordinate",
+      "description": "Sul tornio può limitare i giri massimi. La funzione dipende dal controllo; non simulata."
+    },
+    "G51": {
+      "code": "G51",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G52": {
+      "code": "G52",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G53": {
+      "code": "G53",
+      "title": "Coordinate macchina",
+      "description": "Programma un movimento nel sistema di coordinate macchina. Non simulato."
+    },
+    "G54": {
+      "code": "G54",
+      "title": "Origine pezzo 1",
+      "description": "Seleziona il sistema di coordinate pezzo G54. La vista mostra coordinate locali, senza offset macchina."
+    },
+    "G55": {
+      "code": "G55",
+      "title": "Origine pezzo 2",
+      "description": "Seleziona il sistema di coordinate pezzo G55."
+    },
+    "G56": {
+      "code": "G56",
+      "title": "Origine pezzo 3",
+      "description": "Seleziona il sistema di coordinate pezzo G56."
+    },
+    "G57": {
+      "code": "G57",
+      "title": "Origine pezzo 4",
+      "description": "Seleziona il sistema di coordinate pezzo G57."
+    },
+    "G58": {
+      "code": "G58",
+      "title": "Origine pezzo 5",
+      "description": "Seleziona il sistema di coordinate pezzo G58."
+    },
+    "G59": {
+      "code": "G59",
+      "title": "Origine pezzo 6",
+      "description": "Seleziona il sistema di coordinate pezzo G59."
+    },
+    "G60": {
+      "code": "G60",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G61": {
+      "code": "G61",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G62": {
+      "code": "G62",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G63": {
+      "code": "G63",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G64": {
+      "code": "G64",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G65": {
+      "code": "G65",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G66": {
+      "code": "G66",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G67": {
+      "code": "G67",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G68": {
+      "code": "G68",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G69": {
+      "code": "G69",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G70": {
+      "code": "G70",
+      "title": "Ciclo di finitura",
+      "description": "Ripercorre il profilo P/Q già definito per il G71 supportato, alle quote nominali e senza i sovrametalli U/W. L’anteprima segue le righe del profilo G0/G1 con angoli A e raccordi R e rappresenta il ritorno rapido al punto iniziale. Non calcola tempi, compensazioni utensile o collisioni."
+    },
+    "G71": {
+      "code": "G71",
+      "title": "Sgrossatura longitudinale",
+      "description": "Ciclo Fanuc a due righe: U/R impostano profondità radiale e ritiro; P/Q richiamano il profilo e U/W lasciano sovrametallo. L’anteprima supporta la sgrossatura esterna tipo I con G0/G1, angoli A e raccordi R, con ritrazioni geometriche convenzionali. Tasche, lavorazioni interne, G2/G3 nel profilo e altre forme del ciclo non sono simulate."
+    },
+    "G72": {
+      "code": "G72",
+      "title": "Sgrossatura frontale",
+      "description": "Ciclo di sgrossatura frontale. Non simulato."
+    },
+    "G73": {
+      "code": "G73",
+      "title": "Ripetizione profilo",
+      "description": "Ciclo di ripetizione del profilo. Non simulato."
+    },
+    "G74": {
+      "code": "G74",
+      "title": "Foratura / scanalatura frontale",
+      "description": "Ciclo dipendente dal controllo. Non simulato."
+    },
+    "G75": {
+      "code": "G75",
+      "title": "Scanalatura radiale",
+      "description": "Ciclo di scanalatura radiale. Non simulato."
+    },
+    "G76": {
+      "code": "G76",
+      "title": "Filettatura multipassata",
+      "description": "Ciclo di filettatura a più passate. Non simulato."
+    },
+    "G77": {
+      "code": "G77",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G78": {
+      "code": "G78",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G79": {
+      "code": "G79",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G80": {
+      "code": "G80",
+      "title": "Annullamento ciclo fisso",
+      "description": "Disattiva i cicli fissi di lavorazione."
+    },
+    "G81": {
+      "code": "G81",
+      "title": "Ciclo di foratura",
+      "description": "Ciclo fisso di foratura. Non simulato."
+    },
+    "G82": {
+      "code": "G82",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G83": {
+      "code": "G83",
+      "title": "Foratura profonda",
+      "description": "Ciclo di foratura con scarico del truciolo. Non simulato."
+    },
+    "G84": {
+      "code": "G84",
+      "title": "Maschiatura",
+      "description": "Ciclo fisso di maschiatura. Non simulato."
+    },
+    "G85": {
+      "code": "G85",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G86": {
+      "code": "G86",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G87": {
+      "code": "G87",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G88": {
+      "code": "G88",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G89": {
+      "code": "G89",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G90": {
+      "code": "G90",
+      "title": "Ciclo di tornitura longitudinale",
+      "description": "Su molti torni Fanuc è un ciclo di tornitura, non la selezione di quote assolute. Non simulato."
+    },
+    "G91": {
+      "code": "G91",
+      "title": "Quote incrementali",
+      "description": "Le coordinate sono relative alla posizione corrente."
+    },
+    "G92": {
+      "code": "G92",
+      "title": "Ciclo di filettatura / limite giri",
+      "description": "Nella configurazione tornio di questa app, G92 S imposta il limite giri mandrino; ad esempio G92 S1200 limita a 1200 giri/min. L’anteprima registra il limite senza calcolare tempi o giri effettivi. Le forme con coordinate possono indicare cicli di filettatura e non sono simulate."
+    },
+    "G93": {
+      "code": "G93",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G94": {
+      "code": "G94",
+      "title": "Avanzamento al minuto",
+      "description": "Interpreta F come avanzamento al minuto."
+    },
+    "G95": {
+      "code": "G95",
+      "title": "Avanzamento al giro",
+      "description": "Interpreta F come avanzamento per giro mandrino."
+    },
+    "G96": {
+      "code": "G96",
+      "title": "Velocità di taglio costante",
+      "description": "Regola i giri mandrino per mantenere costante la velocità di taglio."
+    },
+    "G97": {
+      "code": "G97",
+      "title": "Giri mandrino costanti",
+      "description": "Interpreta S come numero di giri al minuto."
+    },
+    "G98": {
+      "code": "G98",
+      "title": "Avanzamento al minuto",
+      "description": "Su tornio Fanuc, F esprime l’avanzamento al minuto."
+    },
+    "G99": {
+      "code": "G99",
+      "title": "Avanzamento al giro",
+      "description": "Su tornio Fanuc, F esprime l’avanzamento per giro."
+    },
+    "G100": {
+      "code": "G100",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G101": {
+      "code": "G101",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G102": {
+      "code": "G102",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G103": {
+      "code": "G103",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G104": {
+      "code": "G104",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G105": {
+      "code": "G105",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G106": {
+      "code": "G106",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G107": {
+      "code": "G107",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G108": {
+      "code": "G108",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G109": {
+      "code": "G109",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G110": {
+      "code": "G110",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G111": {
+      "code": "G111",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G112": {
+      "code": "G112",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G113": {
+      "code": "G113",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G114": {
+      "code": "G114",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G115": {
+      "code": "G115",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G116": {
+      "code": "G116",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G117": {
+      "code": "G117",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G118": {
+      "code": "G118",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G119": {
+      "code": "G119",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G120": {
+      "code": "G120",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G121": {
+      "code": "G121",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G122": {
+      "code": "G122",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G123": {
+      "code": "G123",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G124": {
+      "code": "G124",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G125": {
+      "code": "G125",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G126": {
+      "code": "G126",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G127": {
+      "code": "G127",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G128": {
+      "code": "G128",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G129": {
+      "code": "G129",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G130": {
+      "code": "G130",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G131": {
+      "code": "G131",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G132": {
+      "code": "G132",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G133": {
+      "code": "G133",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G134": {
+      "code": "G134",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G135": {
+      "code": "G135",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G136": {
+      "code": "G136",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G137": {
+      "code": "G137",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G138": {
+      "code": "G138",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G139": {
+      "code": "G139",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G140": {
+      "code": "G140",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G141": {
+      "code": "G141",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G142": {
+      "code": "G142",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G143": {
+      "code": "G143",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G144": {
+      "code": "G144",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G145": {
+      "code": "G145",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G146": {
+      "code": "G146",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G147": {
+      "code": "G147",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G148": {
+      "code": "G148",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G149": {
+      "code": "G149",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G150": {
+      "code": "G150",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G151": {
+      "code": "G151",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G152": {
+      "code": "G152",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G153": {
+      "code": "G153",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G154": {
+      "code": "G154",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G155": {
+      "code": "G155",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G156": {
+      "code": "G156",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G157": {
+      "code": "G157",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G158": {
+      "code": "G158",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G159": {
+      "code": "G159",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G160": {
+      "code": "G160",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G161": {
+      "code": "G161",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G162": {
+      "code": "G162",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G163": {
+      "code": "G163",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G164": {
+      "code": "G164",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G165": {
+      "code": "G165",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G166": {
+      "code": "G166",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G167": {
+      "code": "G167",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G168": {
+      "code": "G168",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G169": {
+      "code": "G169",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G170": {
+      "code": "G170",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G171": {
+      "code": "G171",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G172": {
+      "code": "G172",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G173": {
+      "code": "G173",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G174": {
+      "code": "G174",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G175": {
+      "code": "G175",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G176": {
+      "code": "G176",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G177": {
+      "code": "G177",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G178": {
+      "code": "G178",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G179": {
+      "code": "G179",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G180": {
+      "code": "G180",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G181": {
+      "code": "G181",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G182": {
+      "code": "G182",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G183": {
+      "code": "G183",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G184": {
+      "code": "G184",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G185": {
+      "code": "G185",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G186": {
+      "code": "G186",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G187": {
+      "code": "G187",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G188": {
+      "code": "G188",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G189": {
+      "code": "G189",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G190": {
+      "code": "G190",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G191": {
+      "code": "G191",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G192": {
+      "code": "G192",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G193": {
+      "code": "G193",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G194": {
+      "code": "G194",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G195": {
+      "code": "G195",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G196": {
+      "code": "G196",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G197": {
+      "code": "G197",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G198": {
+      "code": "G198",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "G199": {
+      "code": "G199",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M0": {
+      "code": "M0",
+      "title": "Arresto programmato",
+      "description": "Arresta il programma in attesa dell’operatore."
+    },
+    "M1": {
+      "code": "M1",
+      "title": "Arresto opzionale",
+      "description": "Arresta il programma se l’opzione arresto opzionale è attiva."
+    },
+    "M2": {
+      "code": "M2",
+      "title": "Fine programma",
+      "description": "Termina il programma."
+    },
+    "M3": {
+      "code": "M3",
+      "title": "Mandrino orario",
+      "description": "Avvia il mandrino in senso orario."
+    },
+    "M4": {
+      "code": "M4",
+      "title": "Mandrino antiorario",
+      "description": "Avvia il mandrino in senso antiorario."
+    },
+    "M5": {
+      "code": "M5",
+      "title": "Arresto mandrino",
+      "description": "Ferma il mandrino."
+    },
+    "M6": {
+      "code": "M6",
+      "title": "Cambio utensile",
+      "description": "Richiede un cambio utensile secondo la logica della macchina."
+    },
+    "M7": {
+      "code": "M7",
+      "title": "Refrigerante nebulizzato",
+      "description": "Attiva il refrigerante nebulizzato, se previsto."
+    },
+    "M8": {
+      "code": "M8",
+      "title": "Refrigerante attivo",
+      "description": "Attiva il refrigerante."
+    },
+    "M9": {
+      "code": "M9",
+      "title": "Refrigerante spento",
+      "description": "Disattiva il refrigerante."
+    },
+    "M10": {
+      "code": "M10",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M11": {
+      "code": "M11",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M12": {
+      "code": "M12",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M13": {
+      "code": "M13",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M14": {
+      "code": "M14",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M15": {
+      "code": "M15",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M16": {
+      "code": "M16",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M17": {
+      "code": "M17",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M18": {
+      "code": "M18",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M19": {
+      "code": "M19",
+      "title": "Orientamento mandrino",
+      "description": "Orienta il mandrino nella posizione prevista dal controllo."
+    },
+    "M20": {
+      "code": "M20",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M21": {
+      "code": "M21",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M22": {
+      "code": "M22",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M23": {
+      "code": "M23",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M24": {
+      "code": "M24",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M25": {
+      "code": "M25",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M26": {
+      "code": "M26",
+      "title": "Contropunta avanti",
+      "description": "Nella configurazione tornio di questa app comanda la contropunta avanti, secondo la funzione indicata per la macchina. L’anteprima registra il blocco senza rappresentare il movimento della contropunta. L’associazione M26 dipende dal costruttore e non è universale Fanuc."
+    },
+    "M27": {
+      "code": "M27",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M28": {
+      "code": "M28",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M29": {
+      "code": "M29",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M30": {
+      "code": "M30",
+      "title": "Fine e riavvolgimento",
+      "description": "Termina il programma e lo predispone per una nuova esecuzione."
+    },
+    "M31": {
+      "code": "M31",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M32": {
+      "code": "M32",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M33": {
+      "code": "M33",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M34": {
+      "code": "M34",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M35": {
+      "code": "M35",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M36": {
+      "code": "M36",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M37": {
+      "code": "M37",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M38": {
+      "code": "M38",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M39": {
+      "code": "M39",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M40": {
+      "code": "M40",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M41": {
+      "code": "M41",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M42": {
+      "code": "M42",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M43": {
+      "code": "M43",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M44": {
+      "code": "M44",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M45": {
+      "code": "M45",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M46": {
+      "code": "M46",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M47": {
+      "code": "M47",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M48": {
+      "code": "M48",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M49": {
+      "code": "M49",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M50": {
+      "code": "M50",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M51": {
+      "code": "M51",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M52": {
+      "code": "M52",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M53": {
+      "code": "M53",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M54": {
+      "code": "M54",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M55": {
+      "code": "M55",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M56": {
+      "code": "M56",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M57": {
+      "code": "M57",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M58": {
+      "code": "M58",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M59": {
+      "code": "M59",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M60": {
+      "code": "M60",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M61": {
+      "code": "M61",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M62": {
+      "code": "M62",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M63": {
+      "code": "M63",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M64": {
+      "code": "M64",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M65": {
+      "code": "M65",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M66": {
+      "code": "M66",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M67": {
+      "code": "M67",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M68": {
+      "code": "M68",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M69": {
+      "code": "M69",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M70": {
+      "code": "M70",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M71": {
+      "code": "M71",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M72": {
+      "code": "M72",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M73": {
+      "code": "M73",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M74": {
+      "code": "M74",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M75": {
+      "code": "M75",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M76": {
+      "code": "M76",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M77": {
+      "code": "M77",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M78": {
+      "code": "M78",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M79": {
+      "code": "M79",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M80": {
+      "code": "M80",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M81": {
+      "code": "M81",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M82": {
+      "code": "M82",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M83": {
+      "code": "M83",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M84": {
+      "code": "M84",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M85": {
+      "code": "M85",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M86": {
+      "code": "M86",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M87": {
+      "code": "M87",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M88": {
+      "code": "M88",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M89": {
+      "code": "M89",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M90": {
+      "code": "M90",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M91": {
+      "code": "M91",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M92": {
+      "code": "M92",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M93": {
+      "code": "M93",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M94": {
+      "code": "M94",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M95": {
+      "code": "M95",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M96": {
+      "code": "M96",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M97": {
+      "code": "M97",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M98": {
+      "code": "M98",
+      "title": "Richiamo sottoprogramma",
+      "description": "Esegue un sottoprogramma. Non simulato."
+    },
+    "M99": {
+      "code": "M99",
+      "title": "Ritorno da sottoprogramma",
+      "description": "Ritorna al programma chiamante o ripete il programma. Non simulato."
+    },
+    "M100": {
+      "code": "M100",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M101": {
+      "code": "M101",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M102": {
+      "code": "M102",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M103": {
+      "code": "M103",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M104": {
+      "code": "M104",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M105": {
+      "code": "M105",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M106": {
+      "code": "M106",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M107": {
+      "code": "M107",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M108": {
+      "code": "M108",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M109": {
+      "code": "M109",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M110": {
+      "code": "M110",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M111": {
+      "code": "M111",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M112": {
+      "code": "M112",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M113": {
+      "code": "M113",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M114": {
+      "code": "M114",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M115": {
+      "code": "M115",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M116": {
+      "code": "M116",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M117": {
+      "code": "M117",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M118": {
+      "code": "M118",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M119": {
+      "code": "M119",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M120": {
+      "code": "M120",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M121": {
+      "code": "M121",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M122": {
+      "code": "M122",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M123": {
+      "code": "M123",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M124": {
+      "code": "M124",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M125": {
+      "code": "M125",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M126": {
+      "code": "M126",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M127": {
+      "code": "M127",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M128": {
+      "code": "M128",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M129": {
+      "code": "M129",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M130": {
+      "code": "M130",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M131": {
+      "code": "M131",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M132": {
+      "code": "M132",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M133": {
+      "code": "M133",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M134": {
+      "code": "M134",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M135": {
+      "code": "M135",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M136": {
+      "code": "M136",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M137": {
+      "code": "M137",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M138": {
+      "code": "M138",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M139": {
+      "code": "M139",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M140": {
+      "code": "M140",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M141": {
+      "code": "M141",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M142": {
+      "code": "M142",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M143": {
+      "code": "M143",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M144": {
+      "code": "M144",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M145": {
+      "code": "M145",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M146": {
+      "code": "M146",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M147": {
+      "code": "M147",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M148": {
+      "code": "M148",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M149": {
+      "code": "M149",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M150": {
+      "code": "M150",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M151": {
+      "code": "M151",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M152": {
+      "code": "M152",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M153": {
+      "code": "M153",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M154": {
+      "code": "M154",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M155": {
+      "code": "M155",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M156": {
+      "code": "M156",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M157": {
+      "code": "M157",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M158": {
+      "code": "M158",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M159": {
+      "code": "M159",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M160": {
+      "code": "M160",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M161": {
+      "code": "M161",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M162": {
+      "code": "M162",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M163": {
+      "code": "M163",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M164": {
+      "code": "M164",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M165": {
+      "code": "M165",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M166": {
+      "code": "M166",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M167": {
+      "code": "M167",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M168": {
+      "code": "M168",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M169": {
+      "code": "M169",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M170": {
+      "code": "M170",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M171": {
+      "code": "M171",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M172": {
+      "code": "M172",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M173": {
+      "code": "M173",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M174": {
+      "code": "M174",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M175": {
+      "code": "M175",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M176": {
+      "code": "M176",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M177": {
+      "code": "M177",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M178": {
+      "code": "M178",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M179": {
+      "code": "M179",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M180": {
+      "code": "M180",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M181": {
+      "code": "M181",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M182": {
+      "code": "M182",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M183": {
+      "code": "M183",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M184": {
+      "code": "M184",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M185": {
+      "code": "M185",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M186": {
+      "code": "M186",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M187": {
+      "code": "M187",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M188": {
+      "code": "M188",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M189": {
+      "code": "M189",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M190": {
+      "code": "M190",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M191": {
+      "code": "M191",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M192": {
+      "code": "M192",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M193": {
+      "code": "M193",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M194": {
+      "code": "M194",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M195": {
+      "code": "M195",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M196": {
+      "code": "M196",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M197": {
+      "code": "M197",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M198": {
+      "code": "M198",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    },
+    "M199": {
+      "code": "M199",
+      "title": "Codice specifico del controllo",
+      "description": "Consulta il manuale della macchina: significato e disponibilità possono variare con serie, opzioni e costruttore."
+    }
+  }
+}

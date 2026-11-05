@@ -1,5 +1,7 @@
 # Rama Edit
 
+È disponibile anche il progetto **nativo Windows in C#/.NET/WPF**, con installer autonomo, gestione dei file e porte COM: [guida Windows](native/README.md).
+
 Editor G-code in italiano per fresatrice a 3 assi e tornio, con anteprima del percorso e trasferimento seriale RS-232 dal PC locale.
 
 ## Uso online con GitHub Pages

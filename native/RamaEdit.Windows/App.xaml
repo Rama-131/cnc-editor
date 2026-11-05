@@ -1,0 +1,17 @@
+<Application x:Class="RamaEdit.Windows.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Application.Resources>
+    <SolidColorBrush x:Key="Ink" Color="#D7E2EB"/>
+    <Style TargetType="Window"><Setter Property="Background" Value="#12181F"/><Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="FontFamily" Value="Segoe UI"/><Setter Property="FontSize" Value="14"/></Style>
+    <Style TargetType="Button">
+      <Setter Property="Background" Value="#23313D"/><Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="BorderBrush" Value="#3D5060"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="12,8"/><Setter Property="Margin" Value="3"/><Setter Property="MinHeight" Value="34"/><Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="edge" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="edge" Property="BorderBrush" Value="#67B5F6"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".45"/></Trigger><Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="edge" Property="BorderBrush" Value="#91DDB6"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style TargetType="TextBox"><Setter Property="Background" Value="#101920"/><Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="CaretBrush" Value="White"/><Setter Property="BorderBrush" Value="#455968"/><Setter Property="Padding" Value="8,6"/><Setter Property="Margin" Value="3"/><Setter Property="MinHeight" Value="33"/></Style>
+    <Style TargetType="ComboBox"><Setter Property="Foreground" Value="#101920"/><Setter Property="Margin" Value="3"/><Setter Property="MinHeight" Value="33"/><Setter Property="Padding" Value="5"/></Style>
+    <Style TargetType="CheckBox"><Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="Margin" Value="7"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
+    <Style TargetType="ListBox"><Setter Property="Background" Value="#16212B"/><Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="BorderBrush" Value="#354754"/></Style>
+    <Style TargetType="ListBoxItem"><Setter Property="Padding" Value="10"/><Setter Property="Margin" Value="0,1"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#0873BD"/><Setter Property="Foreground" Value="White"/></Trigger></Style.Triggers></Style>
+    <Style TargetType="TabControl"><Setter Property="Background" Value="#18232D"/><Setter Property="Foreground" Value="#101920"/></Style>
+    <Style TargetType="TabItem"><Setter Property="Padding" Value="14,8"/></Style>
+  </Application.Resources>
+</Application>

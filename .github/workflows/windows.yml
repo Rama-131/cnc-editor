@@ -1,0 +1,105 @@
+name: Rama Edit · Windows nativo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "native/**"
+      - ".github/workflows/windows.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: rama-edit-windows
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Verifica simulatore, utensili e protocollo seriale C#
+        run: dotnet run --project native/RamaEdit.Core.Tests -c Release
+      - name: Compila applicazione autonoma Windows x64
+        run: dotnet publish native/RamaEdit.Windows -c Release -r win-x64 --self-contained true -o native/artifacts/win-x64
+      - name: Verifica editor e finestre WPF su Windows
+        shell: pwsh
+        run: |
+          $out = Join-Path $PWD "native/artifacts/smoke"
+          New-Item -ItemType Directory -Force $out | Out-Null
+          $process = Start-Process -FilePath "native/artifacts/win-x64/RamaEdit.exe" -ArgumentList @("--smoke-test", $out) -PassThru
+          if (-not $process.WaitForExit(120000)) { $process.Kill(); throw "Timeout avvio WPF" }
+          if ($process.ExitCode -ne 0) {
+            $failure = Get-Content "$out/result.json" -Raw -ErrorAction SilentlyContinue
+            Write-Output ("::error::" + ($failure -replace "%","%25" -replace "\r","%0D" -replace "\n","%0A"))
+            throw "Test WPF non superato"
+          }
+          $result = Get-Content "$out/result.json" -Raw | ConvertFrom-Json
+          if (-not $result.success) { throw "Verifica WPF non riuscita" }
+          Get-Content "$out/result.json"
+      - name: Crea installer
+        shell: pwsh
+        run: |
+          $iscc = Join-Path ([Environment]::GetFolderPath("ProgramFilesX86")) "Inno Setup 6/ISCC.exe"
+          if (-not (Test-Path $iscc)) { throw "Inno Setup 6 mancante sul runner Windows" }
+          & $iscc "native/installer/RamaEdit.iss"
+          if ($LASTEXITCODE -ne 0) { throw "Creazione installer non riuscita" }
+      - name: Verifica installazione e avvio dell'app installata
+        shell: pwsh
+        run: |
+          $install = Join-Path $env:RUNNER_TEMP "RamaEdit-installed"
+          $setup = Start-Process -FilePath "native/artifacts/installer/RamaEdit-Setup-0.2.0-x64.exe" -ArgumentList @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=$install") -Wait -PassThru
+          if ($setup.ExitCode -ne 0) { throw "Installazione non riuscita" }
+          $out = Join-Path $PWD "native/artifacts/installed-smoke"
+          New-Item -ItemType Directory -Force $out | Out-Null
+          $app = Start-Process -FilePath "$install/RamaEdit.exe" -ArgumentList @("--smoke-test", $out) -PassThru
+          if (-not $app.WaitForExit(120000)) { $app.Kill(); throw "Timeout app installata" }
+          if ($app.ExitCode -ne 0 -or -not (Test-Path "$out/result.json")) { Get-Content "$out/result.json" -ErrorAction SilentlyContinue; throw "Avvio dopo installazione non riuscito" }
+          $result = Get-Content "$out/result.json" -Raw | ConvertFrom-Json
+          if (-not $result.success) { throw "Test app installata non superato" }
+      - name: Prepara ZIP portatile e impronte SHA256
+        shell: pwsh
+        run: |
+          Copy-Item "native/README.md" "native/artifacts/win-x64/LEGGIMI.md"
+          Compress-Archive -Path "native/artifacts/win-x64/*" -DestinationPath "native/artifacts/RamaEdit-0.2.0-win-x64.zip"
+          Get-FileHash "native/artifacts/installer/*.exe", "native/artifacts/*.zip" -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $([IO.Path]::GetFileName($_.Path))" } | Set-Content "native/artifacts/SHA256SUMS.txt"
+      - name: Conserva schermate e risultati
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: RamaEdit-verifiche-Windows
+          path: |
+            native/artifacts/smoke/
+            native/artifacts/installed-smoke/
+          if-no-files-found: warn
+      - name: Conserva installer e versione portatile
+        uses: actions/upload-artifact@v4
+        with:
+          name: RamaEdit-Windows-x64
+          path: |
+            native/artifacts/installer/*.exe
+            native/artifacts/*.zip
+            native/artifacts/SHA256SUMS.txt
+      - name: Pubblica versione Windows di prova
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "windows-v0.2.0"
+          gh release view $tag --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create $tag --repo "${{ github.repository }}" --target "${{ github.sha }}" --prerelease --title "Rama Edit 0.2 · Windows nativo" --notes-file "native/RELEASE-NOTES.md"
+            if ($LASTEXITCODE -ne 0) { throw "Impossibile creare la versione Windows" }
+          }
+          gh release upload $tag "native/artifacts/installer/RamaEdit-Setup-0.2.0-x64.exe" "native/artifacts/RamaEdit-0.2.0-win-x64.zip" "native/artifacts/SHA256SUMS.txt" --repo "${{ github.repository }}" --clobber
+          if ($LASTEXITCODE -ne 0) { throw "Impossibile pubblicare i download" }

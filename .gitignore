@@ -4,3 +4,8 @@ dist/
 .playwright/
 playwright-report/
 test-results/
+
+# Rama Edit native Windows build
+native/**/bin/
+native/**/obj/
+native/artifacts/

@@ -1,0 +1,394 @@
+[
+  {
+    "id": "mch-dartvmc1000a",
+    "name": "DART VMC 1000A",
+    "control": "Altro controllo ISO",
+    "settings": {
+      "baudRate": 9600,
+      "dataBits": 7,
+      "stopBits": 2,
+      "parity": "even",
+      "flowControl": "software",
+      "lineEnding": "CRLF",
+      "delay": 0,
+      "wrap": false,
+      "port": {
+        "dtr": true,
+        "rts": true,
+        "xon": "\\17",
+        "xoff": "\\19"
+      },
+      "transmit": {
+        "startTrigger": "",
+        "endTrigger": "",
+        "beforeFile": "",
+        "afterFile": "",
+        "ignoreLines": "",
+        "removeCharacters": "",
+        "stopAfter": 0,
+        "handshakeTimeout": 0,
+        "beforeLineDelay": 0,
+        "waitForXon": false,
+        "removeNul": true,
+        "removeSpaces": false,
+        "tabsToSpaces": false,
+        "customLineEnding": false,
+        "lineEndingSequence": "\\13\\10"
+      },
+      "receive": {
+        "lineEnding": "auto",
+        "startTrigger": "",
+        "endTrigger": "",
+        "discardLineCharacters": "",
+        "omitLineString": "",
+        "removeCharacters": "\\0",
+        "removeControls": false,
+        "omitEmpty": false,
+        "timeout": 5,
+        "sendXon": false,
+        "initial": ""
+      }
+    },
+    "importedFrom": {
+      "fileName": "DARTVMC1000A.mch",
+      "port": "COM3",
+      "protocol": "STANDARDSERIAL"
+    }
+  },
+  {
+    "id": "mch-fresaquartz",
+    "name": "FRESA QUARTZ",
+    "control": "Altro controllo ISO",
+    "settings": {
+      "baudRate": 9600,
+      "dataBits": 7,
+      "stopBits": 1,
+      "parity": "even",
+      "flowControl": "software",
+      "lineEnding": "CRLF",
+      "delay": 0,
+      "wrap": false,
+      "port": {
+        "dtr": true,
+        "rts": true,
+        "xon": "\\17",
+        "xoff": "\\19"
+      },
+      "transmit": {
+        "startTrigger": "",
+        "endTrigger": "",
+        "beforeFile": "",
+        "afterFile": "",
+        "ignoreLines": "",
+        "removeCharacters": "",
+        "stopAfter": 0,
+        "handshakeTimeout": 0,
+        "beforeLineDelay": 0,
+        "waitForXon": false,
+        "removeNul": true,
+        "removeSpaces": false,
+        "tabsToSpaces": false,
+        "customLineEnding": false,
+        "lineEndingSequence": "\\13\\10"
+      },
+      "receive": {
+        "lineEnding": "auto",
+        "startTrigger": "",
+        "endTrigger": "",
+        "discardLineCharacters": "",
+        "omitLineString": "",
+        "removeCharacters": "\\0",
+        "removeControls": false,
+        "omitEmpty": false,
+        "timeout": 5,
+        "sendXon": false,
+        "initial": ""
+      }
+    },
+    "importedFrom": {
+      "fileName": "FRESAQUARTZ.mch",
+      "port": "COM3",
+      "protocol": "STANDARDSERIAL"
+    }
+  },
+  {
+    "id": "mch-biglias131",
+    "name": "BIGLIA S131",
+    "control": "Altro controllo ISO",
+    "settings": {
+      "baudRate": 4800,
+      "dataBits": 7,
+      "stopBits": 1,
+      "parity": "even",
+      "flowControl": "software",
+      "lineEnding": "CRLF",
+      "delay": 0,
+      "wrap": false,
+      "port": {
+        "dtr": true,
+        "rts": true,
+        "xon": "\\17",
+        "xoff": "\\19"
+      },
+      "transmit": {
+        "startTrigger": "",
+        "endTrigger": "",
+        "beforeFile": "",
+        "afterFile": "",
+        "ignoreLines": "",
+        "removeCharacters": "",
+        "stopAfter": 0,
+        "handshakeTimeout": 0,
+        "beforeLineDelay": 0,
+        "waitForXon": false,
+        "removeNul": true,
+        "removeSpaces": false,
+        "tabsToSpaces": false,
+        "customLineEnding": false,
+        "lineEndingSequence": "\\13\\10"
+      },
+      "receive": {
+        "lineEnding": "auto",
+        "startTrigger": "",
+        "endTrigger": "",
+        "discardLineCharacters": "",
+        "omitLineString": "",
+        "removeCharacters": "\\0",
+        "removeControls": false,
+        "omitEmpty": false,
+        "timeout": 5,
+        "sendXon": false,
+        "initial": ""
+      }
+    },
+    "importedFrom": {
+      "fileName": "BIGLIAS131.mch",
+      "port": "COM6",
+      "protocol": "STANDARDSERIAL"
+    }
+  },
+  {
+    "id": "mch-hurcovm1",
+    "name": "HURCO VM1",
+    "control": "Altro controllo ISO",
+    "settings": {
+      "baudRate": 9600,
+      "dataBits": 7,
+      "stopBits": 2,
+      "parity": "even",
+      "flowControl": "software",
+      "lineEnding": "CRLF",
+      "delay": 0,
+      "wrap": false,
+      "port": {
+        "dtr": false,
+        "rts": true,
+        "xon": "\\17",
+        "xoff": "\\19"
+      },
+      "transmit": {
+        "startTrigger": "",
+        "endTrigger": "",
+        "beforeFile": "",
+        "afterFile": "",
+        "ignoreLines": "",
+        "removeCharacters": "",
+        "stopAfter": 0,
+        "handshakeTimeout": 0,
+        "beforeLineDelay": 0,
+        "waitForXon": false,
+        "removeNul": true,
+        "removeSpaces": false,
+        "tabsToSpaces": false,
+        "customLineEnding": false,
+        "lineEndingSequence": "\\13\\10"
+      },
+      "receive": {
+        "lineEnding": "auto",
+        "startTrigger": "",
+        "endTrigger": "",
+        "discardLineCharacters": "",
+        "omitLineString": "",
+        "removeCharacters": "",
+        "removeControls": true,
+        "omitEmpty": false,
+        "timeout": 5,
+        "sendXon": false,
+        "initial": ""
+      }
+    },
+    "importedFrom": {
+      "fileName": "HURCOVM1.mch",
+      "port": "COM3",
+      "protocol": "STANDARDSERIAL"
+    }
+  },
+  {
+    "id": "mch-mazakhtc400",
+    "name": "MAZAK HTC 400",
+    "control": "Altro controllo ISO",
+    "settings": {
+      "baudRate": 9600,
+      "dataBits": 7,
+      "stopBits": 2,
+      "parity": "even",
+      "flowControl": "both",
+      "lineEnding": "CRLF",
+      "delay": 0,
+      "wrap": false,
+      "port": {
+        "dtr": true,
+        "rts": true,
+        "xon": "\\17",
+        "xoff": "\\19"
+      },
+      "transmit": {
+        "startTrigger": "",
+        "endTrigger": "",
+        "beforeFile": "",
+        "afterFile": "",
+        "ignoreLines": "",
+        "removeCharacters": "",
+        "stopAfter": 0,
+        "handshakeTimeout": 0,
+        "beforeLineDelay": 0,
+        "waitForXon": false,
+        "removeNul": true,
+        "removeSpaces": false,
+        "tabsToSpaces": false,
+        "customLineEnding": false,
+        "lineEndingSequence": "\\13\\10"
+      },
+      "receive": {
+        "lineEnding": "auto",
+        "startTrigger": "",
+        "endTrigger": "",
+        "discardLineCharacters": "",
+        "omitLineString": "",
+        "removeCharacters": "\\0",
+        "removeControls": false,
+        "omitEmpty": false,
+        "timeout": 5,
+        "sendXon": false,
+        "initial": ""
+      }
+    },
+    "importedFrom": {
+      "fileName": "MAZAKHTC400.mch",
+      "port": "COM3",
+      "protocol": "STANDARDSERIAL"
+    }
+  },
+  {
+    "id": "mch-momacta20",
+    "name": "MOMAC TA-20",
+    "control": "Altro controllo ISO",
+    "settings": {
+      "baudRate": 9600,
+      "dataBits": 7,
+      "stopBits": 1,
+      "parity": "even",
+      "flowControl": "software",
+      "lineEnding": "CRLF",
+      "delay": 0,
+      "wrap": false,
+      "port": {
+        "dtr": true,
+        "rts": true,
+        "xon": "\\17",
+        "xoff": "\\19"
+      },
+      "transmit": {
+        "startTrigger": "",
+        "endTrigger": "",
+        "beforeFile": "",
+        "afterFile": "",
+        "ignoreLines": "",
+        "removeCharacters": "",
+        "stopAfter": 0,
+        "handshakeTimeout": 0,
+        "beforeLineDelay": 0,
+        "waitForXon": false,
+        "removeNul": true,
+        "removeSpaces": false,
+        "tabsToSpaces": false,
+        "customLineEnding": false,
+        "lineEndingSequence": "\\13\\10"
+      },
+      "receive": {
+        "lineEnding": "auto",
+        "startTrigger": "",
+        "endTrigger": "",
+        "discardLineCharacters": "",
+        "omitLineString": "",
+        "removeCharacters": "\\0",
+        "removeControls": false,
+        "omitEmpty": false,
+        "timeout": 5,
+        "sendXon": false,
+        "initial": ""
+      }
+    },
+    "importedFrom": {
+      "fileName": "MOMACTA20.mch",
+      "port": "COM5",
+      "protocol": "STANDARDSERIAL"
+    }
+  },
+  {
+    "id": "mch-puma300l",
+    "name": "PUMA 300L",
+    "control": "Altro controllo ISO",
+    "settings": {
+      "baudRate": 4800,
+      "dataBits": 7,
+      "stopBits": 2,
+      "parity": "even",
+      "flowControl": "software",
+      "lineEnding": "CRLF",
+      "delay": 0,
+      "wrap": false,
+      "port": {
+        "dtr": true,
+        "rts": true,
+        "xon": "\\17",
+        "xoff": "\\19"
+      },
+      "transmit": {
+        "startTrigger": "",
+        "endTrigger": "",
+        "beforeFile": "",
+        "afterFile": "",
+        "ignoreLines": "",
+        "removeCharacters": "",
+        "stopAfter": 0,
+        "handshakeTimeout": 0,
+        "beforeLineDelay": 0,
+        "waitForXon": false,
+        "removeNul": true,
+        "removeSpaces": false,
+        "tabsToSpaces": false,
+        "customLineEnding": false,
+        "lineEndingSequence": "\\13\\10"
+      },
+      "receive": {
+        "lineEnding": "auto",
+        "startTrigger": "",
+        "endTrigger": "",
+        "discardLineCharacters": "",
+        "omitLineString": "",
+        "removeCharacters": "\\0",
+        "removeControls": false,
+        "omitEmpty": false,
+        "timeout": 5,
+        "sendXon": false,
+        "initial": ""
+      }
+    },
+    "importedFrom": {
+      "fileName": "PUMA300L.mch",
+      "port": "COM3",
+      "protocol": "STANDARDSERIAL"
+    }
+  }
+]

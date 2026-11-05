@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="RamaEdit.Core/RamaEdit.Core.csproj" />
+  <Project Path="RamaEdit.Core.Tests/RamaEdit.Core.Tests.csproj" />
+  <Project Path="RamaEdit.Windows/RamaEdit.Windows.csproj" />
+</Solution>
