@@ -325,69 +325,73 @@ export function Simulation({
           <ScanLine size={16} />
           <span>Simulazione percorso</span>
         </div>
-        <div className="view-toolbar">
-          <div className="segmented">
-            {(["ISO", "XY", "XZ", "YZ"] as View[]).map((v) => (
-              <button
-                key={v}
-                onClick={() => setView(v)}
-                className={view === v ? "selected" : ""}
-              >
-                {v === "ISO" ? "3D" : v}
-              </button>
-            ))}
-          </div>
-          <div className="icon-group">
-            <button
-              className="icon-button"
-              title="Riduci"
-              aria-label="Riduci vista"
-              onClick={() => zoomAt(1 / 1.3)}
-            >
-              <Minus size={15} />
-            </button>
-            <button
-              className="icon-button"
-              title="Ingrandisci"
-              aria-label="Ingrandisci vista"
-              onClick={() => zoomAt(1.3)}
-            >
-              <Plus size={15} />
-            </button>
-            <button
-              className="icon-button"
-              title="Adatta alla vista"
-              aria-label="Adatta alla vista"
-              onClick={fitView}
-            >
-              <Maximize2 size={14} />
-            </button>
-          </div>
-        </div>
-        <div
-          className="machine-select"
-          role="group"
-          aria-label="Impostazioni macchina"
-        >
-          <span>Macchina</span>
-          <select
-            aria-label="Tipo macchina"
-            value={machine}
-            onChange={(e) => onMachineChange(e.target.value as Machine)}
+        <div className="simulation-controls">
+          <div
+            className="machine-select"
+            role="group"
+            aria-label="Impostazioni macchina"
           >
-            <option value="mill">Fresatrice · 3 assi</option>
-            <option value="lathe">Tornio · XZ</option>
-          </select>
-          {machine === "lathe" && (
+            <span>Macchina</span>
             <select
-              aria-label="Modalità asse X tornio"
-              value={diameter ? "diameter" : "radius"}
-              onChange={(e) => onDiameterChange(e.target.value === "diameter")}
+              aria-label="Tipo macchina"
+              value={machine}
+              onChange={(e) => onMachineChange(e.target.value as Machine)}
             >
-              <option value="diameter">X a diametro</option>
-              <option value="radius">X a raggio</option>
+              <option value="mill">Fresatrice · 3 assi</option>
+              <option value="lathe">Tornio · XZ</option>
             </select>
-          )}
+            {machine === "lathe" && (
+              <select
+                aria-label="Modalità asse X tornio"
+                value={diameter ? "diameter" : "radius"}
+                onChange={(e) =>
+                  onDiameterChange(e.target.value === "diameter")
+                }
+              >
+                <option value="diameter">X a diametro</option>
+                <option value="radius">X a raggio</option>
+              </select>
+            )}
+          </div>
+          <div className="view-toolbar">
+            <div className="segmented">
+              {(["ISO", "XY", "XZ", "YZ"] as View[]).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={view === v ? "selected" : ""}
+                >
+                  {v === "ISO" ? "3D" : v}
+                </button>
+              ))}
+            </div>
+            <div className="icon-group">
+              <button
+                className="icon-button"
+                title="Riduci"
+                aria-label="Riduci vista"
+                onClick={() => zoomAt(1 / 1.3)}
+              >
+                <Minus size={15} />
+              </button>
+              <button
+                className="icon-button"
+                title="Ingrandisci"
+                aria-label="Ingrandisci vista"
+                onClick={() => zoomAt(1.3)}
+              >
+                <Plus size={15} />
+              </button>
+              <button
+                className="icon-button"
+                title="Adatta alla vista"
+                aria-label="Adatta alla vista"
+                onClick={fitView}
+              >
+                <Maximize2 size={14} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <div className="viewport">

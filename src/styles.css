@@ -1272,8 +1272,23 @@ main {
   height: 26px;
 }
 .simulation-head .machine-select {
-  flex-basis: 100%;
-  padding: 2px 0 4px;
+  flex-shrink: 0;
+}
+.simulation-head .machine-select > span {
+  display: none;
+}
+.simulation-controls {
+  display: flex;
+  align-items: center;
+  flex: 1 1 460px;
+  min-width: 0;
+  gap: 10px;
+  padding-block: 2px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.simulation-controls .view-toolbar {
+  flex-shrink: 0;
 }
 .simulation-head .machine-select select {
   min-height: 28px;
