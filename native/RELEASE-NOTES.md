@@ -1,3 +1,5 @@
+**Aggiornamento sulla distribuzione:** questa versione EXE non è firmata e può essere bloccata completamente da Controllo intelligente delle app di Windows 11. La versione ZIP contiene lo stesso eseguibile non firmato. È in preparazione il percorso [Microsoft Store](https://github.com/Rama-131/cnc-editor/blob/main/native/store/README.md), che richiede registrazione e verifica dell'autore. Questi installer di prova non risolvono quel blocco.
+
 Versione nativa Windows di **Rama Edit**, in C#/.NET 10 e WPF.
 
 Scarica **RamaEdit-Setup-0.2.0-x64.exe**, installa e apri Rama Edit dal desktop. Il runtime è incluso. Per l'uso portatile, estrai lo ZIP e avvia RamaEdit.exe.

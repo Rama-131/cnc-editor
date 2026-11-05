@@ -67,6 +67,15 @@ jobs:
           if ($app.ExitCode -ne 0 -or -not (Test-Path "$out/result.json")) { Get-Content "$out/result.json" -ErrorAction SilentlyContinue; throw "Avvio dopo installazione non riuscito" }
           $result = Get-Content "$out/result.json" -Raw | ConvertFrom-Json
           if (-not $result.success) { throw "Test app installata non superato" }
+      - name: Verifica pacchetto Microsoft Store senza identità di pubblicazione
+        shell: pwsh
+        run: |
+          & "native/store/Build-StorePackage.ps1" -IdentityName "RamaEdit.PackageValidation" -Publisher "CN=RamaEditPackageValidation" -PublisherDisplayName "Rama Edit - verifica tecnica"
+      - name: Conserva la verifica del formato MSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: RamaEdit-MSIX-verifica-non-installabile
+          path: native/artifacts/store/
       - name: Prepara ZIP portatile e impronte SHA256
         shell: pwsh
         run: |
@@ -91,16 +100,18 @@ jobs:
             native/artifacts/installer/*.exe
             native/artifacts/*.zip
             native/artifacts/SHA256SUMS.txt
-      - name: Pubblica versione Windows di prova
+      - name: Stato della distribuzione Windows
+        shell: pwsh
+        run: |
+          "## Distribuzione non firmata sospesa" >> $env:GITHUB_STEP_SUMMARY
+          "Gli EXE di test non sono firmati e possono essere bloccati da Controllo intelligente delle app. Il pacchetto MSIX di verifica non è installabile. Per distribuire tramite Microsoft Store usare l’identità assegnata da Partner Center e completare la certificazione." >> $env:GITHUB_STEP_SUMMARY
+      - name: Aggiorna le note dell’installer già distribuito
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $tag = "windows-v0.2.2"
-          gh release view $tag --repo "${{ github.repository }}" *> $null
-          if ($LASTEXITCODE -ne 0) {
-            gh release create $tag --repo "${{ github.repository }}" --target "${{ github.sha }}" --prerelease --title "Rama Edit 0.2 · Windows nativo" --notes-file "native/RELEASE-NOTES.md"
-            if ($LASTEXITCODE -ne 0) { throw "Impossibile creare la versione Windows" }
+          gh release view windows-v0.2.2 --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release edit windows-v0.2.2 --repo "${{ github.repository }}" --notes-file "native/RELEASE-NOTES.md"
+            if ($LASTEXITCODE -ne 0) { throw "Impossibile aggiornare le note della versione bloccata" }
           }
-          gh release upload $tag "native/artifacts/installer/RamaEdit-Setup-0.2.2-x64.exe" "native/artifacts/RamaEdit-0.2.2-win-x64.zip" "native/artifacts/SHA256SUMS.txt" "native/artifacts/RamaEdit-Schermate-Windows.zip" --repo "${{ github.repository }}" --clobber
-          if ($LASTEXITCODE -ne 0) { throw "Impossibile pubblicare i download" }
