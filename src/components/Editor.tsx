@@ -57,14 +57,13 @@ import {
   setSimulationLine,
   simulationLineField,
 } from "../lib/editorSimulation";
-export type Palette = {
-  g: string;
-  m: string;
-  axis: string;
-  value: string;
-  comment: string;
-  tool: string;
-};
+import {
+  defaultPalette,
+  movementBlock,
+  type Palette,
+} from "../lib/editorAppearance";
+export { defaultPalette };
+export type { Palette };
 export type EditorHistory = { canUndo: boolean; canRedo: boolean };
 export type EditorSearchMode = "find" | "replace";
 const setEditorSearchMode = StateEffect.define<EditorSearchMode>();
@@ -99,53 +98,68 @@ export type EditorHandle = {
   selection: () => TextRange | undefined;
   adjust: (word: AdjustmentWord, value: string, range?: TextRange) => number;
 };
-export const defaultPalette: Palette = {
-  g: "#4fa9ff",
-  m: "#ff6be8",
-  axis: "#42e8ff",
-  value: "#ffe55b",
-  comment: "#7dff6a",
-  tool: "#ff9e45",
-};
-const language = StreamLanguage.define({
-  startState: () => ({ comment: false }),
-  token(stream, state) {
-    if (state.comment) {
-      if (stream.skipTo(")")) {
-        stream.next();
-        state.comment = false;
-      } else stream.skipToEnd();
-      return "comment";
-    }
-    if (stream.eatSpace()) return null;
-    if (stream.eat("(")) {
-      state.comment = true;
-      return "comment";
-    }
-    if (stream.eat(";")) {
-      stream.skipToEnd();
-      return "comment";
-    }
-    if (stream.match(/[Gg]\s*\d+(?:\.\d+)?/)) return "keyword";
-    if (stream.match(/[Mm]\s*\d+/)) return "atom";
-    if (stream.match(/[XxYyZzIiJjKkUuVvWwRr]/)) return "variableName";
-    if (stream.match(/[TtHhDd]\s*\d+/)) return "typeName";
-    if (stream.match(/[+-]?(?:\d+\.?\d*|\.\d+)/)) return "number";
-    stream.next();
-    return null;
-  },
-});
+function makeLanguage(blockColors: boolean) {
+  return StreamLanguage.define({
+    startState: () => ({ commentDepth: 0, movement: false }),
+    token(stream, state) {
+      if (stream.sol())
+        state.movement = movementBlock(stream.string, state.commentDepth);
+      if (state.commentDepth || stream.peek() === "(") {
+        if (!state.commentDepth) {
+          stream.next();
+          state.commentDepth = 1;
+        }
+        while (!stream.eol() && state.commentDepth) {
+          const c = stream.next();
+          if (c === "(") state.commentDepth++;
+          if (c === ")") state.commentDepth--;
+        }
+        return "comment";
+      }
+      if (stream.eatSpace()) return null;
+      if (stream.eat(";")) {
+        stream.skipToEnd();
+        return "comment";
+      }
+      let type: string | null = null;
+      if (stream.match(/[Gg]\s*\d+(?:\.\d+)?/)) type = "keyword";
+      else if (stream.match(/[Mm]\s*\d+/)) type = "atom";
+      else if (stream.match(/[XxYyZzIiJjKkUuVvWwRr]/)) type = "variableName";
+      else if (stream.match(/[TtHhDd]\s*\d+/)) type = "typeName";
+      else if (stream.match(/[+-]?(?:\d+\.?\d*|\.\d+)/)) type = "number";
+      else stream.next();
+      return blockColors ? (state.movement ? "keyword" : "atom") : type;
+    },
+  });
+}
+const blockLanguage = makeLanguage(true),
+  tokenLanguage = makeLanguage(false);
 function colors(p: Palette) {
-  return syntaxHighlighting(
-    HighlightStyle.define([
-      { tag: tags.keyword, color: p.g },
-      { tag: tags.atom, color: p.m },
-      { tag: tags.variableName, color: p.axis },
-      { tag: tags.number, color: p.value },
-      { tag: tags.comment, color: p.comment },
-      { tag: tags.typeName, color: p.tool },
-    ]),
-  );
+  const blocks = p.mode === "blocks";
+  const background = blocks ? "#262824" : "#12161c";
+  return [
+    blocks ? blockLanguage : tokenLanguage,
+    syntaxHighlighting(
+      HighlightStyle.define([
+        { tag: tags.keyword, color: blocks ? p.motion : p.g },
+        { tag: tags.atom, color: blocks ? p.auxiliary : p.m },
+        { tag: tags.variableName, color: p.axis },
+        { tag: tags.number, color: p.value },
+        { tag: tags.comment, color: p.comment },
+        { tag: tags.typeName, color: p.tool },
+      ]),
+    ),
+    EditorView.theme({
+      "&": {
+        backgroundColor: background,
+        color: blocks ? p.auxiliary : "#d7dee7",
+      },
+      ".cm-gutters": { backgroundColor: background, color: p.lineNumber },
+      ".cm-lineNumbers .cm-gutterElement": { fontStyle: "italic" },
+      ".cm-activeLine": { backgroundColor: blocks ? "#ffffff08" : "#20293466" },
+      ".cm-activeLineGutter": { color: p.lineNumber },
+    }),
+  ];
 }
 export function Editor({
   ref,
@@ -423,7 +437,6 @@ export function Editor({
           ...defaultKeymap,
           ...historyKeymap,
         ]),
-        language,
         colorConfig.current.of(colors(palette)),
         tooltipConfig.current.of(tooltip(machine)),
         EditorView.contentAttributes.of({
@@ -436,8 +449,6 @@ export function Editor({
             "&": {
               height: "100%",
               fontSize: "15px",
-              backgroundColor: "#12161c",
-              color: "#d7dee7",
             },
             ".cm-scroller": {
               fontFamily:
@@ -446,16 +457,12 @@ export function Editor({
             },
             ".cm-content": { padding: "10px 0" },
             ".cm-gutters": {
-              backgroundColor: "#12161c",
-              color: "#586576",
               border: "none",
               minWidth: "55px",
             },
             ".cm-lineNumbers .cm-gutterElement": { paddingRight: "18px" },
-            ".cm-activeLine": { backgroundColor: "#20293466" },
             ".cm-activeLineGutter": {
               backgroundColor: "transparent",
-              color: "#cad6e3",
             },
             ".cm-line.cm-simulationLine": {
               backgroundColor: "#254b3a99",

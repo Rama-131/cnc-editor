@@ -26,6 +26,7 @@ test("editor, descrizioni, colori, simulazione e file", async ({ page }) => {
     page.getByText("G21 · Programmazione in millimetri"),
   ).toBeVisible();
   await page.getByRole("button", { name: "Personalizza colori" }).click();
+  await page.getByLabel("Stile colorazione").selectOption("tokens");
   await page.getByLabel("Colore Codici G").fill("#ff8844");
   await expect
     .poll(() =>

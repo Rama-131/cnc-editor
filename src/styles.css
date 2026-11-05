@@ -254,7 +254,140 @@ main {
 .file-actions {
   display: flex;
   gap: 6px;
+  margin-left: 0;
+}
+.tool-list-dialog {
+  width: min(900px, calc(100vw - 32px));
+  max-height: calc(100dvh - 40px);
+  padding: 0;
+  border: 1px solid #465b6e;
+  border-radius: 12px;
+  background: #18232d;
+  color: #deebf4;
+  overflow: auto;
+  box-shadow: 0 24px 90px #0009;
+}
+.tool-list-dialog::backdrop {
+  background: #0009;
+}
+.tool-list-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.tool-list-heading h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.tool-list-heading p {
+  margin: 5px 0 0;
+  color: #9eb5c9;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.tool-list-heading .icon-button {
   margin-left: auto;
+  flex-shrink: 0;
+}
+.tool-list-body {
+  padding: 16px 20px;
+}
+.tool-list-machine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  color: #9eb5c9;
+  font-size: 12px;
+}
+.tool-list-count {
+  color: #a9e8c3;
+  font-size: 13px;
+}
+.tool-list-table-wrap {
+  overflow-x: auto;
+}
+.tool-list-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+  text-align: left;
+}
+.tool-list-table th {
+  background: #223546;
+  color: #afc9df;
+  font-size: 11px;
+  font-weight: 500;
+}
+.tool-list-table th,
+.tool-list-table td {
+  padding: 11px 10px;
+  border-bottom: 1px solid #324252;
+  vertical-align: top;
+}
+.tool-list-table td:first-child {
+  min-width: 100px;
+}
+.tool-list-table strong {
+  color: #a2edc6;
+  font:
+    600 15px Consolas,
+    monospace;
+}
+.tool-list-table small {
+  display: block;
+  margin-top: 4px;
+  color: #9eb5c9;
+}
+.tool-list-notes,
+.tool-list-hint,
+.tool-list-empty {
+  font-size: 12px;
+  color: #b8c9d8;
+  line-height: 1.7;
+}
+.tool-list-hint {
+  font-size: 11px;
+  margin-bottom: 0;
+  color: #91a8ba;
+}
+.tool-preselection {
+  color: #ebd49a;
+}
+.tool-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+}
+@media print {
+  .print-document .tool-list-table {
+    font-size: 10pt;
+  }
+  .print-document .tool-list-table-wrap {
+    overflow: visible;
+  }
+  .print-document .tool-list-table th,
+  .print-document .tool-list-table td {
+    background: #fff;
+    color: #000;
+    border-bottom-color: #999;
+  }
+  .print-document .tool-list-table tr {
+    break-inside: avoid;
+  }
+  .print-document .tool-list-table strong,
+  .print-document .tool-list-table small,
+  .print-document .tool-list-count,
+  .print-document .tool-list-notes,
+  .print-document .tool-preselection {
+    color: #000;
+  }
 }
 .file-actions .button {
   min-height: 32px;
@@ -2224,7 +2357,7 @@ main {
   position: absolute;
   right: 8px;
   top: 44px;
-  width: 260px;
+  width: min(340px, calc(100% - 16px));
   padding: 14px;
   background: #242f3b;
   z-index: 4;
@@ -2265,6 +2398,18 @@ main {
   background: none;
   border: 0;
   padding: 0;
+}
+.color-settings .color-mode {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 11px;
+}
+.color-mode select {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  padding: 6px 8px;
 }
 .notice {
   display: flex;

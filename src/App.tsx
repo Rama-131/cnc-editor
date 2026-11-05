@@ -25,6 +25,7 @@ import {
   PanelRightOpen,
   Save,
   Printer,
+  ClipboardList,
   X,
 } from "lucide-react";
 import {
@@ -42,6 +43,13 @@ import { ProgramTabs } from "./components/ProgramTabs";
 import { MachineSettings } from "./components/MachineSettings";
 import { ProgramAdjustment } from "./components/ProgramAdjustment";
 import { SaveAsDialog } from "./components/SaveAsDialog";
+import {
+  ToolListDialog,
+  ToolListContent,
+  type ToolListDocument,
+} from "./components/ToolListDialog";
+import { createToolList, toolListText } from "./lib/toolList";
+import { downloadText } from "./lib/files";
 import type { AdjustmentWord, TextRange } from "./lib/programTools";
 import { useMachineProfiles } from "./lib/useMachineProfiles";
 import {
@@ -55,7 +63,11 @@ import { useProgramDocuments } from "./lib/useProgramDocuments";
 import { simulate } from "./lib/simulator";
 import { codeInfo, type Machine } from "./lib/codes";
 import { millSample, latheSample } from "./lib/samples";
-const colorNames: Record<keyof Palette, string> = {
+import { readPalette, type PaletteColor } from "./lib/editorAppearance";
+const colorNames: Record<PaletteColor, string> = {
+  motion: "Movimenti e quote",
+  auxiliary: "Istruzioni ausiliarie",
+  lineNumber: "Numeri di riga",
   g: "Codici G",
   m: "Codici M",
   axis: "Coordinate e assi",
@@ -63,32 +75,6 @@ const colorNames: Record<keyof Palette, string> = {
   comment: "Commenti",
   tool: "Utensili e correttori",
 };
-function readPalette(): Palette {
-  try {
-    const p = JSON.parse(localStorage.getItem("cnc.palette") ?? "null");
-    if (
-      p &&
-      Object.keys(defaultPalette).every((k) => /^#[a-f\d]{6}$/i.test(p[k]))
-    ) {
-      // Refresh old defaults without replacing colors chosen by the user.
-      const previousDefaults: Palette = {
-        g: "#70b7ff",
-        m: "#c99aff",
-        axis: "#64dcb6",
-        value: "#f3c978",
-        comment: "#798593",
-        tool: "#f0a57d",
-      };
-      const restored = { ...p } as Palette;
-      for (const key of Object.keys(previousDefaults) as (keyof Palette)[]) {
-        if (restored[key].toLowerCase() === previousDefaults[key])
-          restored[key] = defaultPalette[key];
-      }
-      return restored;
-    }
-  } catch {}
-  return defaultPalette;
-}
 function currentPage(): "workspace" | "serial" | "receive" | "settings" {
   if (window.location.hash === "#impostazioni") return "settings";
   if (window.location.hash === "#ricezione") return "receive";
@@ -105,11 +91,14 @@ type SaveAsTarget =
   | { kind: "receive"; name: string };
 
 export default function App() {
-  const [palette, setPalette] = useState(readPalette),
+  const [palette, setPalette] = useState(() => readPalette()),
     [showColors, setShowColors] = useState(false),
     [showExamples, setShowExamples] = useState(false),
     [showGuide, setShowGuide] = useState(false),
     [saveAsTarget, setSaveAsTarget] = useState<SaveAsTarget | null>(null),
+    [toolListDocument, setToolListDocument] = useState<ToolListDocument | null>(
+      null,
+    ),
     [editorSearch, setEditorSearch] = useState<EditorSearchMode | null>(null),
     [cursor, setCursor] = useState({ line: 1, col: 1 }),
     [activeLine, setActiveLine] = useState<number | null>(null),
@@ -143,7 +132,10 @@ export default function App() {
   const fileInput = useRef<HTMLInputElement>(null);
   const programEditor = useRef<EditorHandle>(null);
   useEffect(() => setAdjustment(null), [active?.id, tab, source]);
-  useEffect(() => setSaveAsTarget(null), [active?.id, tab]);
+  useEffect(() => {
+    setSaveAsTarget(null);
+    setToolListDocument(null);
+  }, [active?.id, tab]);
   const simulationVisible =
     tab === "workspace" && programs.previewVisible && !!active;
   const onHistoryChange = useCallback(
@@ -204,6 +196,16 @@ export default function App() {
     const listener = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return;
       if (tab === "settings") return;
+      if (toolListDocument) {
+        if (
+          (event.ctrlKey || event.metaKey) &&
+          ["p", "s", "o"].includes(event.key.toLowerCase())
+        ) {
+          event.preventDefault();
+          if (event.key.toLowerCase() === "p") printProgram();
+        }
+        return;
+      }
       if (saveAsTarget) {
         if (
           (event.ctrlKey || event.metaKey) &&
@@ -242,6 +244,7 @@ export default function App() {
     transmitting,
     programs.update,
     saveAsTarget,
+    toolListDocument,
     machineProfiles.selected,
   ]);
   useEffect(() => {
@@ -899,13 +902,13 @@ export default function App() {
                 </div>
                 <div
                   className="toolbar-group"
-                  hidden={tab !== "workspace"}
                   role="group"
                   aria-label="Cambi utensile"
                   data-label="Utensili"
                 >
                   <button
                     className="icon-button"
+                    hidden={tab !== "workspace"}
                     title="Cambio utensile precedente"
                     aria-label="Cambio utensile precedente"
                     onClick={() => goToTool(-1)}
@@ -917,6 +920,7 @@ export default function App() {
                   </button>
                   <button
                     className="icon-button"
+                    hidden={tab !== "workspace"}
                     title="Prossimo cambio utensile"
                     aria-label="Prossimo cambio utensile"
                     onClick={() => goToTool(1)}
@@ -924,6 +928,28 @@ export default function App() {
                     <StepForward size={16} />
                     <span className="toolbar-button-label">
                       Prossimo cambio utensile
+                    </span>
+                  </button>
+                  <button
+                    className="icon-button"
+                    aria-label="Crea lista utensili"
+                    title="Crea lista utensili"
+                    aria-pressed={!!toolListDocument}
+                    aria-haspopup="dialog"
+                    onClick={() => {
+                      setShowColors(false);
+                      setShowExamples(false);
+                      setToolListDocument({
+                        name: filename,
+                        source,
+                        machine,
+                        list: createToolList(source, machine),
+                      });
+                    }}
+                  >
+                    <ClipboardList size={18} />
+                    <span className="toolbar-button-label">
+                      Crea lista utensili
                     </span>
                   </button>
                 </div>
@@ -1059,24 +1085,50 @@ export default function App() {
                           Ripristina
                         </button>
                       </div>
-                      {(Object.keys(defaultPalette) as (keyof Palette)[]).map(
-                        (key) => (
-                          <label key={key}>
-                            <input
-                              aria-label={`Colore ${colorNames[key]}`}
-                              type="color"
-                              value={palette[key]}
-                              onChange={(e) =>
-                                setPalette((p) => ({
-                                  ...p,
-                                  [key]: e.target.value,
-                                }))
-                              }
-                            />
-                            {colorNames[key]}
-                          </label>
-                        ),
-                      )}
+                      <label className="color-mode">
+                        Colorazione
+                        <select
+                          aria-label="Stile colorazione"
+                          value={palette.mode}
+                          onChange={(e) =>
+                            setPalette((p) => ({
+                              ...p,
+                              mode: e.target.value as Palette["mode"],
+                            }))
+                          }
+                        >
+                          <option value="blocks">Come foto · per riga</option>
+                          <option value="tokens">Colori per codice</option>
+                        </select>
+                      </label>
+                      {(
+                        (palette.mode === "blocks"
+                          ? ["motion", "auxiliary", "comment", "lineNumber"]
+                          : [
+                              "g",
+                              "m",
+                              "axis",
+                              "value",
+                              "comment",
+                              "tool",
+                              "lineNumber",
+                            ]) as PaletteColor[]
+                      ).map((key) => (
+                        <label key={key}>
+                          <input
+                            aria-label={`Colore ${colorNames[key]}`}
+                            type="color"
+                            value={palette[key]}
+                            onChange={(e) =>
+                              setPalette((p) => ({
+                                ...p,
+                                [key]: e.target.value,
+                              }))
+                            }
+                          />
+                          {colorNames[key]}
+                        </label>
+                      ))}
                     </div>
                   )}
                   <div
@@ -1191,6 +1243,31 @@ export default function App() {
           />
         </main>
       </div>
+      {toolListDocument && (
+        <ToolListDialog
+          document={toolListDocument}
+          transferActive={receiving || transmitting}
+          onClose={() => setToolListDocument(null)}
+          onMachineChange={(next) => {
+            setMachine(next);
+            setToolListDocument(
+              (d) =>
+                d && {
+                  ...d,
+                  machine: next,
+                  list: createToolList(d.source, next),
+                },
+            );
+          }}
+          onPrint={printProgram}
+          onSave={() =>
+            downloadText(
+              toolListText(toolListDocument.list, toolListDocument.name),
+              toolListDocument.name.replace(/\.[^.]+$/, "") + "_utensili.txt",
+            )
+          }
+        />
+      )}
       {saveAsTarget && (
         <SaveAsDialog
           initialName={saveAsTarget.name}
@@ -1253,8 +1330,17 @@ export default function App() {
         </div>
       )}
       <section className="print-document" aria-label="Programma da stampare">
-        <h1>{tab === "receive" ? reception.name : filename}</h1>
-        <pre>{tab === "receive" ? reception.displayText : source}</pre>
+        {toolListDocument ? (
+          <>
+            <h1>Lista utensili · {toolListDocument.name}</h1>
+            <ToolListContent list={toolListDocument.list} />
+          </>
+        ) : (
+          <>
+            <h1>{tab === "receive" ? reception.name : filename}</h1>
+            <pre>{tab === "receive" ? reception.displayText : source}</pre>
+          </>
+        )}
       </section>
     </div>
   );
