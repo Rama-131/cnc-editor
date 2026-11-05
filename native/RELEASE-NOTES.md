@@ -1,4 +1,4 @@
-Prima versione nativa Windows di **Rama Edit**, in C#/.NET 10 e WPF.
+Versione nativa Windows di **Rama Edit**, in C#/.NET 10 e WPF.
 
 Scarica **RamaEdit-Setup-0.2.0-x64.exe**, installa e apri Rama Edit dal desktop. Il runtime è incluso. Per l'uso portatile, estrai lo ZIP e avvia RamaEdit.exe.
 
