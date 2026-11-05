@@ -72,6 +72,7 @@ jobs:
         run: |
           Copy-Item "native/README.md" "native/artifacts/win-x64/LEGGIMI.md"
           Compress-Archive -Path "native/artifacts/win-x64/*" -DestinationPath "native/artifacts/RamaEdit-0.2.0-win-x64.zip"
+          Compress-Archive -Path "native/artifacts/smoke/*.png" -DestinationPath "native/artifacts/RamaEdit-Schermate-Windows.zip"
           Get-FileHash "native/artifacts/installer/*.exe", "native/artifacts/*.zip" -Algorithm SHA256 | ForEach-Object { "$($_.Hash.ToLower())  $([IO.Path]::GetFileName($_.Path))" } | Set-Content "native/artifacts/SHA256SUMS.txt"
       - name: Conserva schermate e risultati
         if: always()
@@ -101,5 +102,5 @@ jobs:
             gh release create $tag --repo "${{ github.repository }}" --target "${{ github.sha }}" --prerelease --title "Rama Edit 0.2 · Windows nativo" --notes-file "native/RELEASE-NOTES.md"
             if ($LASTEXITCODE -ne 0) { throw "Impossibile creare la versione Windows" }
           }
-          gh release upload $tag "native/artifacts/installer/RamaEdit-Setup-0.2.0-x64.exe" "native/artifacts/RamaEdit-0.2.0-win-x64.zip" "native/artifacts/SHA256SUMS.txt" --repo "${{ github.repository }}" --clobber
+          gh release upload $tag "native/artifacts/installer/RamaEdit-Setup-0.2.0-x64.exe" "native/artifacts/RamaEdit-0.2.0-win-x64.zip" "native/artifacts/SHA256SUMS.txt" "native/artifacts/RamaEdit-Schermate-Windows.zip" --repo "${{ github.repository }}" --clobber
           if ($LASTEXITCODE -ne 0) { throw "Impossibile pubblicare i download" }

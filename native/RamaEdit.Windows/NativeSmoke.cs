@@ -34,9 +34,14 @@ public static class NativeSmoke
                 Check(w.CurrentSimulation.Complete && w.CurrentSimulation.Steps.Any(s => s.Action?.Contains("G70") == true), "Programma reale Fanuc G71 e G70");
                 Shot(w, "scrittura-simulazione");
                 w.Navigate("send"); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
-                Check(!w.Editor.IsReadOnly && w.Editor.ActualWidth > 1000, "Trasmissione con editor a tutta larghezza"); Shot(w, "trasmissione");
+                Check(!w.Editor.IsReadOnly && Math.Abs(w.Editor.ActualWidth - w.WorkspaceWidth) < 2, $"Trasmissione con editor a tutta larghezza ({w.Editor.ActualWidth:0}/{w.WorkspaceWidth:0})"); Shot(w, "trasmissione");
                 w.Navigate("receive"); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
-                Check(w.Editor.IsReadOnly && w.Editor.Text.Length == 0 && w.Editor.ActualWidth > 1000, "Ricezione separata e vuota a tutta larghezza"); Shot(w, "ricezione");
+                Check(w.Editor.IsReadOnly && w.Editor.Text.Length == 0 && Math.Abs(w.Editor.ActualWidth - w.WorkspaceWidth) < 2, $"Ricezione separata e vuota a tutta larghezza ({w.Editor.ActualWidth:0}/{w.WorkspaceWidth:0})"); Shot(w, "ricezione");
+                string raw = "%\r\nO9001\r\n" + string.Concat(Enumerable.Repeat("G1 X1\r\n", 30000)) + "M30\r\n%\r\n";
+                await Task.Run(() => { for (int i = 0; i < raw.Length; i += 137) w.AcceptReceived(raw.Substring(i, Math.Min(137, raw.Length - i))); });
+                await Task.Delay(350); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                Check(w.Editor.Text == raw, "Ricezione oltre 200.000 caratteri: nessuna perdita di dati e CR/LF conservati");
+
                 w.Navigate("workspace"); Check(w.Editor.Text == doc.Text.Text && w.Documents.Count == 3, "Il cambio pagina conserva i documenti");
                 var settings = new MachineSettingsWindow(Storage.Defaults(), null) { Owner = w }; settings.Show(); await settings.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 Check(settings.IsLoaded, "Configuratore macchine WPF"); Shot(settings, "impostazioni"); settings.Close();

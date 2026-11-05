@@ -140,7 +140,7 @@ public sealed class SerialSession : IAsyncDisposable
                         if (done) filter = null;
                     }
                 }
-                if (done) { await SendControl(settings.Port.Xoff); ReceptionEnded?.Invoke("Ricezione terminata al trigger finale."); }
+                if (done) { if (settings.FlowControl is "software" or "both" || settings.Receive.SendXon) await SendControl(settings.Port.Xoff); ReceptionEnded?.Invoke("Ricezione terminata al trigger finale."); }
             }
         }
         catch (OperationCanceledException) when (life.IsCancellationRequested) { }

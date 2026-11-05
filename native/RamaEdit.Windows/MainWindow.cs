@@ -33,6 +33,7 @@ public class NativeDocument
 public class MainWindow : Window
 {
     public TextEditor Editor { get; } = new() { ShowLineNumbers = true, FontFamily = new("Consolas"), FontSize = 16, Background = new SolidColorBrush(Color.FromRgb(18, 22, 28)), Foreground = Brushes.LightGray, LineNumbersForeground = Brushes.SlateGray, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+    public double WorkspaceWidth => body.ActualWidth;
     public ToolpathView Preview { get; } = new(); public SimulationResult CurrentSimulation { get; private set; } = new();
     public IReadOnlyList<NativeDocument> Documents => documents;
     readonly List<NativeDocument> documents = []; NativeDocument? active; readonly bool testMode;
@@ -54,7 +55,7 @@ public class MainWindow : Window
     readonly DispatcherTimer debounce = new() { Interval = TimeSpan.FromMilliseconds(350) }, autosave = new() { Interval = TimeSpan.FromSeconds(2) }, playback = new() { Interval = TimeSpan.FromMilliseconds(40) };
     Button connectButton = null!, sendButton = null!, receiveButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!;
     SerialSession? serial; string page = "workspace"; bool syncing, simulationVisible = true, busy, closing, persistenceFailed;
-    string log = ""; double[] cumulative = []; bool playing; double playbackPosition;
+    readonly Queue<string> logChunks = new(); int logLength; int receivedPending; readonly DispatcherTimer receivedRefresh = new() { Interval = TimeSpan.FromMilliseconds(80) }; double[] cumulative = []; bool playing; double playbackPosition;
     public MainWindow(bool testMode = false)
     {
         this.testMode = testMode; Title = "Rama Edit"; Width = 1440; Height = 920; MinWidth = 900; MinHeight = 600; WindowStartupLocation = WindowStartupLocation.CenterScreen; AllowDrop = true;
@@ -100,6 +101,7 @@ public class MainWindow : Window
         diameter.SelectionChanged += (_, _) => { if (!syncing && active is not null) { active.Model.Diameter = diameter.SelectedIndex == 0; RebuildSimulation(); } };
         debounce.Tick += (_, _) => { debounce.Stop(); RebuildSimulation(); };
         autosave.Tick += (_, _) => Persist(); playback.Tick += (_, _) => Tick();
+        receivedRefresh.Tick += (_, _) => { if (Interlocked.Exchange(ref receivedPending, 0) == 1) RenderReceived(); }; receivedRefresh.Start();
         PreviewKeyDown += HandleKey;
         DragOver += (_, e) => { e.Effects = e.Data.GetDataPresent(DataFormats.FileDrop) ? DragDropEffects.Copy : DragDropEffects.None; e.Handled = true; };
         Drop += (_, e) => { if (e.Data.GetData(DataFormats.FileDrop) is string[] paths) foreach (var path in paths) try { OpenPath(path); } catch (Exception ex) { Error(ex.Message); } };
@@ -271,8 +273,8 @@ public class MainWindow : Window
             if (!Regex.IsMatch(portSelect.Text.Trim(), @"^COM\d+$", RegexOptions.IgnoreCase)) throw new ArgumentException("Indica una porta COM valida, ad esempio COM3.");
             string port = portSelect.Text.Trim().ToUpperInvariant(); machine.Settings.Validate();
             var device = await Task.Run(() => new WindowsSerialDevice(port, machine.Settings)); var session = new SerialSession(device, machine.Settings); serial = session;
-            session.Received += text => { lock (rxGate) received.Append(text); Dispatcher.BeginInvoke(() => { receivedDirty = true; RenderReceived(); }); };
-            session.Log += text => { lock (rxGate) { log += text; if (log.Length > 200000) log = log[^200000..]; } };
+            session.Received += AcceptReceived;
+            session.Log += text => { lock (rxGate) { logChunks.Enqueue(text); logLength += text.Length; while (logLength > 200000 && logChunks.Count > 0) logLength -= logChunks.Dequeue().Length; } };
             session.Error += text => Dispatcher.BeginInvoke(() => { Error(text); TransferState(); });
             session.ReceptionEnded += text => Dispatcher.BeginInvoke(() => { RenderReceived(); Notify(text); TransferState(); });
             device.PortError += session.ReportFault; session.Start(); machine.PortName = port;
@@ -297,9 +299,15 @@ public class MainWindow : Window
         else { int length; lock (rxGate) length = received.Length; await serial.StartReceivingAsync(length); Notify("Ricezione in corso. Avvia l’invio dal controllo CNC."); }
         TransferState();
     }
+    internal void AcceptReceived(string text)
+    {
+        lock (rxGate) { if (received.Length + text.Length > SerialText.MaxReceived) throw new InvalidDataException("Limite di ricezione di 2 MB raggiunto."); received.Append(text); }
+        Interlocked.Exchange(ref receivedPending, 1);
+    }
     void RenderReceived()
     {
         string raw; lock (rxGate) raw = received.ToString();
+        if (raw.Length != receivedDocument.TextLength) receivedDirty = true;
         syncing = true; if (raw.Length >= receivedDocument.TextLength) receivedDocument.Insert(receivedDocument.TextLength, raw[receivedDocument.TextLength..]); else receivedDocument.Text = raw; syncing = false;
         if (page == "receive" && follow.IsChecked == true) Editor.ScrollToEnd(); Status(); TransferState();
     }
@@ -311,7 +319,7 @@ public class MainWindow : Window
     }
     void ShowLog()
     {
-        string text; lock (rxGate) text = log;
+        string text; lock (rxGate) text = string.Concat(logChunks);
         var w = new Window { Title = "Rama Edit · Dati ricevuti", Owner = this, Width = 720, Height = 400, WindowStartupLocation = WindowStartupLocation.CenterOwner };
         w.Content = new TextBox { Text = text, IsReadOnly = true, AcceptsReturn = true, FontFamily = new("Consolas"), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto }; w.Show();
     }
@@ -495,13 +503,14 @@ public class MainWindow : Window
             }
             if (serial?.Sending == true) { for (int wait = 0; wait < 100 && serial.Sending; wait++) await Task.Delay(50); if (serial.Sending) { Error("Attendi l’arresto dell’invio prima di chiudere."); return; } }
             foreach (var d in documents.ToArray()) if (!await ConfirmDocument(d)) return;
+            RenderReceived();
             if (receivedDirty)
             {
                 var answer = MessageBox.Show(this, "Salvare il documento ricevuto prima di chiudere?", "Rama Edit", MessageBoxButton.YesNoCancel);
                 if (answer == MessageBoxResult.Cancel) return;
                 if (answer == MessageBoxResult.Yes) { Navigate("receive"); await Save(false); if (receivedDirty) return; }
             }
-            Persist(); autosave.Stop(); Pause(); if (serial is not null) await serial.DisposeAsync(); closing = true; Close();
+            Persist(); autosave.Stop(); receivedRefresh.Stop(); Pause(); if (serial is not null) await serial.DisposeAsync(); closing = true; Close();
         }
         catch (Exception ex) { Error(ex.Message); }
     }
