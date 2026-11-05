@@ -110,8 +110,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view windows-v0.2.2 --repo "${{ github.repository }}" *> $null
-          if ($LASTEXITCODE -eq 0) {
-            gh release edit windows-v0.2.2 --repo "${{ github.repository }}" --notes-file "native/RELEASE-NOTES.md"
-            if ($LASTEXITCODE -ne 0) { throw "Impossibile aggiornare le note della versione bloccata" }
+          $updated = $false
+          for ($attempt = 0; $attempt -lt 3; $attempt++) {
+            $output = & gh release edit windows-v0.2.2 --repo "${{ github.repository }}" --notes-file "native/RELEASE-NOTES.md" 2>&1
+            if ($LASTEXITCODE -eq 0) { $updated = $true; break }
+            Start-Sleep -Seconds 2
           }
+          if (-not $updated) {
+            Write-Output "::warning::Note della release non aggiornate tramite API; l’avviso sul blocco è disponibile nella documentazione del repository."
+            "Aggiornamento delle note della vecchia release non riuscito. Il pacchetto MSIX e i test Windows non dipendono da questa notifica." >> $env:GITHUB_STEP_SUMMARY
+          }
+          exit 0
