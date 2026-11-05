@@ -8,12 +8,12 @@ namespace RamaEdit.Windows;
 
 internal sealed class ColorSettingsWindow : Window
 {
-    const string Sample = "(ANTEPRIMA COLORI)\nG90 G54\nT1 M6 (PUNTA)\nS1200 M3\nG0 X10 Y5 Z5\nG1 Z-2 F120\nX30 Y20\nG2 X40 Y20 I5 J0\nG0 Z15\nM5\nM30";
+    const string Sample = "(ANTEPRIMA COLORI)\nG90 G54\nT1 M6 (PUNTA)\nS1200 M3\nG0 X10 Y5 Z5\nG1 Z-2 F120\nX30 Y20\nG2 X40 Y20 I5 J0\nG3 X50 Y20 I5 J0\nG0 Z15\nM5\nM30";
     readonly Dictionary<string, string> palette;
     readonly Dictionary<string, TextBox> fields = [];
     readonly Dictionary<string, Button> swatches = [];
     readonly Action<Dictionary<string, string>, bool> apply;
-    readonly ComboBox style = new() { ItemsSource = new[] { "Rapidi e lavorazione", "Colori per codice G/M" } };
+    readonly ComboBox style = new() { ItemsSource = new[] { "Movimenti G0/G1/G2/G3", "Colori per codice G/M" } };
     readonly TextBlock error = new() { Foreground = Brushes.LightSalmon, Margin = new(4, 8, 4, 4), TextWrapping = TextWrapping.Wrap };
     readonly GCodeColorizer previewColorizer = new();
     internal TextEditor PreviewEditor { get; } = new()
@@ -46,14 +46,17 @@ internal sealed class ColorSettingsWindow : Window
         left.Children.Add(new TextBlock { Text = "Scegli i colori", FontSize = 19, FontWeight = FontWeights.SemiBold, Margin = new(3, 0, 0, 10) });
         left.Children.Add(new TextBlock { Text = "Colorazione del testo", Margin = new(3, 4, 0, 2), Foreground = Brushes.LightSteelBlue });
         style.SelectedIndex = useMotionColors ? 0 : 1; left.Children.Add(style);
-        left.Children.Add(new TextBlock { Text = "Rapido e lavorazione valgono anche per il disegno.\nI commenti mantengono sempre il proprio colore.", TextWrapping = TextWrapping.Wrap, Margin = new(3, 6, 3, 12), FontSize = 12, Foreground = Brushes.LightSteelBlue });
+        left.Children.Add(new TextBlock { Text = "Colori dei movimenti uguali nel testo e nel disegno.\nI commenti mantengono sempre il proprio colore.", TextWrapping = TextWrapping.Wrap, Margin = new(3, 6, 3, 12), FontSize = 12, Foreground = Brushes.LightSteelBlue });
+        var tokenRows = new StackPanel();
+        var tokenOptions = new Expander { Header = "Colori per codice", Content = tokenRows, Margin = new(3, 8, 3, 0), IsExpanded = !useMotionColors };
         foreach (var (key, label) in new[] {
-            ("rapid", "Rapido · G0"), ("cut", "Lavorazione · G1/G2/G3"),
-            ("g", "Codici G"), ("m", "Codici M"), ("axis", "Assi nel testo"),
-            ("value", "Valori"), ("tool", "Utensili"), ("comment", "Commenti")
+            ("text", "Testo"), ("background", "Sfondo editor"), ("block", "Selezione · sfondo"), ("blockText", "Selezione · testo"),
+            ("comment", "Commenti"), ("rapid", "Rapido · G0"), ("cut", "Lineare · G1 e cicli"),
+            ("cw", "Archi orari · G2"), ("ccw", "Archi antiorari · G3"),
+            ("g", "Codici G"), ("m", "Codici M"), ("axis", "Assi nel testo"), ("value", "Valori"), ("tool", "Utensili")
         })
         {
-            var row = new Grid { MinHeight = 46 };
+            var row = new Grid { MinHeight = 42 };
             row.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star), MinWidth = 100 });
             row.ColumnDefinitions.Add(new() { Width = new(58) });
             row.ColumnDefinitions.Add(new() { Width = new(86) });
@@ -65,20 +68,23 @@ internal sealed class ColorSettingsWindow : Window
             var box = new TextBox { Text = palette[key], FontFamily = new("Consolas"), FontSize = 13, VerticalContentAlignment = VerticalAlignment.Center, ToolTip = "Codice colore (facoltativo): " + label };
             Grid.SetColumn(swatch, 1); Grid.SetColumn(choose, 2); Grid.SetColumn(box, 3);
             row.Children.Add(swatch); row.Children.Add(choose); row.Children.Add(box);
-            fields[key] = box; swatches[key] = swatch; left.Children.Add(row);
+            fields[key] = box; swatches[key] = swatch;
+            if (key is "g" or "m" or "axis" or "value" or "tool") tokenRows.Children.Add(row); else left.Children.Add(row);
             box.TextChanged += (_, _) => RefreshPreview();
         }
+        left.Children.Add(tokenOptions);
         var right = new StackPanel { Margin = new(0, 0, 0, 0) }; Grid.SetColumn(right, 1); content.Children.Add(right);
         right.Children.Add(new TextBlock { Text = "Anteprima", FontSize = 19, FontWeight = FontWeights.SemiBold, Margin = new(3, 0, 0, 10) });
         PreviewEditor.Text = Sample; PreviewEditor.TextArea.TextView.LineTransformers.Add(previewColorizer); right.Children.Add(PreviewEditor);
         var legend = new WrapPanel { Margin = new(0, 10, 0, 6) }; right.Children.Add(legend);
-        rapidLegend = new TextBlock { Text = "━━ Rapido    ", FontWeight = FontWeights.SemiBold }; cutLegend = new TextBlock { Text = "━━ Lavorazione", FontWeight = FontWeights.SemiBold };
-        legend.Children.Add(rapidLegend); legend.Children.Add(cutLegend);
+        rapidLegend = new TextBlock { Text = "━━ Rapido    ", FontWeight = FontWeights.SemiBold }; cutLegend = new TextBlock { Text = "━━ Lineare    ", FontWeight = FontWeights.SemiBold };
+        clockwiseLegend = new TextBlock { Text = "━━ G2    ", FontWeight = FontWeights.SemiBold }; counterclockwiseLegend = new TextBlock { Text = "━━ G3", FontWeight = FontWeights.SemiBold };
+        legend.Children.Add(rapidLegend); legend.Children.Add(cutLegend); legend.Children.Add(clockwiseLegend); legend.Children.Add(counterclockwiseLegend);
         PreviewGraph.Result = Simulator.Simulate(Sample); right.Children.Add(PreviewGraph);
-        style.SelectionChanged += (_, _) => RefreshPreview();
+        style.SelectionChanged += (_, _) => { tokenOptions.IsExpanded = style.SelectedIndex == 1; RefreshPreview(); };
         RefreshPreview();
     }
-    readonly TextBlock rapidLegend, cutLegend;
+    readonly TextBlock rapidLegend, cutLegend, clockwiseLegend, counterclockwiseLegend;
     Button Button(string label, Action action)
     {
         var b = new Button { Content = label }; b.Click += (_, _) => { try { action(); } catch (Exception e) { error.Text = e.Message; } }; return b;
@@ -116,8 +122,17 @@ internal sealed class ColorSettingsWindow : Window
         previewColorizer.Palette = new(palette); previewColorizer.UseMotionColors = style.SelectedIndex == 0;
         previewColorizer.Invalidate(); PreviewEditor.TextArea.TextView.Redraw();
         PreviewGraph.RapidBrush = Brush(palette["rapid"]); PreviewGraph.WorkingBrush = Brush(palette["cut"]);
+        PreviewGraph.ClockwiseBrush = Brush(palette["cw"]); PreviewGraph.CounterclockwiseBrush = Brush(palette["ccw"]);
+        ApplyEditorColors(PreviewEditor, palette);
         rapidLegend.Foreground = PreviewGraph.RapidBrush; cutLegend.Foreground = PreviewGraph.WorkingBrush;
+        clockwiseLegend.Foreground = PreviewGraph.ClockwiseBrush; counterclockwiseLegend.Foreground = PreviewGraph.CounterclockwiseBrush;
         PreviewGraph.InvalidateVisual();
+    }
+    internal static void ApplyEditorColors(TextEditor editor, Dictionary<string, string> palette)
+    {
+        editor.Background = Brush(palette["background"]); editor.Foreground = Brush(palette["text"]);
+        editor.TextArea.SelectionBrush = Brush(palette["block"]); editor.TextArea.SelectionForeground = Brush(palette["blockText"]);
+        editor.TextArea.SelectionBorder = null; editor.TextArea.SelectionCornerRadius = 0;
     }
     internal static Brush Brush(string hex)
     {

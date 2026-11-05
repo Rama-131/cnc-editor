@@ -11,7 +11,10 @@ public record Point3(double X = 0, double Y = 0, double Z = 0)
     public bool Valid => double.IsFinite(X) && double.IsFinite(Y) && double.IsFinite(Z) && Math.Max(Math.Max(Math.Abs(X), Math.Abs(Y)), Math.Abs(Z)) <= 1_000_000;
     public Point3 Offset(Point3? p) => p is null ? this : new(X + p.X, Y + p.Y, Z + p.Z);
 }
-public record Segment(Point3 From, Point3 To, bool Rapid, int Line, string? Origin, Point3? WorkShift);
+public record Segment(Point3 From, Point3 To, bool Rapid, int Line, string? Origin, Point3? WorkShift)
+{
+    public int Motion { get; init; } = Rapid ? 0 : 1;
+}
 public record SimulationStep(string Kind, int Line, string? Origin, Point3? WorkShift, double? SpindleLimit, Point3 Position, int SegmentCount, string? Action = null);
 public record Issue(int Line, string Message);
 public class SimulationResult

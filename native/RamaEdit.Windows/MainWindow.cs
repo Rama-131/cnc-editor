@@ -121,7 +121,8 @@ public class MainWindow : Window
         LoadState(); machineSelect.ItemsSource = machines; machineSelect.SelectedItem = machines.FirstOrDefault(m => m.Id == restoredMachineId) ?? machines.FirstOrDefault(); RefreshPorts();
         if (documents.Count == 0) AddDocument(new() { Name = "nuovo_programma.txt", Text = Storage.Resource<Dictionary<string, string>>("samples")["mill"] });
         else Activate(documents[Math.Clamp(restoredIndex, 0, documents.Count - 1)]);
-        if (!testMode) { try { var p = Storage.Read<Dictionary<string, string>>("palette.json"); if (p is not null) { ApplyAppearance(AppearancePalette.Restore(p), AppearancePalette.MotionStyle(p)); } } catch (Exception e) { Error(e.Message); } autosave.Start(); }
+        ApplyAppearance(AppearancePalette.Defaults(), true);
+        if (!testMode) { try { LoadAppearance(); } catch (Exception e) { Error(e.Message); } autosave.Start(); }
         ApplyPage();
     }
     MachineProfile? SelectedMachine => machineSelect.SelectedItem as MachineProfile;
@@ -417,17 +418,33 @@ public class MainWindow : Window
     }
     internal ColorSettingsWindow CreateColorSettings() => new(colorizer.Palette, colorizer.UseMotionColors, (palette, motion) =>
     {
-        var saved = new Dictionary<string, string>(palette) { [AppearancePalette.StyleKey] = motion ? "motion" : "tokens" };
+        var saved = AppearancePalette.Saveable(palette, motion);
         if (!testMode) Storage.Save("palette.json", saved);
         ApplyAppearance(palette, motion);
     }) { Owner = this };
+    void LoadAppearance()
+    {
+        var saved = Storage.Read<Dictionary<string, string>>("palette.json");
+        if (!AppearancePalette.HasReferencePreset(saved))
+        {
+            if (saved is not null) Storage.Save("palette-before-iso-reference.json", saved);
+            saved = AppearancePalette.Saveable(AppearancePalette.Defaults(), true);
+            Storage.Save("palette.json", saved);
+        }
+        ApplyAppearance(AppearancePalette.Restore(saved), AppearancePalette.MotionStyle(saved));
+    }
     void Colors() => CreateColorSettings().ShowDialog();
     void ApplyAppearance(Dictionary<string, string> palette, bool motion)
     {
         colorizer.Palette = AppearancePalette.Restore(palette); colorizer.UseMotionColors = motion;
         colorizer.Invalidate(); Editor.TextArea.TextView.Redraw();
         Preview.RapidBrush = ColorSettingsWindow.Brush(colorizer.Palette["rapid"]);
-        Preview.WorkingBrush = ColorSettingsWindow.Brush(colorizer.Palette["cut"]); Preview.InvalidateVisual();
+        Preview.WorkingBrush = ColorSettingsWindow.Brush(colorizer.Palette["cut"]);
+        Preview.ClockwiseBrush = ColorSettingsWindow.Brush(colorizer.Palette["cw"]);
+        Preview.CounterclockwiseBrush = ColorSettingsWindow.Brush(colorizer.Palette["ccw"]);
+        ColorSettingsWindow.ApplyEditorColors(Editor, colorizer.Palette);
+        var highlight = ColorSettingsWindow.Brush(colorizer.Palette["block"]).Clone(); highlight.Opacity = .6; execution.Background = highlight;
+        Editor.TextArea.TextView.InvalidateLayer(ICSharpCode.AvalonEdit.Rendering.KnownLayer.Background); Preview.InvalidateVisual();
     }
     void ArrangeTransferToolbar()
     {

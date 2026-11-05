@@ -17,7 +17,7 @@ public class GCodeColorizer : DocumentColorizingTransformer
         var text = document.Text;
         var kinds = UseMotionColors ? EditorMotion.Classify(text, Machine) : null;
         var lineStarts = new List<int> { 0 };
-        for (int i = 0; i < text.Length; i++) if (text[i] == '\n') lineStarts.Add(i + 1);
+        for (int i = 0; i < text.Length; i++) if (text[i] == '\n' || text[i] == '\r' && (i + 1 == text.Length || text[i + 1] != '\n')) lineStarts.Add(i + 1);
         int lineIndex = 0;
         foreach (var w in ProgramTools.Words(text))
         {
@@ -27,6 +27,8 @@ public class GCodeColorizer : DocumentColorizingTransformer
             {
                 MotionColorKind.Rapid => "rapid",
                 MotionColorKind.Working => "cut",
+                MotionColorKind.Clockwise => "cw",
+                MotionColorKind.Counterclockwise => "ccw",
                 _ => w.Letter switch { "G" => "g", "M" => "m", "T" or "H" => "tool", _ => "" }
             };
             if (key.Length > 0) spans.Add((w.From, w.From + w.Length, key));
@@ -63,12 +65,13 @@ public class GCodeColorizer : DocumentColorizingTransformer
 public class ExecutionLine : IBackgroundRenderer
 {
     public int Line { get; set; }
+    public Brush Background { get; set; } = new SolidColorBrush(Color.FromArgb(150, 22, 75, 115));
     public KnownLayer Layer => KnownLayer.Background;
     public void Draw(TextView textView, DrawingContext context)
     {
         if (Line <= 0 || Line > textView.Document.LineCount) return;
         var segment = textView.Document.GetLineByNumber(Line);
         foreach (var rect in BackgroundGeometryBuilder.GetRectsForSegment(textView, segment))
-            context.DrawRectangle(new SolidColorBrush(Color.FromArgb(85, 41, 158, 111)), null, new System.Windows.Rect(0, rect.Y, textView.ActualWidth, rect.Height));
+            context.DrawRectangle(Background, null, new System.Windows.Rect(0, rect.Y, textView.ActualWidth, rect.Height));
     }
 }

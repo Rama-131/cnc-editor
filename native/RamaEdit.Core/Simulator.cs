@@ -12,9 +12,9 @@ public static class Simulator
         string? origin = null; Point3? shift = null; double? spindleLimit = null; RoughingHeader? rough = null;
         void Fail(int line, string message) => r.Issues.Add(new(line, message));
         void State(string kind, int line, string? action = null) => r.Steps.Add(new(kind, line, origin, shift, spindleLimit, pos, r.Segments.Count, action));
-        void Add(Point3 target, bool rapid, int line, string? action = null)
+        void Add(Point3 target, bool rapid, int line, string? action = null, int moveMotion = 1)
         {
-            r.Distance += pos.Distance(target); r.Segments.Add(new(pos, target, rapid, line, origin, shift)); pos = target; hasPosition = true; State("motion", line, action);
+            r.Distance += pos.Distance(target); r.Segments.Add(new(pos, target, rapid, line, origin, shift) { Motion = rapid ? 0 : moveMotion }); pos = target; hasPosition = true; State("motion", line, action);
         }
         var lines = source.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
         for (int n = 0; n < lines.Length; n++)
@@ -151,7 +151,7 @@ public static class Simulator
                 {
                     double t = (double)j / count;
                     var p = basis.With(a, cx + radius * Math.Cos(angle + sweep * t)).With(b, cy + radius * Math.Sin(angle + sweep * t)).With(c, basis[c] + (target[c] - basis[c]) * t);
-                    Add(j == count ? target : p, false, line);
+                    Add(j == count ? target : p, false, line, moveMotion: motion);
                 }
             }
             if (ms.Any(m => m is 2 or 30)) ended = true;

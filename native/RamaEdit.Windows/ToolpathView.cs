@@ -13,6 +13,8 @@ public class ToolpathView : FrameworkElement
     public bool ShowLegend { get; set; } = true;
     public Brush RapidBrush { get; set; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString(AppearancePalette.Defaults()["rapid"]));
     public Brush WorkingBrush { get; set; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString(AppearancePalette.Defaults()["cut"]));
+    public Brush ClockwiseBrush { get; set; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString(AppearancePalette.Defaults()["cw"]));
+    public Brush CounterclockwiseBrush { get; set; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString(AppearancePalette.Defaults()["ccw"]));
     double zoom = 1; Vector pan; Point? drag; Point center; double scale = 1;
     public ToolpathView() { ClipToBounds = true; Focusable = true; MinHeight = 140; Cursor = Cursors.Hand; ToolTip = "Trascina per spostare · Rotella per zoomare · Doppio clic per centrare"; }
     Point Project(Point3 p) => View switch { "XY" => new(p.X, -p.Y), "XZ" => new(p.Z, -p.X), "YZ" => new(p.Y, -p.Z), _ => new((p.X - p.Y) * .866, (p.X + p.Y) * .5 - p.Z) };
@@ -39,12 +41,15 @@ public class ToolpathView : FrameworkElement
         for (double y = 0; y < ActualHeight; y += 24) dc.DrawLine(grid, new(0, y), new(ActualWidth, y));
         var step = StepIndex >= 0 && StepIndex < result.Steps.Count ? result.Steps[StepIndex] : null;
         int done = step?.SegmentCount ?? result.Segments.Count;
-        var cut = new Pen(WorkingBrush, 1.8); var futureBrush = WorkingBrush.Clone(); futureBrush.Opacity = .38; var future = new Pen(futureBrush, 1);
+        var brushes = new[] { WorkingBrush, ClockwiseBrush, CounterclockwiseBrush };
+        var cuts = brushes.Select(b => new Pen(b, 1.8)).ToArray();
+        var future = brushes.Select(b => { var faded = b.Clone(); faded.Opacity = .38; return new Pen(faded, 1); }).ToArray();
         var rapid = new Pen(RapidBrush, 1.2) { DashStyle = DashStyles.Dash };
         for (int i = 0; i < result.Segments.Count; i++)
         {
             var s = result.Segments[i]; if (s.Rapid && !ShowRapids) continue;
-            dc.DrawLine(s.Rapid ? rapid : i < done ? cut : future, Screen(s.From.Offset(s.WorkShift)), Screen(s.To.Offset(s.WorkShift)));
+            int kind = s.Motion == 2 ? 1 : s.Motion == 3 ? 2 : 0;
+            dc.DrawLine(s.Rapid ? rapid : i < done ? cuts[kind] : future[kind], Screen(s.From.Offset(s.WorkShift)), Screen(s.To.Offset(s.WorkShift)));
         }
         var shift = step?.WorkShift; Point zero = Screen(new Point3().Offset(shift)); var yellow = Brushes.Gold;
         dc.DrawLine(new(yellow, 1), zero - new Vector(7, 0), zero + new Vector(7, 0)); dc.DrawLine(new(yellow, 1), zero - new Vector(0, 7), zero + new Vector(0, 7));
@@ -58,7 +63,11 @@ public class ToolpathView : FrameworkElement
             dc.DrawLine(new Pen(RapidBrush, 1.3) { DashStyle = DashStyles.Dash }, new(12, y + 7), new(33, y + 7));
             Text(dc, "Rapido", new(39, y), RapidBrush, 11);
             dc.DrawLine(new Pen(WorkingBrush, 1.8), new(100, y + 7), new(121, y + 7));
-            Text(dc, "Lavorazione", new(127, y), WorkingBrush, 11);
+            Text(dc, "Lineare", new(127, y), WorkingBrush, 11);
+            dc.DrawLine(new Pen(ClockwiseBrush, 1.8), new(185, y + 7), new(206, y + 7));
+            Text(dc, "G2", new(212, y), ClockwiseBrush, 11);
+            dc.DrawLine(new Pen(CounterclockwiseBrush, 1.8), new(245, y + 7), new(266, y + 7));
+            Text(dc, "G3", new(272, y), CounterclockwiseBrush, 11);
         }
         Point axis = new(Math.Max(40, ActualWidth - 80), Math.Max(80, ActualHeight - 30));
         void Arrow(Vector direction, string label)

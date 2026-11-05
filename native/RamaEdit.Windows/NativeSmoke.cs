@@ -70,16 +70,21 @@ public static class NativeSmoke
 
                 w.Navigate("workspace"); Check(w.Editor.Text == doc.Text.Text && w.Documents.Count == 3, "Il cambio pagina conserva i documenti");
                 var colors = w.CreateColorSettings(); colors.Show(); await colors.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
-                Check(VisibleButton(colors, "Campione Rapido · G0") && VisibleButton(colors, "Campione Lavorazione · G1/G2/G3"), "Campioni colore visibili per rapido e lavorazione");
+                Check(VisibleButton(colors, "Campione Rapido · G0") && VisibleButton(colors, "Campione Lineare · G1 e cicli"), "Campioni colore visibili per rapido e lavorazione");
+                Check(LineHasColor(colors.PreviewEditor, 5, "#FFFF55") && LineHasColor(colors.PreviewEditor, 6, "#00D5AF") && LineHasColor(colors.PreviewEditor, 8, "#28B8FF") && LineHasColor(colors.PreviewEditor, 9, "#3986FF"), "Palette delle foto: G0 giallo, G1 turchese, G2 azzurro, G3 blu");
+                Check(colors.PreviewEditor.Background is SolidColorBrush bg && bg.Color == (Color)ColorConverter.ConvertFromString("#101418") && colors.PreviewEditor.TextArea.SelectionBrush is SolidColorBrush selection && selection.Color == (Color)ColorConverter.ConvertFromString("#164B73"), "Sfondo scuro e selezione blu applicati");
                 Shot(colors, "colori");
-                colors.SetColor("rapid", "#FFB347"); colors.SetColor("cut", "#B38CFF"); colors.SetMotionStyle(true);
+                colors.SetColor("rapid", "#FFB347"); colors.SetColor("cut", "#B38CFF"); colors.SetColor("cw", "#65C7F7"); colors.SetColor("ccw", "#527BFF"); colors.SetMotionStyle(true);
                 await colors.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 Check(LineHasColor(colors.PreviewEditor, 5, "#FFB347") && LineHasColor(colors.PreviewEditor, 6, "#B38CFF") && LineHasColor(colors.PreviewEditor, 7, "#B38CFF"), "Anteprima G0 e G1, compreso il movimento modale senza G ripetuto");
-                Check(LineHasColor(colors.PreviewEditor, 1, "#7DFF6A"), "I commenti mantengono il proprio colore");
+                Check(LineHasColor(colors.PreviewEditor, 1, "#60F340"), "I commenti mantengono il proprio colore");
+                Check(LineHasColor(colors.PreviewEditor, 8, "#65C7F7") && LineHasColor(colors.PreviewEditor, 9, "#527BFF"), "Colori dei due tipi di arco modificabili separatamente");
                 Shot(colors, "colori-personalizzati");
                 colors.ApplyChanges(); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 Check(w.Preview.RapidBrush is SolidColorBrush rb && rb.Color == (Color)ColorConverter.ConvertFromString("#FFB347") &&
-                      w.Preview.WorkingBrush is SolidColorBrush wb && wb.Color == (Color)ColorConverter.ConvertFromString("#B38CFF"), "Colori scelti applicati anche al disegno principale");
+                      w.Preview.WorkingBrush is SolidColorBrush wb && wb.Color == (Color)ColorConverter.ConvertFromString("#B38CFF") &&
+                      w.Preview.ClockwiseBrush is SolidColorBrush cw && cw.Color == (Color)ColorConverter.ConvertFromString("#65C7F7") &&
+                      w.Preview.CounterclockwiseBrush is SolidColorBrush ccw && ccw.Color == (Color)ColorConverter.ConvertFromString("#527BFF"), "Colori scelti applicati anche al disegno principale");
                 Shot(w, "colori-applicati");
                 var settings = new MachineSettingsWindow(Storage.Defaults(), null) { Owner = w }; settings.Show(); await settings.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 Check(settings.IsLoaded && settings.Foreground is SolidColorBrush settingsInk && settingsInk.Color.R > 150, "Configuratore macchine WPF con etichette leggibili"); Shot(settings, "impostazioni"); settings.Close();
