@@ -10,7 +10,7 @@ on:
 
 concurrency:
   group: rama-edit-windows
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: read
