@@ -9,14 +9,18 @@ export type PaletteColor =
   | "motion"
   | "auxiliary"
   | "lineNumber";
-export type Palette = Record<PaletteColor, string> & { mode: ColorMode };
+export type Palette = Record<PaletteColor, string> & {
+  mode: ColorMode;
+  version: 2;
+};
 
 export const defaultPalette: Palette = {
-  mode: "blocks",
+  mode: "tokens",
+  version: 2,
   motion: "#f3f58f",
   auxiliary: "#f2f4f4",
-  lineNumber: "#29d6ef",
-  comment: "#80ff37",
+  lineNumber: "#586576",
+  comment: "#7dff6a",
   g: "#4fa9ff",
   m: "#ff6be8",
   axis: "#42e8ff",
@@ -28,7 +32,7 @@ const historicalDefaults = {
   m: ["#c99aff", "#ff6be8"],
   axis: ["#64dcb6", "#42e8ff"],
   value: ["#f3c978", "#ffe55b"],
-  comment: ["#798593", "#7dff6a"],
+  comment: ["#798593", "#7dff6a", "#80ff37"],
   tool: ["#f0a57d", "#ff9e45"],
 };
 export function readPalette(storage?: Pick<Storage, "getItem">): Palette {
@@ -41,25 +45,32 @@ export function readPalette(storage?: Pick<Storage, "getItem">): Palette {
     ) as (keyof typeof historicalDefaults)[];
     if (!saved || !oldKeys.every((key) => /^#[a-f\d]{6}$/i.test(saved[key])))
       return { ...defaultPalette };
-    const customized = oldKeys.some(
-      (key) => !historicalDefaults[key].includes(saved[key].toLowerCase()),
-    );
+    // Restore per-code colors once for palettes saved before this revision.
+    // Subsequent explicit choices, including per-line colors, stay unchanged.
     const restored: Palette = {
       ...defaultPalette,
       mode:
-        saved.mode === "blocks" || saved.mode === "tokens"
+        saved.version === 2 &&
+        (saved.mode === "blocks" || saved.mode === "tokens")
           ? saved.mode
-          : customized
-            ? "tokens"
-            : "blocks",
+          : "tokens",
     };
     for (const key of Object.keys(defaultPalette) as (keyof Palette)[]) {
-      if (key === "mode" || !/^#[a-f\d]{6}$/i.test(saved[key])) continue;
+      if (
+        key === "mode" ||
+        key === "version" ||
+        !/^#[a-f\d]{6}$/i.test(saved[key])
+      )
+        continue;
       restored[key] = saved[key];
     }
-    for (const key of oldKeys) {
-      if (historicalDefaults[key].includes(restored[key].toLowerCase()))
-        restored[key] = defaultPalette[key];
+    if (saved.version !== 2 && restored.lineNumber.toLowerCase() === "#29d6ef")
+      restored.lineNumber = defaultPalette.lineNumber;
+    if (saved.version !== 2) {
+      for (const key of oldKeys) {
+        if (historicalDefaults[key].includes(restored[key].toLowerCase()))
+          restored[key] = defaultPalette[key];
+      }
     }
     return restored;
   } catch {

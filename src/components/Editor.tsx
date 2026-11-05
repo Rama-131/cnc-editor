@@ -155,9 +155,11 @@ function colors(p: Palette) {
         color: blocks ? p.auxiliary : "#d7dee7",
       },
       ".cm-gutters": { backgroundColor: background, color: p.lineNumber },
-      ".cm-lineNumbers .cm-gutterElement": { fontStyle: "italic" },
+      ".cm-lineNumbers .cm-gutterElement": {
+        fontStyle: blocks ? "italic" : "normal",
+      },
       ".cm-activeLine": { backgroundColor: blocks ? "#ffffff08" : "#20293466" },
-      ".cm-activeLineGutter": { color: p.lineNumber },
+      ".cm-activeLineGutter": { color: blocks ? p.lineNumber : "#cad6e3" },
     }),
   ];
 }

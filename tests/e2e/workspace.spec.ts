@@ -160,7 +160,7 @@ test("configuratore e trasmissione con una porta seriale di test", async ({
   await page
     .getByRole("link", { name: "Scrittura / Simulazione", exact: true })
     .click();
-  await expect(page.locator(".serial-column")).toBeHidden();
+  await expect(page.locator(".serial-tools")).toBeHidden();
   expect(
     await page.evaluate(
       () =>
@@ -254,7 +254,7 @@ test("interfaccia utilizzabile su schermo stretto", async ({ page }) => {
   ).toBeLessThanOrEqual(390);
   await page.screenshot({ path: "/tmp/cnc-studio-mobile.png", fullPage: true });
   await page.getByRole("link", { name: "Trasmissione", exact: true }).click();
-  await expect(page.locator(".serial-column")).toBeVisible();
+  await expect(page.locator(".serial-tools")).toBeVisible();
   await expect(page.locator(".preview-column")).toBeHidden();
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),

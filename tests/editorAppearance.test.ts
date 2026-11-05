@@ -14,7 +14,7 @@ const vivid = {
   tool: "#ff9e45",
 };
 const storage = (p: unknown) => ({ getItem: () => JSON.stringify(p) });
-describe("colorazione predefinita come nella foto", () => {
+describe("colorazione per codice e stile opzionale per riga", () => {
   it("colora movimenti e cicli in giallo e le istruzioni ausiliarie in bianco", () => {
     for (const line of [
       "N1 G0 G40 G90 G80 G94 G54",
@@ -53,6 +53,20 @@ describe("colorazione predefinita come nella foto", () => {
         },
       }),
     ).toEqual(defaultPalette);
+  });
+  it("ripristina i colori per codice anche per chi aveva lo schema per riga", () => {
+    const previous = {
+      ...vivid,
+      mode: "blocks",
+      motion: "#f3f58f",
+      auxiliary: "#f2f4f4",
+      comment: "#80ff37",
+      lineNumber: "#29d6ef",
+    };
+    expect(readPalette(storage(previous))).toEqual(defaultPalette);
+    expect(
+      readPalette(storage({ ...previous, lineNumber: "#abcdef" })).lineNumber,
+    ).toBe("#abcdef");
   });
   it("mantiene le personalizzazioni precedenti e la scelta dello stile", () => {
     const previous = readPalette(storage({ ...vivid, g: "#ff8844" }));

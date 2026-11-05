@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Cable,
-  ChevronDown,
   Plug,
   Send,
   Square,
   Download,
   Terminal,
   ArrowDownToLine,
-  Info,
+  X,
   Settings2,
 } from "lucide-react";
 import {
@@ -33,7 +33,11 @@ export function SerialPanel({
   onReceive = () => true,
   onReceivingChange = () => {},
   onSendingChange,
+  visible,
+  statusContainer,
 }: {
+  visible: boolean;
+  statusContainer: HTMLElement | null;
   source: string;
   filename: string;
   machines: MachineProfile[];
@@ -220,44 +224,18 @@ export function SerialPanel({
     }
   }
   return (
-    <section className="serial panel">
-      <div className="panel-head">
-        <div className="panel-title">
-          <Cable size={16} />
-          <span>
-            {mode === "receive"
-              ? "Ricezione dalla macchina"
-              : "Collegamento macchina"}
-          </span>
-        </div>
-        <span
-          className={`connection-state ${connected && !fault ? "online" : ""}`}
-        >
-          <i />
-          {fault ? "Errore porta" : connected ? "Collegato" : "Non collegato"}
-        </span>
-      </div>
-      <div className="serial-body">
-        <div className="serial-intro">
-          <div className="port-symbol">
-            <Cable size={23} />
-          </div>
-          <div>
-            <strong>
-              {mode === "receive"
-                ? "Ricezione seriale RS-232"
-                : "Trasferimento seriale RS-232"}
-            </strong>
-            <p>
-              {mode === "receive"
-                ? "Dal controllo CNC al tuo file."
-                : "Il tuo programma, dal PC al controllo CNC."}
-            </p>
-          </div>
-        </div>
-        <div className="transfer-machine">
+    <>
+      <div
+        className="serial-tools"
+        role="group"
+        aria-label="Comandi trasferimento"
+        hidden={!visible}
+      >
+        <div className="toolbar-group transfer-machine" data-label="Macchina">
           <label>
-            Macchina
+            <span>
+              <Cable size={14} /> Macchina
+            </span>
             <select
               aria-label="Macchina per il trasferimento"
               value={selectedId ?? ""}
@@ -276,75 +254,85 @@ export function SerialPanel({
               ))}
             </select>
           </label>
-          <a className="manage-machines" href="#impostazioni">
-            <Settings2 size={14} />
-            {machines.length
-              ? "Gestisci macchine"
-              : "Configura la prima macchina"}
+          <a
+            className="transfer-settings"
+            href="#impostazioni"
+            aria-label={
+              machines.length
+                ? "Gestisci macchine"
+                : "Configura la prima macchina"
+            }
+            title={
+              machines.length
+                ? "Gestisci macchine"
+                : "Configura la prima macchina"
+            }
+          >
+            <Settings2 size={22} />
+            <span className="toolbar-button-label">Impostazioni</span>
           </a>
         </div>
-        {machine?.importedFrom?.port && (
-          <p className="receive-instructions">
-            Porta nel trasmettitore precedente:{" "}
-            <strong>{machine.importedFrom.port}</strong>. Seleziona la porta
-            corrispondente nella finestra del browser.
-          </p>
-        )}
-        {!getSerial() && (
-          <div className="browser-note">
-            La porta seriale richiede Chrome o Edge sul PC Windows collegato
-            alla CNC.
-          </div>
-        )}
-        <button
-          className="button connect-button"
-          disabled={busy || sending || (!connected && !machine)}
-          onClick={connect}
-        >
-          <Plug size={15} />
-          {busy
-            ? "Attendi…"
-            : connected
-              ? "Disconnetti porta"
-              : "Seleziona e collega porta"}
-          <ChevronDown size={14} />
-        </button>
-        <div className={`serial-message ${error ? "error" : ""}`} role="status">
-          {message}
+        <div className="toolbar-group" data-label="Connessione">
+          <button
+            className="transfer-connect"
+            disabled={busy || sending || (!connected && !machine)}
+            onClick={connect}
+            aria-label={
+              busy
+                ? "Attendi…"
+                : connected
+                  ? "Disconnetti porta"
+                  : "Seleziona e collega porta"
+            }
+            title={
+              connected
+                ? "Disconnetti porta"
+                : "Seleziona e collega porta seriale"
+            }
+          >
+            <Plug size={22} />
+            <span className="toolbar-button-label">
+              {busy
+                ? "Attendi…"
+                : connected
+                  ? "Disconnetti porta"
+                  : "Collega porta"}
+            </span>
+          </button>
         </div>
-        {sending && (
-          <progress max="100" value={progress} aria-label="Avanzamento invio" />
-        )}
-        {mode === "receive" ? (
-          <>
+        <div
+          className="toolbar-group"
+          data-label={mode === "receive" ? "Ricezione" : "Trasmissione"}
+        >
+          {mode === "receive" ? (
             <button
-              className={`button ${receiving ? "danger" : "primary"} send-button`}
+              className={`button ${receiving ? "danger" : "primary"} transfer-action`}
               disabled={!connected || busy || sending || fault}
               onClick={toggleReception}
             >
-              {receiving ? <Square size={15} /> : <ArrowDownToLine size={15} />}
-              {receiving
-                ? "Termina ricezione"
-                : receivedLength
-                  ? "Riprendi ricezione"
-                  : "Avvia ricezione"}
+              {receiving ? <Square size={22} /> : <ArrowDownToLine size={22} />}
+              <span className="toolbar-button-label">
+                {receiving
+                  ? "Termina ricezione"
+                  : receivedLength
+                    ? "Riprendi ricezione"
+                    : "Avvia ricezione"}
+              </span>
             </button>
-            <p className="receive-instructions">
-              {receiving
-                ? "Attendi la fine dell’invio sulla CNC prima di terminare la ricezione. Puoi cambiare pagina: l’acquisizione continua."
-                : "I dati vengono acquisiti soltanto dopo Avvia ricezione. Il file segue i filtri e i trigger configurati per la macchina."}
-            </p>
-          </>
-        ) : (
-          <>
+          ) : (
             <button
-              className={`button ${sending ? "danger" : "primary"} send-button`}
+              className={`button ${sending ? "danger" : "primary"} transfer-action`}
               disabled={
                 !connected ||
                 busy ||
                 receiving ||
                 fault ||
                 (!sending && !source.trim())
+              }
+              aria-label={
+                sending
+                  ? `Interrompi · ${Math.round(progress)}%`
+                  : "Invia programma alla macchina"
               }
               onClick={
                 sending
@@ -355,51 +343,114 @@ export function SerialPanel({
                   : send
               }
             >
-              {sending ? <Square size={15} /> : <Send size={15} />}{" "}
-              {sending
-                ? `Interrompi · ${Math.round(progress)}%`
-                : "Invia programma alla macchina"}
-            </button>
-            {receiving && (
-              <p className="receive-instructions">
-                Ricezione in corso. Apri la pagina Ricezione per terminarla
-                prima di inviare un programma.
-              </p>
-            )}
-          </>
-        )}
-        <div className="receive-toggle">
-          <button onClick={() => setShowLog(!showLog)}>
-            <Terminal size={14} />
-            Dati ricevuti <span>{received.length} caratteri</span>
-          </button>
-          {received && (
-            <button
-              className="icon-button"
-              aria-label="Salva dati ricevuti"
-              onClick={() => downloadText(received, "ricevuto.nc")}
-            >
-              <Download size={14} />
+              {sending ? <Square size={22} /> : <Send size={22} />}
+              <span className="toolbar-button-label">
+                {sending
+                  ? `Interrompi · ${Math.round(progress)}%`
+                  : "Invia programma"}
+              </span>
             </button>
           )}
-        </div>
-        {showLog && (
-          <textarea
-            className="receive-log"
-            aria-label="Dati seriali ricevuti"
-            value={received}
-            readOnly
-            placeholder="I dati ricevuti dalla porta appariranno qui. XON/XOFF sono gestiti dal collegamento."
-          />
-        )}
-        <div className="machine-note">
-          <Info size={15} />
-          <p>
-            Il significato di alcuni codici varia con il controllo. Verifica
-            sempre il manuale Fanuc, Mitsubishi o del costruttore.
-          </p>
+          <button
+            className="transfer-log-toggle"
+            aria-label={`Dati ricevuti · ${received.length} caratteri`}
+            aria-expanded={showLog}
+            aria-pressed={showLog}
+            aria-controls="serial-received-log"
+            title={`Dati seriali ricevuti: ${received.length} caratteri`}
+            onClick={() => setShowLog(!showLog)}
+          >
+            <Terminal size={22} />
+            <span className="toolbar-button-label">
+              Dati ricevuti<small>{received.length} caratteri</small>
+            </span>
+          </button>
         </div>
       </div>
-    </section>
+      {statusContainer &&
+        createPortal(
+          <div className="serial-status" hidden={!visible}>
+            <span
+              className={`connection-state ${connected && !fault ? "online" : ""}`}
+            >
+              <i />
+              {fault
+                ? "Errore porta"
+                : connected
+                  ? "Collegato"
+                  : "Non collegato"}
+            </span>
+            <div
+              className={`serial-message ${error ? "error" : ""}`}
+              role="status"
+            >
+              {message}
+            </div>
+            {sending && (
+              <progress
+                max="100"
+                value={progress}
+                aria-label="Avanzamento invio"
+              />
+            )}
+            {machine?.importedFrom?.port && (
+              <span
+                className="transfer-port-hint"
+                title="Seleziona la porta corrispondente nella finestra del browser."
+              >
+                Porta nel trasmettitore precedente:{" "}
+                <strong>{machine.importedFrom.port}</strong>
+              </span>
+            )}
+            {!getSerial() && (
+              <span className="transfer-port-hint">
+                La porta seriale richiede Chrome o Edge sul PC Windows collegato
+                alla CNC.
+              </span>
+            )}
+            {receiving && mode === "send" && (
+              <span className="transfer-port-hint">
+                Ricezione in corso: apri Ricezione per terminarla prima di
+                inviare.
+              </span>
+            )}
+            {showLog && (
+              <section
+                className="transfer-log-panel"
+                id="serial-received-log"
+                aria-label="Registro dati seriali"
+              >
+                <div className="transfer-log-head">
+                  <strong>Dati ricevuti · {received.length} caratteri</strong>
+                  {received && (
+                    <button
+                      className="icon-button"
+                      aria-label="Salva dati ricevuti"
+                      onClick={() => downloadText(received, "ricevuto.nc")}
+                    >
+                      <Download size={16} />
+                    </button>
+                  )}
+                  <button
+                    className="icon-button"
+                    aria-label="Chiudi dati ricevuti"
+                    onClick={() => setShowLog(false)}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <textarea
+                  className="receive-log"
+                  aria-label="Dati seriali ricevuti"
+                  value={received}
+                  readOnly
+                  placeholder="I dati ricevuti dalla porta appariranno qui. XON/XOFF sono gestiti dal collegamento."
+                />
+              </section>
+            )}
+          </div>,
+          statusContainer,
+        )}
+    </>
   );
 }

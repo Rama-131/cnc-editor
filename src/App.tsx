@@ -118,6 +118,8 @@ export default function App() {
       canRedo: false,
     }),
     [tab, setTab] = useState(currentPage);
+  const [transferStatusHost, setTransferStatusHost] =
+    useState<HTMLDivElement | null>(null);
   const programs = useProgramDocuments(setNotice);
   const machineProfiles = useMachineProfiles(setNotice);
   const { active, machine, diameter } = programs;
@@ -767,13 +769,17 @@ export default function App() {
               onNew={newProgram}
             />
           )}
-          {(tab === "workspace" || tab === "serial") && active && (
-            <div
-              className="panel-head editor-head editor-toolbar"
-              role="toolbar"
-              aria-label="Comandi del programma"
-            >
-              <div className="icon-group">
+          <div
+            className="panel-head editor-head editor-toolbar"
+            role="toolbar"
+            aria-label="Comandi del programma"
+            hidden={tab === "settings" || (tab === "workspace" && !active)}
+          >
+            <div className="icon-group">
+              <div
+                className="program-tools"
+                hidden={tab === "receive" || !active}
+              >
                 <div
                   className="toolbar-group"
                   role="group"
@@ -1013,8 +1019,31 @@ export default function App() {
                   )}
                 </div>
               </div>
+              <SerialPanel
+                visible={tab === "serial" || tab === "receive"}
+                statusContainer={transferStatusHost}
+                source={source}
+                filename={filename}
+                machines={machineProfiles.machines}
+                selectedId={machineProfiles.selectedId}
+                onSelectMachine={(id) => {
+                  if (!lockedMachine) machineProfiles.select(id);
+                }}
+                onLockChange={setLockedMachine}
+                mode={tab === "receive" ? "receive" : "send"}
+                receiving={receiving}
+                receivedLength={reception.text.length}
+                onReceive={reception.append}
+                onReceivingChange={setReceiving}
+                onSendingChange={setTransmitting}
+              />
             </div>
-          )}
+          </div>
+          <div
+            className="transfer-status-host"
+            ref={setTransferStatusHost}
+            hidden={tab !== "serial" && tab !== "receive"}
+          />
           <div
             className={`workspace ${tab === "workspace" ? `simulation-page${simulationVisible ? "" : " editor-only"}` : "transmission-page"}`}
             hidden={tab === "settings"}
@@ -1097,7 +1126,7 @@ export default function App() {
                             }))
                           }
                         >
-                          <option value="blocks">Come foto · per riga</option>
+                          <option value="blocks">Colori per riga</option>
                           <option value="tokens">Colori per codice</option>
                         </select>
                       </label>
@@ -1207,24 +1236,6 @@ export default function App() {
                 onDiameterChange={setDiameter}
                 onLine={onLine}
                 active={simulationVisible}
-              />
-            </div>
-            <div className="serial-column" hidden={tab === "workspace"}>
-              <SerialPanel
-                source={source}
-                filename={filename}
-                machines={machineProfiles.machines}
-                selectedId={machineProfiles.selectedId}
-                onSelectMachine={(id) => {
-                  if (!lockedMachine) machineProfiles.select(id);
-                }}
-                onLockChange={setLockedMachine}
-                mode={tab === "receive" ? "receive" : "send"}
-                receiving={receiving}
-                receivedLength={reception.text.length}
-                onReceive={reception.append}
-                onReceivingChange={setReceiving}
-                onSendingChange={setTransmitting}
               />
             </div>
           </div>
