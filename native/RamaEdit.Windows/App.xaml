@@ -11,7 +11,10 @@
     <Style TargetType="CheckBox"><Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="Margin" Value="7"/><Setter Property="VerticalContentAlignment" Value="Center"/></Style>
     <Style TargetType="ListBox"><Setter Property="Background" Value="#16212B"/><Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="BorderBrush" Value="#354754"/></Style>
     <Style TargetType="ListBoxItem"><Setter Property="Padding" Value="10"/><Setter Property="Margin" Value="0,1"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#0873BD"/><Setter Property="Foreground" Value="White"/></Trigger></Style.Triggers></Style>
-    <Style TargetType="TabControl"><Setter Property="Background" Value="#18232D"/><Setter Property="Foreground" Value="#101920"/></Style>
-    <Style TargetType="TabItem"><Setter Property="Padding" Value="14,8"/></Style>
+    <Style TargetType="TabControl"><Setter Property="Background" Value="#18232D"/><Setter Property="Foreground" Value="{StaticResource Ink}"/></Style>
+    <Style TargetType="TabItem">
+      <Setter Property="Padding" Value="14,8"/><Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="Background" Value="#23313D"/>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="TabItem"><Border x:Name="tab" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" Margin="0,0,2,0" CornerRadius="4,4,0,0"><ContentPresenter ContentSource="Header" VerticalAlignment="Center" HorizontalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsSelected" Value="True"><Setter TargetName="tab" Property="Background" Value="#0873BD"/><Setter Property="Foreground" Value="White"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+    </Style>
   </Application.Resources>
 </Application>

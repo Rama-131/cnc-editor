@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.Win32;
 using RamaEdit.Core;
 namespace RamaEdit.Windows;
@@ -15,6 +16,7 @@ public class MachineSettingsWindow : Window
     public List<MachineProfile> Machines => machines;
     public MachineSettingsWindow(List<MachineProfile> machines, string? lockedId)
     {
+        Style = (Style)Application.Current.FindResource(typeof(Window));
         this.machines = Storage.Clone(machines); this.lockedId = lockedId; Title = "Rama Edit · Impostazioni macchine RS232";
         Width = 1080; Height = 760; MinWidth = 780; MinHeight = 550; WindowStartupLocation = WindowStartupLocation.CenterOwner;
         var root = new DockPanel { Margin = new(12) }; Content = root;
@@ -64,7 +66,7 @@ public class MachineSettingsWindow : Window
         var dirs = Tab("Directory");
         Field(dirs, draft.Settings.Directories.Send, "Path", "Cartella trasmissione predefinita"); Field(dirs, draft.Settings.Directories.Send, "Extension", "Estensione trasmissione"); Field(dirs, draft.Settings.Directories.Send, "AdditionalExtensions", "Estensioni aggiuntive trasmissione");
         Field(dirs, draft.Settings.Directories.Receive, "Path", "Cartella ricezione predefinita"); Field(dirs, draft.Settings.Directories.Receive, "Extension", "Estensione ricezione"); Field(dirs, draft.Settings.Directories.Receive, "AdditionalExtensions", "Estensioni aggiuntive ricezione");
-        var info = Tab("Info versione"); info.Children.Add(new TextBlock { Text = "Rama Edit 0.2 · Applicazione nativa Windows\nC# · .NET 10 · WPF\n\nConfigurazioni e sessione salvate in:\n" + Storage.Folder + "\n\nSoftware XON/XOFF con caratteri configurabili;\nRTS/CTS gestiti dal driver Windows.\nLa ricezione si interrompe in caso di errore della porta.\n\nL’anteprima geometrica non verifica collisioni o asportazione.", TextWrapping = TextWrapping.Wrap });
+        var info = Tab("Info versione"); info.Children.Add(new TextBlock { Foreground = Brushes.LightSteelBlue, Text = "Rama Edit 0.2 · Applicazione nativa Windows\nC# · .NET 10 · WPF\n\nConfigurazioni e sessione salvate in:\n" + Storage.Folder + "\n\nSoftware XON/XOFF con caratteri configurabili;\nRTS/CTS gestiti dal driver Windows.\nLa ricezione si interrompe in caso di errore della porta.\n\nL’anteprima geometrica non verifica collisioni o asportazione.", TextWrapping = TextWrapping.Wrap });
     }
     void Field(Panel parent, object model, string property, string label, string[]? choices = null)
     {
@@ -74,7 +76,7 @@ public class MachineSettingsWindow : Window
             var box = new CheckBox { Content = label, IsThreeState = p.PropertyType == typeof(bool?), IsChecked = (bool?)p.GetValue(model) }; parent.Children.Add(box); readers.Add(() => p.SetValue(model, box.IsChecked)); return;
         }
         var row = new Grid { Margin = new(0, 2, 0, 2) }; row.ColumnDefinitions.Add(new() { Width = new(280) }); row.ColumnDefinitions.Add(new());
-        row.Children.Add(new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center, Margin = new(3) });
+        row.Children.Add(new TextBlock { Text = label, Foreground = Brushes.LightSteelBlue, TextWrapping = TextWrapping.Wrap, VerticalAlignment = VerticalAlignment.Center, Margin = new(3) });
         if (choices is not null)
         {
             var labels = new Dictionary<string, string> { ["none"] = "Nessuno", ["even"] = "Pari", ["odd"] = "Dispari", ["software"] = "Software · XON/XOFF", ["hardware"] = "Hardware · RTS/CTS", ["both"] = "Software + hardware", ["auto"] = "Automatico" };

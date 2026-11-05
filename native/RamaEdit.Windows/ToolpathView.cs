@@ -22,7 +22,7 @@ public class ToolpathView : FrameworkElement
     }
     void Fit()
     {
-        var points = result.Segments.SelectMany(s => new[] { s.From.Offset(s.WorkShift), s.To.Offset(s.WorkShift) }).Append(new Point3()).Select(Project).ToList();
+        var points = result.Segments.SelectMany(s => new[] { s.From.Offset(s.WorkShift), s.To.Offset(s.WorkShift) }).Concat(result.Steps.Select(s => new Point3().Offset(s.WorkShift))).DefaultIfEmpty(new Point3()).Select(Project).ToList();
         double minX = points.Min(p => p.X), maxX = points.Max(p => p.X), minY = points.Min(p => p.Y), maxY = points.Max(p => p.Y);
         center = new((minX + maxX) / 2, (minY + maxY) / 2); scale = Math.Min(Math.Max(50, ActualWidth - 100) / Math.Max(maxX - minX, 1), Math.Max(50, ActualHeight - 100) / Math.Max(maxY - minY, 1));
     }
@@ -45,10 +45,10 @@ public class ToolpathView : FrameworkElement
         }
         var shift = step?.WorkShift; Point zero = Screen(new Point3().Offset(shift)); var yellow = Brushes.Gold;
         dc.DrawLine(new(yellow, 1), zero - new Vector(7, 0), zero + new Vector(7, 0)); dc.DrawLine(new(yellow, 1), zero - new Vector(0, 7), zero + new Vector(0, 7));
-        Text(dc, "0 " + (step?.Origin ?? ""), zero + new Vector(-14, -25), yellow, 15);
+        Text(dc, "0 " + (step?.Origin ?? (step?.WorkShift is not null ? "G10 P0" : "")), zero + new Vector(-14, -25), yellow, 15);
         if (step is not null) dc.DrawEllipse(Brushes.PaleGreen, new(Brushes.SeaGreen, 4), Screen(step.Position.Offset(shift)), 4, 4);
         Text(dc, View == "3D" ? "VISTA ISOMETRICA" : "PIANO " + View, new(12, 10), Brushes.LightSteelBlue, 10);
-        Text(dc, "Coordinate locali · mm · " + (step?.Origin ?? "origine non indicata"), new(12, 27), Brushes.SlateGray, 11);
+        Text(dc, "Coordinate locali · mm · " + (step?.Origin ?? (step?.WorkShift is not null ? "G10 P0" : "origine non indicata")), new(12, 27), Brushes.SlateGray, 11);
         Point axis = new(Math.Max(40, ActualWidth - 80), Math.Max(80, ActualHeight - 30));
         void Arrow(Vector direction, string label, Brush color)
         {

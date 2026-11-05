@@ -58,6 +58,7 @@ public class MainWindow : Window
     readonly Queue<string> logChunks = new(); int logLength; int receivedPending; readonly DispatcherTimer receivedRefresh = new() { Interval = TimeSpan.FromMilliseconds(80) }; double[] cumulative = []; bool playing; double playbackPosition;
     public MainWindow(bool testMode = false)
     {
+        Style = (Style)Application.Current.FindResource(typeof(Window));
         this.testMode = testMode; Title = "Rama Edit"; Width = 1440; Height = 920; MinWidth = 900; MinHeight = 600; WindowStartupLocation = WindowStartupLocation.CenterScreen; AllowDrop = true;
         try { machines = testMode ? Storage.Defaults() : Storage.Read<List<MachineProfile>>("machines.json") ?? Storage.Defaults(); foreach (var m in machines) m.Settings.Validate(); }
         catch (Exception e) { machines = Storage.Defaults(); Loaded += (_, _) => Error("Configurazioni non caricate: " + e.Message); persistenceFailed = true; }
@@ -156,7 +157,7 @@ public class MainWindow : Window
     void Activate(NativeDocument doc, bool capture = true)
     {
         Pause(); if (capture) Capture(); active = doc;
-        if (page != "receive") { syncing = true; Editor.Document = doc.Text; Editor.CaretOffset = Math.Min(doc.Caret, doc.Text.TextLength); Editor.ScrollToVerticalOffset(doc.VerticalOffset); Editor.ScrollToHorizontalOffset(doc.HorizontalOffset); machineType.SelectedIndex = doc.Model.Machine == "lathe" ? 1 : 0; diameter.SelectedIndex = doc.Model.Diameter ? 0 : 1; viewSelect.SelectedItem = doc.View ?? (doc.Model.Machine == "lathe" ? "XZ" : "3D"); syncing = false; }
+        if (page != "receive") { syncing = true; Editor.Document = doc.Text; Editor.CaretOffset = Math.Min(doc.Caret, doc.Text.TextLength); Editor.ScrollToVerticalOffset(doc.VerticalOffset); Editor.ScrollToHorizontalOffset(doc.HorizontalOffset); machineType.SelectedIndex = doc.Model.Machine == "lathe" ? 1 : 0; diameter.SelectedIndex = doc.Model.Diameter ? 0 : 1; viewSelect.SelectedItem = doc.View ?? (doc.Model.Machine == "lathe" ? "XZ" : "3D"); Preview.View = viewSelect.SelectedItem?.ToString() ?? "3D"; syncing = false; }
         RefreshTabs(); RebuildSimulation(); Status();
     }
     void RefreshTabs()
@@ -308,7 +309,7 @@ public class MainWindow : Window
     {
         string raw; lock (rxGate) raw = received.ToString();
         if (raw.Length != receivedDocument.TextLength) receivedDirty = true;
-        syncing = true; if (raw.Length >= receivedDocument.TextLength) receivedDocument.Insert(receivedDocument.TextLength, raw[receivedDocument.TextLength..]); else receivedDocument.Text = raw; syncing = false;
+        syncing = true; if (raw.Length >= receivedDocument.TextLength) receivedDocument.Insert(receivedDocument.TextLength, raw[receivedDocument.TextLength..]); else receivedDocument.Text = raw; syncing = false; receivedDocument.UndoStack.ClearAll();
         if (page == "receive" && follow.IsChecked == true) Editor.ScrollToEnd(); Status(); TransferState();
     }
     void ClearReceived()
@@ -443,6 +444,7 @@ public class MainWindow : Window
         playButton = B("▶", TogglePlay); playbackGrid.Children.Add(playButton); Grid.SetColumn(timeline, 1); playbackGrid.Children.Add(timeline); var reset = B("↺", () => { Pause(); timeline.Value = 0; }); Grid.SetColumn(reset, 2); playbackGrid.Children.Add(reset); Grid.SetColumn(speed, 3); playbackGrid.Children.Add(speed); bottom.Children.Add(playbackGrid);
         timeline.ValueChanged += (_, _) => DrawStep(); simulationPanel.Children.Add(Preview);
     }
+    public void SetMachineType(string machine) => machineType.SelectedIndex = machine == "lathe" ? 1 : 0;
     public void RebuildSimulation()
     {
         Pause(); if (active is null) return;
