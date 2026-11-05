@@ -1,10 +1,10 @@
-# CNC Studio
+# Rama Edit
 
 Editor G-code in italiano per fresatrice a 3 assi e tornio, con anteprima del percorso e trasferimento seriale RS-232 dal PC locale.
 
 ## Uso online con GitHub Pages
 
-Il workflow `.github/workflows/pages.yml` esegue i test, costruisce l’app e la pubblica a ogni aggiornamento del ramo `main`. Nel repository apri **Settings → Pages → Build and deployment → Source**, seleziona **GitHub Actions**, poi apri **Actions → Pubblica CNC Studio → Run workflow** se la prima esecuzione non è riuscita perché Pages non era ancora abilitato. Il link effettivo del sito compare nella pagina Pages e nel risultato del job di pubblicazione.
+Il workflow `.github/workflows/pages.yml` esegue i test, costruisce l’app e la pubblica a ogni aggiornamento del ramo `main`. Nel repository apri **Settings → Pages → Build and deployment → Source**, seleziona **GitHub Actions**, poi apri **Actions → Pubblica Rama Edit → Run workflow** se la prima esecuzione non è riuscita perché Pages non era ancora abilitato. Il link effettivo del sito compare nella pagina Pages e nel risultato del job di pubblicazione.
 
 Dal sito puoi aprire i file CNC del PC e simulare i percorsi. L’editor funziona nel browser: i file aperti non vengono caricati su GitHub. La seriale richiede Chrome/Edge sul PC collegato alla macchina; il sito Pages viene servito in HTTPS. Le build usano percorsi relativi per funzionare anche sotto `/cnc-editor/`.
 

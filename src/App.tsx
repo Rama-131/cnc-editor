@@ -628,7 +628,7 @@ export default function App() {
         <header className="topbar">
           <div className="app-context">
             <div className="brand">
-              CNC<span>studio</span>
+              Rama <span>Edit</span>
             </div>
             <h1>{pageTitle[tab]}</h1>
           </div>

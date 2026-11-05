@@ -18,7 +18,7 @@ test("editor, descrizioni, colori, simulazione e file", async ({ page }) => {
       .getByRole("group", { name: "Impostazioni macchina", exact: true }),
   ).toBeVisible();
   await page.screenshot({
-    path: "/tmp/cnc-studio-desktop.png",
+    path: "/tmp/rama-edit-desktop.png",
     fullPage: true,
   });
   await page.locator(".cm-content").getByText("G21", { exact: true }).hover();
@@ -71,7 +71,7 @@ test("editor, descrizioni, colori, simulazione e file", async ({ page }) => {
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Salva file", exact: true }).click();
   expect((await download).suggestedFilename()).toBe("prova.nc");
-  await page.screenshot({ path: "/tmp/cnc-studio-file.png", fullPage: true });
+  await page.screenshot({ path: "/tmp/rama-edit-file.png", fullPage: true });
   expect(errors).toEqual([]);
 });
 test("configuratore e trasmissione con una porta seriale di test", async ({
@@ -252,7 +252,7 @@ test("interfaccia utilizzabile su schermo stretto", async ({ page }) => {
   expect(
     await page.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(390);
-  await page.screenshot({ path: "/tmp/cnc-studio-mobile.png", fullPage: true });
+  await page.screenshot({ path: "/tmp/rama-edit-mobile.png", fullPage: true });
   await page.getByRole("link", { name: "Trasmissione", exact: true }).click();
   await expect(page.locator(".serial-tools")).toBeVisible();
   await expect(page.locator(".preview-column")).toBeHidden();

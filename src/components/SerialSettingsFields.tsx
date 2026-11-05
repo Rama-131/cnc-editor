@@ -719,7 +719,7 @@ export function SerialSettingsFields({
         )}
         {tab === "Info versione" && (
           <div className="rs232-info">
-            <strong>CNCstudio 0.1 · Configuratore RS-232</strong>
+            <strong>Rama Edit 0.1 · Configuratore RS-232</strong>
             <p>
               Profili macchina salvati nel browser su questo PC. Collegamento
               tramite Web Serial in Chrome o Edge, su HTTPS o localhost.
