@@ -4,7 +4,7 @@ Applicazione nativa in C#/.NET 10 e WPF, con editor AvalonEdit e porte COM gesti
 
 ## Installazione
 
-Su Windows 10/11 a 64 bit, scarica **RamaEdit-Setup-0.2.1-x64.exe** dalla [versione Windows](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.1), eseguilo e apri **Rama Edit** dal desktop o dal menu Start. La versione ZIP si estrae in una cartella e si avvia con RamaEdit.exe.
+Su Windows 10/11 a 64 bit, scarica **RamaEdit-Setup-0.2.2-x64.exe** dalla [versione Windows](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.2), eseguilo e apri **Rama Edit** dal desktop o dal menu Start. La versione ZIP si estrae in una cartella e si avvia con RamaEdit.exe.
 
 L'installer di questa prima versione non è firmato digitalmente: Windows potrebbe chiedere conferma dell'autore. Non richiede i permessi di amministratore. La versione è pubblicata come **versione di prova**, con compilazione e test di avvio su Windows; il collegamento RS232 va verificato sul PC con il proprio adattatore e controllo CNC.
 
