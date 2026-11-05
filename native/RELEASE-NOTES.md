@@ -1,13 +1,16 @@
-Aggiornamento **Rama Edit 0.2.3 per Windows**.
+Aggiornamento **Rama Edit 0.2.4 per Windows**.
 
-- Apertura centrata e dimensioni adattate all’area disponibile dello schermo, con barra del titolo e pulsanti Windows accessibili anche con ingrandimento dello schermo.
-- Frecce e quote della simulazione con gli stessi colori più vivaci: X rosso, Y verde, Z azzurro.
-- Pulsante Esempi nella barra superiore, accanto ai comandi dei file.
-- Trasmissione: rimossi Annulla, Ripristina, Colori e il collegamento alle impostazioni dalla barra; Invio programma spostato a sinistra di Collega porta.
-- Nome e pulsante di chiusura delle schede riuniti in un unico rettangolo, blu per la scheda attiva.
+- Colori accanto a Stampa ed Esempi, con campioni visibili, selettore colori Windows e anteprima immediata del testo e del disegno.
+- Colori separati per rapido e lavorazione, applicati sia al programma sia al percorso. Anche i movimenti senza G ripetuto mantengono il colore corretto; i commenti restano distinguibili. Disponibile anche lo stile per codici G/M.
+- Trasmissione: Aggiungi spazi e Crea lista utensili allineati a destra. Ricezione: Impostazioni tutto a destra e Avvia ricezione accanto ai comandi di collegamento.
+- Rimossi Trova precedente e Trova prossimo dalla barra principale: restano nel pannello Trova / sostituisci.
+- Corretto Nuovo dopo la chiusura di tutte le schede: editor, salvataggio e barra delle funzioni tornano disponibili.
+- Crocetta delle schede più grande, nella propria casella con una linea divisoria, all’interno dello stesso rettangolo blu.
+- Bordo dei pulsanti al passaggio del mouse più spesso e azzurro elettrico, senza spostamenti dei comandi.
+- La finestra Apri parte da Questo PC.
 
-Scaricare **RamaEdit-Setup-0.2.3-x64.exe** e installare l’aggiornamento sopra la versione precedente. La cartella dei dati locali e le configurazioni macchina restano quelle esistenti.
+Scaricare **RamaEdit-Setup-0.2.4-x64.exe**, chiudere Rama Edit e installare sopra la versione precedente. I dati locali e le configurazioni macchina vengono conservati.
 
-Questa è una versione di prova non firmata digitalmente: non risolve il blocco di Controllo intelligente delle app. La firma e la distribuzione Microsoft Store rimangono un percorso separato, con verifica dell’autore e certificazione.
+Versione di prova non firmata digitalmente. La firma e la distribuzione Microsoft Store rimangono un percorso separato.
 
 [Guida Windows](https://github.com/Rama-131/cnc-editor/blob/main/native/README.md).

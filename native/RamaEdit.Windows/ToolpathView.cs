@@ -10,6 +10,9 @@ public class ToolpathView : FrameworkElement
 {
     SimulationResult result = new(); public SimulationResult Result { get => result; set { result = value; Reset(); } }
     public int StepIndex { get; set; } = -1; public string View { get; set; } = "XZ"; public bool ShowRapids { get; set; } = true;
+    public bool ShowLegend { get; set; } = true;
+    public Brush RapidBrush { get; set; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString(AppearancePalette.Defaults()["rapid"]));
+    public Brush WorkingBrush { get; set; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString(AppearancePalette.Defaults()["cut"]));
     double zoom = 1; Vector pan; Point? drag; Point center; double scale = 1;
     public ToolpathView() { ClipToBounds = true; Focusable = true; MinHeight = 140; Cursor = Cursors.Hand; ToolTip = "Trascina per spostare · Rotella per zoomare · Doppio clic per centrare"; }
     Point Project(Point3 p) => View switch { "XY" => new(p.X, -p.Y), "XZ" => new(p.Z, -p.X), "YZ" => new(p.Y, -p.Z), _ => new((p.X - p.Y) * .866, (p.X + p.Y) * .5 - p.Z) };
@@ -36,8 +39,8 @@ public class ToolpathView : FrameworkElement
         for (double y = 0; y < ActualHeight; y += 24) dc.DrawLine(grid, new(0, y), new(ActualWidth, y));
         var step = StepIndex >= 0 && StepIndex < result.Steps.Count ? result.Steps[StepIndex] : null;
         int done = step?.SegmentCount ?? result.Segments.Count;
-        var cut = new Pen(new SolidColorBrush(Color.FromRgb(100, 229, 180)), 1.6); var future = new Pen(new SolidColorBrush(Color.FromRgb(66, 102, 99)), 1);
-        var rapid = new Pen(new SolidColorBrush(Color.FromRgb(112, 162, 198)), .8) { DashStyle = DashStyles.Dash };
+        var cut = new Pen(WorkingBrush, 1.8); var futureBrush = WorkingBrush.Clone(); futureBrush.Opacity = .38; var future = new Pen(futureBrush, 1);
+        var rapid = new Pen(RapidBrush, 1.2) { DashStyle = DashStyles.Dash };
         for (int i = 0; i < result.Segments.Count; i++)
         {
             var s = result.Segments[i]; if (s.Rapid && !ShowRapids) continue;
@@ -49,6 +52,14 @@ public class ToolpathView : FrameworkElement
         if (step is not null) dc.DrawEllipse(Brushes.PaleGreen, new(Brushes.SeaGreen, 4), Screen(step.Position.Offset(shift)), 4, 4);
         Text(dc, View == "3D" ? "VISTA ISOMETRICA" : "PIANO " + View, new(12, 10), Brushes.LightSteelBlue, 10);
         Text(dc, "Coordinate locali · mm · " + (step?.Origin ?? (step?.WorkShift is not null ? "G10 P0" : "origine non indicata")), new(12, 27), Brushes.SlateGray, 11);
+        if (ShowLegend)
+        {
+            double y = Math.Max(50, ActualHeight - 18);
+            dc.DrawLine(new Pen(RapidBrush, 1.3) { DashStyle = DashStyles.Dash }, new(12, y + 7), new(33, y + 7));
+            Text(dc, "Rapido", new(39, y), RapidBrush, 11);
+            dc.DrawLine(new Pen(WorkingBrush, 1.8), new(100, y + 7), new(121, y + 7));
+            Text(dc, "Lavorazione", new(127, y), WorkingBrush, 11);
+        }
         Point axis = new(Math.Max(40, ActualWidth - 80), Math.Max(80, ActualHeight - 30));
         void Arrow(Vector direction, string label)
         {

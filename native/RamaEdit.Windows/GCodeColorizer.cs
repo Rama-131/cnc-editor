@@ -6,16 +6,29 @@ namespace RamaEdit.Windows;
 
 public class GCodeColorizer : DocumentColorizingTransformer
 {
-    public Dictionary<string, string> Palette { get; set; } = new() { ["g"] = "#4FA9FF", ["m"] = "#FF6BE8", ["axis"] = "#42E8FF", ["value"] = "#FFE55B", ["tool"] = "#FF9E45", ["comment"] = "#7DFF6A" };
+    public Dictionary<string, string> Palette { get; set; } = AppearancePalette.Defaults();
+    public bool UseMotionColors { get; set; } = true;
+    public string Machine { get; set; } = "mill";
     object? cachedVersion; List<(int From, int To, string Color)> spans = [];
     public void Invalidate() => cachedVersion = null;
     void Build(TextDocument document)
     {
         if (ReferenceEquals(cachedVersion, document.Version)) return; cachedVersion = document.Version; spans.Clear();
         var text = document.Text;
+        var kinds = UseMotionColors ? EditorMotion.Classify(text, Machine) : null;
+        var lineStarts = new List<int> { 0 };
+        for (int i = 0; i < text.Length; i++) if (text[i] == '\n') lineStarts.Add(i + 1);
+        int lineIndex = 0;
         foreach (var w in ProgramTools.Words(text))
         {
-            string key = w.Letter switch { "G" => "g", "M" => "m", "T" or "H" => "tool", _ => "" };
+            while (lineIndex + 1 < lineStarts.Count && lineStarts[lineIndex + 1] <= w.From) lineIndex++;
+            var kind = kinds is null ? MotionColorKind.None : kinds[lineIndex];
+            string key = kind switch
+            {
+                MotionColorKind.Rapid => "rapid",
+                MotionColorKind.Working => "cut",
+                _ => w.Letter switch { "G" => "g", "M" => "m", "T" or "H" => "tool", _ => "" }
+            };
             if (key.Length > 0) spans.Add((w.From, w.From + w.Length, key));
             else { spans.Add((w.From, w.From + 1, "axis")); spans.Add((w.From + 1, w.From + w.Length, "value")); }
         }

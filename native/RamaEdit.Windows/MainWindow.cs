@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -43,7 +44,9 @@ public class MainWindow : Window
     readonly TextBlock pageTitle = new() { FontWeight = FontWeights.SemiBold, FontSize = 15, Margin = new(16, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
     readonly TextBlock message = new() { Margin = new(12, 4, 12, 4), TextWrapping = TextWrapping.Wrap, Foreground = Brushes.LightSteelBlue }, editorStatus = new() { Padding = new(10, 4, 10, 4), FontSize = 11, Foreground = Brushes.SlateGray };
     readonly TextBlock coordinateText = new() { FontFamily = new("Consolas"), FontSize = 18, Margin = new(10, 5, 10, 5), TextWrapping = TextWrapping.Wrap }, simulationStatus = new() { Margin = new(10, 4, 10, 6), FontSize = 11, TextWrapping = TextWrapping.Wrap };
-    readonly StackPanel tabs = new() { Orientation = Orientation.Horizontal }, toolbar = new() { Orientation = Orientation.Horizontal }, editTools = new() { Orientation = Orientation.Horizontal }, extraTools = new() { Orientation = Orientation.Horizontal }, transferTools = new() { Orientation = Orientation.Horizontal };
+    readonly Grid toolbar = new();
+    readonly StackPanel toolbarLeft = new() { Orientation = Orientation.Horizontal }, toolbarRight = new() { Orientation = Orientation.Horizontal };
+    readonly StackPanel tabs = new() { Orientation = Orientation.Horizontal }, editTools = new() { Orientation = Orientation.Horizontal }, extraTools = new() { Orientation = Orientation.Horizontal }, transferTools = new() { Orientation = Orientation.Horizontal };
     readonly ScrollViewer tabScroll, toolbarScroll; readonly Grid body = new(); readonly DockPanel simulationPanel = new(), editorPanel = new(); readonly WrapPanel fileActions = new() { Orientation = Orientation.Horizontal };
     readonly StackPanel findPanel = new() { Visibility = Visibility.Collapsed, Background = new SolidColorBrush(Color.FromRgb(29, 45, 56)), Margin = new(0) };
     readonly TextBox search = new() { MinWidth = 200, Width = 280 }, replacement = new() { MinWidth = 200, Width = 280 }, receivedName = new() { Text = "ricevuto.txt", Width = 300 };
@@ -53,6 +56,7 @@ public class MainWindow : Window
     readonly GCodeColorizer colorizer = new(); readonly ExecutionLine execution = new(); readonly TextDocument receivedDocument = new();
     readonly StringBuilder received = new(); readonly object rxGate = new(); bool receivedDirty;
     readonly DispatcherTimer debounce = new() { Interval = TimeSpan.FromMilliseconds(350) }, autosave = new() { Interval = TimeSpan.FromSeconds(2) }, playback = new() { Interval = TimeSpan.FromMilliseconds(40) };
+    Button spacingButton = null!, toolListButton = null!;
     Button undoButton = null!, redoButton = null!, colorsButton = null!, transferSettingsButton = null!;
     Button connectButton = null!, sendButton = null!, receiveButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, examplesButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!;
     SerialSession? serial; string page = "workspace"; bool syncing, simulationVisible = true, busy, closing, persistenceFailed;
@@ -75,20 +79,21 @@ public class MainWindow : Window
         DockPanel.SetDock(header, Dock.Top); main.Children.Add(header);
         var context = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(10, 0, 5, 0) }; context.Children.Add(new TextBlock { Text = "Rama Edit", FontWeight = FontWeights.Bold, FontSize = 19, Margin = new(0, 10, 0, 10) }); context.Children.Add(pageTitle); header.Children.Add(context);
         fileActions.Children.Add(BA("📂 Apri", OpenFiles)); saveButton = BA("↓ Salva", () => Save(false)); saveAsButton = BA("▣ Salva con nome", () => Save(true)); printButton = B("▤ Stampa", Print);
-        fileActions.Children.Add(saveButton); fileActions.Children.Add(saveAsButton); fileActions.Children.Add(printButton); examplesButton = B("▧ Esempi", Examples); fileActions.Children.Add(examplesButton); header.Children.Add(fileActions);
+        fileActions.Children.Add(saveButton); fileActions.Children.Add(saveAsButton); fileActions.Children.Add(printButton); examplesButton = B("▧ Esempi", Examples); fileActions.Children.Add(examplesButton); colorsButton = B("◉ Colori", Colors); fileActions.Children.Add(colorsButton); header.Children.Add(fileActions);
         tabScroll = new() { Content = tabs, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Background = new SolidColorBrush(Color.FromRgb(26, 34, 43)) }; DockPanel.SetDock(tabScroll, Dock.Top); main.Children.Add(tabScroll);
-        toolbar.Children.Add(editTools); toolbar.Children.Add(extraTools); toolbar.Children.Add(transferTools);
-        toolbarScroll = new() { Content = toolbar, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Background = new SolidColorBrush(Color.FromRgb(27, 40, 52)), Padding = new(5, 3, 5, 3) }; DockPanel.SetDock(toolbarScroll, Dock.Top); main.Children.Add(toolbarScroll);
-        undoButton = Tool("↶", "Annulla", () => Editor.Undo()); redoButton = Tool("↷", "Ripristina", () => Editor.Redo()); editTools.Children.Add(undoButton); editTools.Children.Add(redoButton); editTools.Children.Add(Tool("␣", "Aggiungi spazi", () => ReplaceSource(CoreTools.AddSpaces(Editor.Text))));
-        editTools.Children.Add(Tool("☷", "Crea lista utensili", ToolList)); colorsButton = Tool("◉", "Colori", Colors); editTools.Children.Add(colorsButton);
+        toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); toolbar.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) }); toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+        toolbarLeft.Children.Add(editTools); toolbarLeft.Children.Add(extraTools); toolbarLeft.Children.Add(transferTools);
+        toolbar.Children.Add(toolbarLeft); Grid.SetColumn(toolbarRight, 2); toolbar.Children.Add(toolbarRight);
+        toolbarScroll = new() { Content = toolbar, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Background = new SolidColorBrush(Color.FromRgb(27, 40, 52)), Padding = new(5, 3, 5, 3) }; toolbar.SetBinding(MinWidthProperty, new Binding(nameof(ScrollViewer.ViewportWidth)) { Source = toolbarScroll }); DockPanel.SetDock(toolbarScroll, Dock.Top); main.Children.Add(toolbarScroll);
+        undoButton = Tool("↶", "Annulla", () => Editor.Undo()); redoButton = Tool("↷", "Ripristina", () => Editor.Redo()); editTools.Children.Add(undoButton); editTools.Children.Add(redoButton); spacingButton = Tool("␣", "Aggiungi spazi", () => ReplaceSource(CoreTools.AddSpaces(Editor.Text))); editTools.Children.Add(spacingButton);
+        toolListButton = Tool("☷", "Crea lista utensili", ToolList); editTools.Children.Add(toolListButton);
         extraTools.Children.Add(Tool("F", "Avanzamento", () => Adjust("F"))); extraTools.Children.Add(Tool("S", "Giri mandrino", () => Adjust("S")));
         findButton = Tool("⌕", "Trova / sostituisci", ToggleFind); extraTools.Children.Add(findButton);
-        extraTools.Children.Add(Tool("↑", "Trova precedente", () => Find(false))); extraTools.Children.Add(Tool("↓", "Trova prossimo", () => Find(true)));
         extraTools.Children.Add(Tool("◁", "Utensile precedente", () => ToolNavigate(false))); extraTools.Children.Add(Tool("▷", "Prossimo utensile", () => ToolNavigate(true)));
         previewButton = Tool("◫", "Nascondi simulazione", () => { simulationVisible = !simulationVisible; ApplyPage(); }); extraTools.Children.Add(previewButton);
         transferTools.Children.Add(Labeled("Macchina", machineSelect)); transferSettingsButton = B("⚙ Impostazioni", Settings); transferTools.Children.Add(transferSettingsButton); transferTools.Children.Add(Labeled("Porta", portSelect)); transferTools.Children.Add(B("⟳", RefreshPorts));
         connectButton = BA("Collega porta", Connect); sendButton = BA("⇧ Invia programma", Send); receiveButton = BA("⇩ Avvia ricezione", Receive);
-        transferTools.Children.Add(sendButton); transferTools.Children.Add(connectButton); transferTools.Children.Add(receiveButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
+        transferTools.Children.Add(sendButton); transferTools.Children.Add(receiveButton); transferTools.Children.Add(connectButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
         BuildFind(); DockPanel.SetDock(findPanel, Dock.Top); main.Children.Add(findPanel);
         DockPanel.SetDock(message, Dock.Top); main.Children.Add(message);
         body.ColumnDefinitions.Add(new()); body.ColumnDefinitions.Add(new() { Width = new(0) }); main.Children.Add(body);
@@ -113,7 +118,7 @@ public class MainWindow : Window
         LoadState(); machineSelect.ItemsSource = machines; machineSelect.SelectedItem = machines.FirstOrDefault(m => m.Id == restoredMachineId) ?? machines.FirstOrDefault(); RefreshPorts();
         if (documents.Count == 0) AddDocument(new() { Name = "nuovo_programma.txt", Text = Storage.Resource<Dictionary<string, string>>("samples")["mill"] });
         else Activate(documents[Math.Clamp(restoredIndex, 0, documents.Count - 1)]);
-        if (!testMode) { try { var p = Storage.Read<Dictionary<string, string>>("palette.json"); if (p is not null) { foreach (string k in colorizer.Palette.Keys.ToList()) if (p.TryGetValue(k, out string? v) && Regex.IsMatch(v, "^#[A-Fa-f0-9]{6}$")) colorizer.Palette[k] = v; } } catch (Exception e) { Error(e.Message); } autosave.Start(); }
+        if (!testMode) { try { var p = Storage.Read<Dictionary<string, string>>("palette.json"); if (p is not null) { ApplyAppearance(AppearancePalette.Restore(p), AppearancePalette.MotionStyle(p)); } } catch (Exception e) { Error(e.Message); } autosave.Start(); }
         ApplyPage();
     }
     MachineProfile? SelectedMachine => machineSelect.SelectedItem as MachineProfile;
@@ -161,7 +166,7 @@ public class MainWindow : Window
     {
         Pause(); if (capture) Capture(); active = doc;
         if (page != "receive") { syncing = true; Editor.Document = doc.Text; Editor.CaretOffset = Math.Min(doc.Caret, doc.Text.TextLength); Editor.ScrollToVerticalOffset(doc.VerticalOffset); Editor.ScrollToHorizontalOffset(doc.HorizontalOffset); machineType.SelectedIndex = doc.Model.Machine == "lathe" ? 1 : 0; diameter.SelectedIndex = doc.Model.Diameter ? 0 : 1; viewSelect.SelectedItem = doc.View ?? (doc.Model.Machine == "lathe" ? "XZ" : "3D"); Preview.View = viewSelect.SelectedItem?.ToString() ?? "3D"; syncing = false; }
-        RefreshTabs(); RebuildSimulation(); Status();
+        RefreshTabs(); RebuildSimulation(); ApplyPage();
     }
     void RefreshTabs()
     {
@@ -177,17 +182,17 @@ public class MainWindow : Window
             name.Background = Brushes.Transparent; name.BorderThickness = new(0); name.Foreground = foreground;
             name.ToolTip = d.Model.Path ?? d.Model.Name;
             var close = BA("×", async () => { await CloseDocument(d); });
-            close.Margin = new(0); close.Padding = new(8, 5, 10, 5); close.ToolTip = "Chiudi " + d.Model.Name;
+            close.Margin = new(0); close.Padding = new(3, 1, 3, 1); close.Width = 36; close.FontSize = 19; close.FontWeight = FontWeights.SemiBold; close.ToolTip = "Chiudi " + d.Model.Name;
             close.Background = Brushes.Transparent; close.BorderThickness = new(0); close.Foreground = foreground;
             AutomationProperties.SetName(close, "Chiudi " + d.Model.Name);
-            row.Children.Add(name); row.Children.Add(close);
+            row.Children.Add(name); row.Children.Add(new Border { Child = close, BorderThickness = new(1, 0, 0, 0), BorderBrush = selected ? new SolidColorBrush(Color.FromArgb(105, 255, 255, 255)) : new SolidColorBrush(Color.FromRgb(65, 86, 102)) });
             tabs.Children.Add(new Border { Child = row, Background = background, BorderBrush = background,
                 BorderThickness = new(1), CornerRadius = new(4), Margin = new(0, 0, 4, 0) });
 
         }
         tabs.Children.Add(B("+ Nuovo", NewDocument));
     }
-    async Task<bool> CloseDocument(NativeDocument d)
+    internal async Task<bool> CloseDocument(NativeDocument d)
     {
         if (!await ConfirmDocument(d)) return false;
         int index = documents.IndexOf(d); documents.Remove(d);
@@ -212,7 +217,8 @@ public class MainWindow : Window
     }
     Task OpenFiles()
     {
-        var dlg = new OpenFileDialog { Multiselect = true, Filter = "Programmi CNC e testo|*.txt;*.nc;*.cnc;*.tap;*.iso;*.mpf;*.gcode|Tutti i file|*.*", InitialDirectory = SelectedMachine?.Settings.Directories.Send.Path ?? "" };
+        // The Windows shell namespace opens This PC, including when Documents is redirected to OneDrive.
+        var dlg = new OpenFileDialog { Multiselect = true, Filter = "Programmi CNC e testo|*.txt;*.nc;*.cnc;*.tap;*.iso;*.mpf;*.gcode|Tutti i file|*.*", InitialDirectory = "::{20D04FE0-3AEA-1069-A2D8-08002B30309D}" };
         if (dlg.ShowDialog(this) == true) foreach (string path in dlg.FileNames) OpenPath(path); return Task.CompletedTask;
     }
     static void WriteText(string path, string text)
@@ -252,7 +258,10 @@ public class MainWindow : Window
     void ApplyPage()
     {
         pageTitle.Text = page switch { "send" => "Trasmissione", "receive" => "Ricezione", _ => "Scrittura / Simulazione" };
-        foreach (var button in new[] { undoButton, redoButton, colorsButton, transferSettingsButton }) button.Visibility = page == "send" ? Visibility.Collapsed : Visibility.Visible;
+        ArrangeTransferToolbar();
+        spacingButton.IsEnabled = toolListButton.IsEnabled = active is not null;
+        colorsButton.Visibility = page == "workspace" ? Visibility.Visible : Visibility.Collapsed;
+        foreach (var button in new[] { undoButton, redoButton }) button.Visibility = page == "send" ? Visibility.Collapsed : Visibility.Visible;
         examplesButton.Visibility = page == "workspace" ? Visibility.Visible : Visibility.Collapsed;
         bool rx = page == "receive", sim = page == "workspace" && simulationVisible && active is not null;
         Editor.IsReadOnly = rx || active is null; editTools.Visibility = rx || active is null ? Visibility.Collapsed : Visibility.Visible; extraTools.Visibility = page == "workspace" && active is not null ? Visibility.Visible : Visibility.Collapsed;
@@ -403,14 +412,35 @@ public class MainWindow : Window
         var p = new DockPanel { Margin = new(12) }; var actions = new StackPanel { Orientation = Orientation.Horizontal }; actions.Children.Add(B("Salva lista TXT", () => { var dlg = new SaveFileDialog { Filter = "Testo TXT|*.txt", FileName = Path.GetFileNameWithoutExtension(active.Model.Name) + "_utensili.txt" }; if (dlg.ShowDialog(w) == true) WriteText(dlg.FileName, text); })); var print = B("Stampa lista", () => PrintText(text, "Lista utensili")); print.IsEnabled = serial?.Receiving != true && serial?.Sending != true; actions.Children.Add(print); DockPanel.SetDock(actions, Dock.Top); p.Children.Add(actions);
         p.Children.Add(new TextBox { Text = text, IsReadOnly = true, AcceptsReturn = true, FontFamily = new("Consolas"), HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }); w.Content = p; w.ShowDialog();
     }
-    void Colors()
+    internal ColorSettingsWindow CreateColorSettings() => new(colorizer.Palette, colorizer.UseMotionColors, (palette, motion) =>
     {
-        var w = new Window { Owner = this, Title = "Rama Edit · Colori editor", Width = 450, Height = 450, WindowStartupLocation = WindowStartupLocation.CenterOwner };
-        var p = new StackPanel { Margin = new(18) }; var fields = new Dictionary<string, TextBox>(); var names = new Dictionary<string, string> { ["g"] = "Codici G", ["m"] = "Codici M", ["axis"] = "Assi", ["value"] = "Valori", ["tool"] = "Utensili", ["comment"] = "Commenti" };
-        foreach (var (key, color) in colorizer.Palette) { var row = new StackPanel { Orientation = Orientation.Horizontal }; row.Children.Add(new TextBlock { Text = names[key], Width = 165, VerticalAlignment = VerticalAlignment.Center }); var box = new TextBox { Text = color, Width = 160 }; row.Children.Add(box); p.Children.Add(row); fields[key] = box; }
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal };
-        buttons.Children.Add(B("Ripristina", () => { foreach (var (k, v) in new GCodeColorizer().Palette) fields[k].Text = v; }));
-        buttons.Children.Add(B("Applica", () => { if (fields.Values.Any(b => !Regex.IsMatch(b.Text, "^#[a-fA-F0-9]{6}$"))) throw new ArgumentException("Usare colori esadecimali, esempio #7DFF6A."); var palette = fields.ToDictionary(x => x.Key, x => x.Value.Text); if (!testMode) Storage.Save("palette.json", palette); colorizer.Palette = palette; colorizer.Invalidate(); Editor.TextArea.TextView.Redraw(); w.Close(); })); p.Children.Add(buttons); w.Content = p; w.ShowDialog();
+        var saved = new Dictionary<string, string>(palette) { [AppearancePalette.StyleKey] = motion ? "motion" : "tokens" };
+        if (!testMode) Storage.Save("palette.json", saved);
+        ApplyAppearance(palette, motion);
+    }) { Owner = this };
+    void Colors() => CreateColorSettings().ShowDialog();
+    void ApplyAppearance(Dictionary<string, string> palette, bool motion)
+    {
+        colorizer.Palette = AppearancePalette.Restore(palette); colorizer.UseMotionColors = motion;
+        colorizer.Invalidate(); Editor.TextArea.TextView.Redraw();
+        Preview.RapidBrush = ColorSettingsWindow.Brush(colorizer.Palette["rapid"]);
+        Preview.WorkingBrush = ColorSettingsWindow.Brush(colorizer.Palette["cut"]); Preview.InvalidateVisual();
+    }
+    void ArrangeTransferToolbar()
+    {
+        toolbarRight.Children.Clear();
+        editTools.Children.Remove(spacingButton); editTools.Children.Remove(toolListButton);
+        transferTools.Children.Remove(transferSettingsButton);
+        if (page == "send")
+        {
+            toolbarRight.Children.Add(spacingButton); toolbarRight.Children.Add(toolListButton);
+        }
+        else
+        {
+            editTools.Children.Add(spacingButton); editTools.Children.Add(toolListButton);
+        }
+        if (page == "receive") toolbarRight.Children.Add(transferSettingsButton);
+        else if (page == "workspace") transferTools.Children.Insert(1, transferSettingsButton);
     }
     void Examples()
     {
@@ -464,6 +494,7 @@ public class MainWindow : Window
     public void RebuildSimulation()
     {
         Pause(); if (active is null) return;
+        colorizer.Machine = active.Model.Machine; colorizer.Invalidate(); Editor.TextArea.TextView.Redraw();
         CurrentSimulation = Simulator.Simulate(active.Text.Text, active.Model.Machine, active.Model.Diameter); cumulative = new double[CurrentSimulation.Segments.Count + 1]; for (int i = 0; i < CurrentSimulation.Segments.Count; i++) cumulative[i + 1] = cumulative[i] + CurrentSimulation.Segments[i].From.Distance(CurrentSimulation.Segments[i].To); Preview.Result = CurrentSimulation;
         syncing = true; timeline.Maximum = Math.Max(0, CurrentSimulation.Steps.Count - 1); timeline.Value = timeline.Maximum; syncing = false;
         simulationStatus.Foreground = CurrentSimulation.Complete ? Brushes.MediumAquamarine : Brushes.Orange;

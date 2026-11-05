@@ -6,13 +6,13 @@ Applicazione nativa in C#/.NET 10 e WPF, con editor AvalonEdit e porte COM gesti
 
 La versione EXE 0.2.2 non è firmata. Su Windows 11 con **Controllo intelligente delle app** attivo, Windows può impedirne completamente l'avvio. Anche lo ZIP contiene un eseguibile non firmato: non costituisce una soluzione al blocco.
 
-Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.3](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.3). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
+Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.4](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.4). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
 
 ## Funzioni
 
 - Editor a schede, scheda attiva blu, nuovi programmi TXT, chiusura con protezione delle modifiche e cronologia separata per documento.
-- Apri file multipli, trascina file nella finestra, Salva e Salva con nome tramite finestre Windows, stampa del programma completo o della lista utensili.
-- Colori vivaci per codici, commenti verde acceso, colori personalizzabili, descrizioni G/M al passaggio del mouse.
+- Apri file multipli da Questo PC, trascina file nella finestra, Salva e Salva con nome tramite finestre Windows, stampa del programma completo o della lista utensili.
+- Colori nella barra superiore con campioni visibili, selettore Windows e anteprima. Rapidi e movimenti di lavorazione hanno colori separati nel testo e nel disegno, anche sui blocchi modali; i commenti mantengono il verde acceso. È disponibile anche la colorazione per codici G/M. Descrizioni G/M al passaggio del mouse.
 - Aggiungi spazi, imposta valori F/S (anche nella selezione), trova precedente/successivo, sostituisci, ricerca con parola intera/maiuscole/espressioni regolari e navigazione dei cambi utensile.
 - Lista utensili con descrizioni, correttori e preselezioni, esportabile in TXT e stampabile.
 - Anteprima geometrica fresatrice/tornio, piani 3D/XY/XZ/YZ, X a diametro o raggio, avanzamento con evidenziazione della riga, zoom con rotella e trascinamento, origine attiva G54–G59 e G10 P0.

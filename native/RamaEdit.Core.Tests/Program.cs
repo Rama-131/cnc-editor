@@ -48,6 +48,15 @@ foreach (var fixture in fixtures.RootElement.EnumerateArray())
     }
     if (!r.Complete) Check(r.Issues[0].Line == expected.GetProperty("issues")[0].GetProperty("line").GetInt32(), "Riga errore");
 }
+var oldPalette = new Dictionary<string, string> { ["g"] = "#123ABC", ["comment"] = "#80FF80" };
+var restoredPalette = AppearancePalette.Restore(oldPalette);
+Check(restoredPalette["g"] == "#123ABC" && restoredPalette["comment"] == "#80FF80" && restoredPalette.ContainsKey("rapid") && restoredPalette.ContainsKey("cut"), "Recupero vecchi colori con rapido/lavorazione nuovi");
+Check(AppearancePalette.MotionStyle(oldPalette) && !AppearancePalette.MotionStyle(new Dictionary<string, string> { ["_style"] = "tokens" }), "Stile dei movimenti e scelta per codice salvabile");
+var motionKinds = EditorMotion.Classify("(G0 X99)\nG90 G54\nG0 X10\nZ5\nM3\nG1 Z-2\nX30 (G0)\nG2 X40 I5\nG4 X1\nG10 P0 Z-10\nG1 X20\nG80\nX40\nG0 X50");
+var expectedKinds = new[] { MotionColorKind.None, MotionColorKind.None, MotionColorKind.Rapid, MotionColorKind.Rapid, MotionColorKind.None, MotionColorKind.Working, MotionColorKind.Working, MotionColorKind.Working, MotionColorKind.None, MotionColorKind.None, MotionColorKind.Working, MotionColorKind.None, MotionColorKind.None, MotionColorKind.Rapid };
+Check(motionKinds.SequenceEqual(expectedKinds), "Colori modali G0/G1/G2, commenti ignorati, soste e G10 senza falso movimento");
+Check(EditorMotion.Classify("G0 X10\n(commento (G1 X99)\nfine)\nX20\nG3 X30").SequenceEqual(new[] { MotionColorKind.Rapid, MotionColorKind.None, MotionColorKind.None, MotionColorKind.Rapid, MotionColorKind.Working }), "Commenti multilinea e annidati non cambiano il colore modale");
+Check(EditorMotion.Classify("G81 X10 Z-5\nX20\nG80\nX30").SequenceEqual(new[] { MotionColorKind.Working, MotionColorKind.Working, MotionColorKind.None, MotionColorKind.None }), "Colore dei cicli di lavorazione e annullamento");
 var machines = Storage.Defaults();
 Check(machines.Count == 7 && machines.Any(m => m.Name.Contains("QUARTZ")), "Sette macchine importate");
 foreach (var m in machines) Check(Storage.Clone(m).Settings.BaudRate == m.Settings.BaudRate, "Persistenza parametri");
