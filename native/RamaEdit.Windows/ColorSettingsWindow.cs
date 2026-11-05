@@ -48,7 +48,7 @@ internal sealed class ColorSettingsWindow : Window
         style.SelectedIndex = useMotionColors ? 0 : 1; left.Children.Add(style);
         left.Children.Add(new TextBlock { Text = "Colori dei movimenti uguali nel testo e nel disegno.\nI commenti mantengono sempre il proprio colore.", TextWrapping = TextWrapping.Wrap, Margin = new(3, 6, 3, 12), FontSize = 12, Foreground = Brushes.LightSteelBlue });
         var tokenRows = new StackPanel();
-        var tokenOptions = new Expander { Header = "Colori per codice", Content = tokenRows, Margin = new(3, 8, 3, 0), IsExpanded = !useMotionColors };
+        var tokenOptions = new Expander { Header = "Colori per codice", Foreground = Brushes.LightSteelBlue, Content = tokenRows, Margin = new(3, 8, 3, 0), IsExpanded = !useMotionColors };
         foreach (var (key, label) in new[] {
             ("text", "Testo"), ("background", "Sfondo editor"), ("block", "Selezione · sfondo"), ("blockText", "Selezione · testo"),
             ("comment", "Commenti"), ("rapid", "Rapido · G0"), ("cut", "Lineare · G1 e cicli"),

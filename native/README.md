@@ -6,7 +6,7 @@ Applicazione nativa in C#/.NET 10 e WPF, con editor AvalonEdit e porte COM gesti
 
 La versione EXE 0.2.2 non è firmata. Su Windows 11 con **Controllo intelligente delle app** attivo, Windows può impedirne completamente l'avvio. Anche lo ZIP contiene un eseguibile non firmato: non costituisce una soluzione al blocco.
 
-Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.6](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.6). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
+Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.7](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.7). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
 
 ## Funzioni
 
@@ -22,7 +22,7 @@ Le versioni di prova successive vengono pubblicate solo con un incremento esplic
 - Porte COM reali, parità, bit dati/stop, DTR/RTS, handshake RTS/CTS e XON/XOFF anche combinati e con caratteri configurabili. L'invio viene avviato dall'utente dopo la scelta di macchina e porta.
 - Ripristino della sessione e delle impostazioni da %LOCALAPPDATA%\Rama Edit. Il salvataggio dei file sul disco resta esplicito.
 
-Al primo avvio della versione 0.2.6 viene applicata la nuova palette ISO. L’eventuale palette precedente è conservata in palette-before-iso-reference.json nella cartella dei dati locali. Le personalizzazioni effettuate dopo l’aggiornamento vengono mantenute ai successivi avvii.
+Al primo avvio della versione 0.2.7 viene applicata la nuova palette ISO. L’eventuale palette precedente è conservata in palette-before-iso-reference.json nella cartella dei dati locali. Le personalizzazioni effettuate dopo l’aggiornamento vengono mantenute ai successivi avvii.
 
 Le impostazioni modificate nel browser non sono accessibili automaticamente all'app nativa. Le sette macchine di partenza sono incluse; i cambi successivi si impostano nel configuratore nativo o si importano da un JSON con lo schema machines della versione web.
 
