@@ -799,8 +799,8 @@ export default function App() {
                   </button>
                   <button
                     className="examples-toggle spacing-button"
-                    title="Inserisci spazi tra i codici"
-                    aria-label="Inserisci spazi"
+                    title="Aggiungi spazi tra i codici"
+                    aria-label="Aggiungi spazi"
                     onClick={() => {
                       setShowExamples(false);
                       setShowColors(false);
@@ -808,7 +808,7 @@ export default function App() {
                     }}
                   >
                     <Space size={15} />
-                    <span className="toolbar-button-label">Spazi</span>
+                    <span className="toolbar-button-label">Aggiungi spazi</span>
                   </button>
                 </div>
                 <div

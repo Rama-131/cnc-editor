@@ -27,7 +27,7 @@ test("inserisce spazi su richiesta, mantiene il cursore e permette annulla/ripri
     page.locator(".editor-column .editor-status span").first(),
   ).toHaveText("Ln 5, Col 8");
   const format = page.getByRole("button", {
-    name: "Inserisci spazi",
+    name: "Aggiungi spazi",
     exact: true,
   });
   await format.click();
