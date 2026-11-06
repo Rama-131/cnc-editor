@@ -90,6 +90,8 @@ var exact = new ReceptionFilter(new()); Check(exact.Push("%\r") + exact.Push("\n
 var biglia = Storage.Defaults().Single(m => m.Id == "mch-biglias131");
 var bigliaLines = new[] { "%", ":0118", "N10G10P0Z4.6", "N20T707G97S1400M3", "N30G0X0Z2M8", "N40G1Z-7.65F0.06", "(PUNTA  8 HSS\tCONTROLLO)", "M30", "%" };
 string expectedBiglia = string.Join("\r\n", bigliaLines) + "\r\n";
+var bigliaPreview = Simulator.Simulate(expectedBiglia, "lathe");
+Check(bigliaPreview.Complete && bigliaPreview.Segments.Count == 2 && bigliaPreview.Segments[0].Line == 5 && bigliaPreview.Segments[1].Line == 6, "Anteprima Biglia: intestazione :0118 riconosciuta, movimenti e numeri di riga conservati");
 foreach (string eol in new[] { "\r\n\r\n\r\n", "\r\r\n", "\n\r\r", "\n\n\n", "\r\r\r" })
 {
     string wire = "\x12\0" + string.Join(eol, bigliaLines) + eol + "\x14";

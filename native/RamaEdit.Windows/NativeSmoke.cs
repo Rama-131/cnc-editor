@@ -83,7 +83,7 @@ public static class NativeSmoke
                     bigliaWindow.CompleteReception("Ricezione terminata per inattività.");
                     await bigliaWindow.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                     var incoming = bigliaWindow.Documents[^1];
-                    Check(bigliaWindow.Documents.Count == beforeReception + 1 && incoming.Model.Dirty && incoming.Model.Path is null && incoming.Model.Machine == "lathe" && bigliaWindow.Editor.Document == incoming.Text && !bigliaWindow.Editor.IsReadOnly && incoming.Text.Text == clean && VisibleButton(bigliaWindow, "ricevuto.txt ●"), "Fine ricezione: nuova scheda attiva modificabile, Tornio, nome TXT e programma ancora da salvare");
+                    Check(bigliaWindow.Documents.Count == beforeReception + 1 && incoming.Model.Dirty && incoming.Model.Path is null && incoming.Model.Machine == "lathe" && bigliaWindow.CurrentSimulation.Complete && bigliaWindow.Editor.Document == incoming.Text && !bigliaWindow.Editor.IsReadOnly && incoming.Text.Text == clean && VisibleButton(bigliaWindow, "ricevuto.txt ●"), "Fine ricezione: nuova scheda attiva modificabile, Tornio, nome TXT e programma ancora da salvare");
                     Shot(bigliaWindow, "ricevuto-in-scrittura");
                     bigliaWindow.CompleteReception("Notifica duplicata.");
                     Check(bigliaWindow.Documents.Count == beforeReception + 1, "Una sola scheda per ricezione, anche con notifiche ripetute");

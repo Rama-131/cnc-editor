@@ -21,7 +21,7 @@ public static class Simulator
         {
             int line = n + 1; string text = GCode.Clean(lines[n]);
             if (ended) break;
-            if (text.Length == 0 || text == "%") continue;
+            if (text.Length == 0 || text == "%" || Regex.IsMatch(text, @"^:\s*\d+$")) continue;
             if (Regex.IsMatch(text, @"[#\[\]]|\b(IF|WHILE|GOTO)\b")) { Fail(line, "Macro o espressioni non simulate. Anteprima interrotta."); break; }
             if (text.StartsWith('/')) { Fail(line, "Blocco opzionale: esito dipendente dalla macchina. Anteprima interrotta."); break; }
             if (!GCode.Syntax(text)) { Fail(line, "Sintassi non supportata. Anteprima interrotta."); break; }
