@@ -58,8 +58,8 @@ public class MainWindow : Window
     readonly DispatcherTimer debounce = new() { Interval = TimeSpan.FromMilliseconds(350) }, autosave = new() { Interval = TimeSpan.FromSeconds(2) }, playback = new() { Interval = TimeSpan.FromMilliseconds(40) };
     Button spacingButton = null!, toolListButton = null!;
     Button undoButton = null!, redoButton = null!, colorsButton = null!, transferSettingsButton = null!;
-    Button connectButton = null!, sendButton = null!, receiveButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, examplesButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!;
-    SerialSession? serial; string page = "workspace"; bool syncing, simulationVisible = true, busy, closing, persistenceFailed;
+    Button connectButton = null!, sendButton = null!, receiveButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, examplesButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!, openReceivedButton = null!;
+    SerialSession? serial; string page = "workspace"; bool syncing, simulationVisible = true, busy, closing, preparingClose, persistenceFailed;
     readonly Queue<string> logChunks = new(); int logLength; int receivedPending; readonly DispatcherTimer receivedRefresh = new() { Interval = TimeSpan.FromMilliseconds(80) }; double[] cumulative = []; bool playing; double playbackPosition;
     public MainWindow(bool testMode = false)
     {
@@ -69,6 +69,8 @@ public class MainWindow : Window
         WindowPlacement.SetInitialBounds(this, 1440, 920); AllowDrop = true;
         try { machines = testMode ? Storage.Defaults() : Storage.Read<List<MachineProfile>>("machines.json") ?? Storage.Defaults(); foreach (var m in machines) m.Settings.Validate(); }
         catch (Exception e) { machines = Storage.Defaults(); Loaded += (_, _) => Error("Configurazioni non caricate: " + e.Message); persistenceFailed = true; }
+        try { if (Storage.UpgradeReceiveProfiles(machines) && !testMode) Storage.Save("machines.json", machines); }
+        catch (Exception e) { Loaded += (_, _) => Error("Formato ricezione aggiornato, ma non salvato: " + e.Message); }
         var root = new DockPanel(); Content = root;
         var rail = new DockPanel { Width = 65, Background = new SolidColorBrush(Color.FromRgb(17, 25, 32)) }; DockPanel.SetDock(rail, Dock.Left); root.Children.Add(rail);
         var navigation = new StackPanel(); DockPanel.SetDock(navigation, Dock.Top); rail.Children.Add(navigation);
@@ -101,7 +103,7 @@ public class MainWindow : Window
         DockPanel.SetDock(message, Dock.Top); main.Children.Add(message);
         body.ColumnDefinitions.Add(new()); body.ColumnDefinitions.Add(new() { Width = new(0) }); main.Children.Add(body);
         body.Children.Add(editorPanel); Grid.SetColumn(simulationPanel, 1); body.Children.Add(simulationPanel);
-        receiveHeader.Children.Add(receivedName); newReceiveButton = B("+ Nuova ricezione", ClearReceived); receiveHeader.Children.Add(newReceiveButton); DockPanel.SetDock(receiveHeader, Dock.Top); editorPanel.Children.Add(receiveHeader);
+        receiveHeader.Children.Add(receivedName); newReceiveButton = B("+ Nuova ricezione", ClearReceived); receiveHeader.Children.Add(newReceiveButton); openReceivedButton = B("Apri in scrittura", () => OpenReceivedProgram()); receiveHeader.Children.Add(openReceivedButton); DockPanel.SetDock(receiveHeader, Dock.Top); editorPanel.Children.Add(receiveHeader);
         var statusRow = new DockPanel(); DockPanel.SetDock(statusRow, Dock.Bottom); DockPanel.SetDock(follow, Dock.Right); statusRow.Children.Add(follow); editorStatus.TextTrimming = TextTrimming.CharacterEllipsis; statusRow.Children.Add(editorStatus); editorPanel.Children.Add(statusRow); editorPanel.Children.Add(Editor);
         BuildSimulation(); Editor.TextArea.TextView.LineTransformers.Add(colorizer); Editor.TextArea.TextView.BackgroundRenderers.Add(execution);
         Editor.Options.EnableHyperlinks = false; Editor.Options.EnableEmailHyperlinks = false; Editor.Options.ConvertTabsToSpaces = true;
@@ -125,6 +127,7 @@ public class MainWindow : Window
         if (!testMode) { try { LoadAppearance(); } catch (Exception e) { Error(e.Message); } autosave.Start(); }
         ApplyPage();
     }
+    internal void SelectTransferMachine(string id) => machineSelect.SelectedItem = machines.FirstOrDefault(m => m.Id == id);
     MachineProfile? SelectedMachine => machineSelect.SelectedItem as MachineProfile;
     static Border Labeled(string text, UIElement control) { var p = new StackPanel { Margin = new(7, 3, 7, 3), VerticalAlignment = VerticalAlignment.Center }; p.Children.Add(new TextBlock { Text = text, FontSize = 11, Foreground = Brushes.LightSteelBlue, Margin = new(3, 0, 0, 1) }); p.Children.Add(control); return new Border { Child = p, BorderThickness = new(0, 0, 1, 0), BorderBrush = Brushes.DimGray }; }
     Button B(string text, Action action)
@@ -284,6 +287,7 @@ public class MainWindow : Window
         sendButton.Visibility = page == "receive" ? Visibility.Collapsed : Visibility.Visible; receiveButton.Visibility = page == "receive" ? Visibility.Visible : Visibility.Collapsed;
         sendButton.Content = tx ? "■ Interrompi invio" : "⇧ Invia programma"; sendButton.IsEnabled = connected && !busy && !rx && serial?.Faulted == false && (tx || !string.IsNullOrWhiteSpace(active?.Text.Text));
         receiveButton.Content = rx ? "■ Termina ricezione" : received.Length > 0 ? "⇩ Riprendi ricezione" : "⇩ Avvia ricezione"; receiveButton.IsEnabled = connected && !busy && !tx && serial?.Faulted == false;
+        openReceivedButton.IsEnabled = !rx && received.Length > 0;
         newReceiveButton.IsEnabled = !rx; printButton.IsEnabled = !rx && !tx && (page == "receive" ? received.Length > 0 : active is not null);
         saveButton.IsEnabled = !rx && (page == "receive" ? received.Length > 0 : active is not null); saveAsButton.IsEnabled = saveButton.IsEnabled;
     }
@@ -306,7 +310,7 @@ public class MainWindow : Window
             session.Received += AcceptReceived;
             session.Log += text => { lock (rxGate) { logChunks.Enqueue(text); logLength += text.Length; while (logLength > 200000 && logChunks.Count > 0) logLength -= logChunks.Dequeue().Length; } };
             session.Error += text => Dispatcher.BeginInvoke(() => { Error(text); TransferState(); });
-            session.ReceptionEnded += text => Dispatcher.BeginInvoke(() => { RenderReceived(); Notify(text); TransferState(); });
+            session.ReceptionEnded += text => Dispatcher.BeginInvoke(() => CompleteReception(text, machine));
             device.PortError += session.ReportFault; session.Start(); machine.PortName = port;
             try { if (!testMode && !persistenceFailed) Storage.Save("machines.json", machines); } catch (Exception e) { Error("Porta collegata; impossibile salvare la scelta: " + e.Message); return; }
             Notify("Collegato a " + machine.Name + " · " + port + ". Avvia l’invio o la ricezione.");
@@ -328,6 +332,43 @@ public class MainWindow : Window
         if (serial.Receiving) { await serial.StopReceivingAsync(); RenderReceived(); }
         else { int length; lock (rxGate) length = received.Length; await serial.StartReceivingAsync(length); Notify("Ricezione in corso. Avvia l’invio dal controllo CNC."); }
         TransferState();
+    }
+    internal void CompleteReception(string reason, MachineProfile? source = null)
+    {
+        RenderReceived(); Notify(reason); TransferState();
+        if (closing || preparingClose || serial?.Receiving == true) return;
+        try
+        {
+            if (OpenReceivedProgram(source)) Notify(reason + " Programma aperto in Scrittura / Simulazione. Puoi modificarlo e salvarlo.");
+        }
+        catch (Exception e) { Error("Dati ricevuti conservati. Impossibile aprire il programma: " + e.Message); }
+    }
+    internal bool OpenReceivedProgram(MachineProfile? source = null)
+    {
+        if (serial?.Receiving == true) return false;
+        string text; lock (rxGate) text = received.ToString();
+        source ??= SelectedMachine;
+        if (source?.Settings.Receive is { } rx)
+        {
+            // Also format a draft left by an older version. Triggers have already
+            // been consumed during reception and must not be applied a second time.
+            var format = new ReceptionFilter(new ReceiveOptions { LineEnding = rx.LineEnding, OmitEmpty = rx.OmitEmpty, RemoveCharacters = rx.RemoveCharacters, RemoveControls = rx.RemoveControls });
+            text = format.Push(text) + format.Finish();
+        }
+        if (string.IsNullOrWhiteSpace(text)) return false;
+        string name = Path.GetFileName(receivedName.Text.Trim());
+        if (string.IsNullOrWhiteSpace(name)) name = "ricevuto.txt";
+        name = new string(name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
+        if (Path.GetExtension(name).Length == 0) name += ".txt";
+        string stem = Path.GetFileNameWithoutExtension(name), extension = Path.GetExtension(name); int number = 1;
+        while (documents.Any(d => d.Model.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) name = $"{stem}_{++number}{extension}";
+        string identity = (source?.ImportedFrom?.FileName ?? source?.Name ?? "").ToUpperInvariant();
+        bool lathe = identity.Contains("BIGLIA") || identity.Contains("PUMA") || identity.Contains("MOMAC") || (source?.Control.Contains("tornio", StringComparison.OrdinalIgnoreCase) ?? false);
+        AddDocument(new() { Name = name, Text = text, Dirty = true, Machine = lathe ? "lathe" : "mill" });
+        lock (rxGate) received.Clear();
+        syncing = true; receivedDocument.Text = ""; syncing = false; receivedDirty = false;
+        Interlocked.Exchange(ref receivedPending, 0); receivedName.Text = "ricevuto.txt";
+        Navigate("workspace"); TransferState(); Persist(); return true;
     }
     internal void AcceptReceived(string text)
     {
@@ -569,6 +610,7 @@ public class MainWindow : Window
     async void OnClosing(object? sender, CancelEventArgs e)
     {
         if (closing || testMode) return; e.Cancel = true;
+        if (preparingClose) return; preparingClose = true;
         try
         {
             if (serial?.Sending == true || serial?.Receiving == true)
@@ -588,5 +630,6 @@ public class MainWindow : Window
             Persist(); autosave.Stop(); receivedRefresh.Stop(); Pause(); if (serial is not null) await serial.DisposeAsync(); closing = true; Close();
         }
         catch (Exception ex) { Error(ex.Message); }
+        finally { preparingClose = false; }
     }
 }

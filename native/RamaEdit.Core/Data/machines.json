@@ -148,14 +148,14 @@
         "lineEndingSequence": "\\13\\10"
       },
       "receive": {
-        "lineEnding": "auto",
+        "lineEnding": "CRLF",
         "startTrigger": "",
         "endTrigger": "",
         "discardLineCharacters": "",
         "omitLineString": "",
-        "removeCharacters": "\\0",
+        "removeCharacters": "\\0\\18\\20",
         "removeControls": false,
-        "omitEmpty": false,
+        "omitEmpty": true,
         "timeout": 5,
         "sendXon": false,
         "initial": ""
@@ -165,7 +165,8 @@
       "fileName": "BIGLIAS131.mch",
       "port": "COM6",
       "protocol": "STANDARDSERIAL"
-    }
+    },
+    "receiveFormatVersion": 1
   },
   {
     "id": "mch-hurcovm1",

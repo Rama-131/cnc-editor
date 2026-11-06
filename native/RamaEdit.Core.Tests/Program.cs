@@ -85,6 +85,50 @@ string filtered = rx.Push("noise%O1\r") + rx.Push("\nSKIP ME\r\nG1 X10\r\n%tail"
 Check(filtered == "%O1\r\nG1 X10\r\n%" && rx.Done, "Trigger spezzati e filtri di ricezione");
 var exact = new ReceptionFilter(new()); Check(exact.Push("%\r") + exact.Push("\nO1\r\n") + exact.Finish() == "%\r\nO1\r\n", "CRLF raw conservato");
 
+
+// Reproduce the Biglia report: DC2 leader and two empty rows between blocks.
+var biglia = Storage.Defaults().Single(m => m.Id == "mch-biglias131");
+var bigliaLines = new[] { "%", ":0118", "N10G10P0Z4.6", "N20T707G97S1400M3", "N30G0X0Z2M8", "N40G1Z-7.65F0.06", "(PUNTA  8 HSS\tCONTROLLO)", "M30", "%" };
+string expectedBiglia = string.Join("\r\n", bigliaLines) + "\r\n";
+foreach (string eol in new[] { "\r\n\r\n\r\n", "\r\r\n", "\n\r\r", "\n\n\n", "\r\r\r" })
+{
+    string wire = "\x12\0" + string.Join(eol, bigliaLines) + eol + "\x14";
+    for (int split = 0; split <= wire.Length; split++)
+    {
+        var filter = new ReceptionFilter(biglia.Settings.Receive);
+        string clean = filter.Push(wire[..split]) + filter.Push(wire[split..]) + filter.Finish();
+        Check(clean == expectedBiglia, "Biglia: un blocco per riga con CR/LF spezzati, senza DC2 e senza alterare testo o commenti");
+    }
+    var singleBytes = new ReceptionFilter(biglia.Settings.Receive); var singleOutput = new StringBuilder();
+    foreach (char c in wire) singleOutput.Append(singleBytes.Push(c.ToString()));
+    singleOutput.Append(singleBytes.Finish());
+    Check(singleOutput.ToString() == expectedBiglia, "Biglia: risultato identico ricevendo un carattere per volta");
+}
+var legacyBiglia = Storage.Clone(biglia); legacyBiglia.ReceiveFormatVersion = 0;
+legacyBiglia.Settings.Receive.LineEnding = "auto"; legacyBiglia.Settings.Receive.OmitEmpty = false; legacyBiglia.Settings.Receive.RemoveCharacters = @"\0";
+legacyBiglia.PortName = "COM14"; legacyBiglia.Settings.BaudRate = 19200;
+var otherMachine = Storage.Defaults()[0]; string otherBefore = JsonSerializer.Serialize(otherMachine, Storage.Json);
+Check(Storage.UpgradeReceiveProfiles(new[] { legacyBiglia, otherMachine }) && legacyBiglia.ReceiveFormatVersion == 1 && legacyBiglia.Settings.Receive.OmitEmpty && legacyBiglia.Settings.Receive.LineEnding == "CRLF" && SerialText.Control(legacyBiglia.Settings.Receive.RemoveCharacters).Contains((char)18), "Aggiornamento dei profili Biglia già salvati");
+Check(legacyBiglia.PortName == "COM14" && legacyBiglia.Settings.BaudRate == 19200 && JsonSerializer.Serialize(otherMachine, Storage.Json) == otherBefore, "Aggiornamento limitato al formato di ricezione Biglia, parametri porta e altre macchine conservati");
+legacyBiglia.Settings.Receive.OmitEmpty = false;
+Check(!Storage.UpgradeReceiveProfiles(new[] { legacyBiglia }) && !legacyBiglia.Settings.Receive.OmitEmpty, "Le scelte successive dell’utente non vengono sovrascritte");
+var triggeredBiglia = Storage.Clone(biglia.Settings.Receive); triggeredBiglia.StartTrigger = "%"; triggeredBiglia.EndTrigger = "%";
+var triggeredFilter = new ReceptionFilter(triggeredBiglia);
+Check(triggeredFilter.Push("\x12%\r\n\r\n:0118\r\n\r\n%\x14") == "%\r\n:0118\r\n%" && triggeredFilter.Done, "Pulizia Biglia compatibile con i trigger di inizio e fine");
+
+await using (var bigliaDevice = new FakeDevice())
+{
+    await using var bigliaSession = new SerialSession(bigliaDevice, biglia.Settings);
+    var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously); string actualBiglia = "";
+    bigliaSession.Received += text => { actualBiglia += text; if (actualBiglia.Length >= expectedBiglia.Length) ready.TrySetResult(); };
+    bigliaSession.Error += text => ready.TrySetException(new Exception(text));
+    bigliaSession.Start(); await bigliaSession.StartReceivingAsync(0);
+    string wire = "\x12\0" + string.Join("\r\n\r\n\r\n", bigliaLines) + "\r\n\r\n\r\n\x14";
+    for (int i = 0; i < wire.Length; i += 7) bigliaDevice.Inject(wire.Substring(i, Math.Min(7, wire.Length - i)));
+    await ready.Task.WaitAsync(TimeSpan.FromSeconds(3)); await bigliaSession.StopReceivingAsync();
+    Check(actualBiglia == expectedBiglia && !bigliaSession.Receiving && !bigliaSession.Faulted, "Ricezione Biglia completa attraverso la sessione seriale, senza righe vuote o perdita di blocchi");
+}
+
 await using (var device = new FakeDevice())
 {
     var s = new SerialSettings { Delay = 0 }; s.Transmit.WaitForXon = true; s.Transmit.HandshakeTimeout = 1;

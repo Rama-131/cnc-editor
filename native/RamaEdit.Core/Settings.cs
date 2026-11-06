@@ -55,6 +55,7 @@ public class MachineProfile
 {
     public string Id { get; set; } = Guid.NewGuid().ToString(); public string Name { get; set; } = "Nuova macchina"; public string Control { get; set; } = "Fanuc";
     public string PortName { get; set; } = ""; public SerialSettings Settings { get; set; } = new(); public ImportInfo? ImportedFrom { get; set; }
+    public int ReceiveFormatVersion { get; set; }
     public override string ToString() => Name;
 }
 public class SavedDocument { public string Name { get; set; } = "nuovo_programma.txt"; public string? Path { get; set; } public string Text { get; set; } = ""; public bool Dirty { get; set; } public string Machine { get; set; } = "mill"; public bool Diameter { get; set; } = true; }
@@ -82,10 +83,26 @@ public static class Storage
         if (!File.Exists(path)) return default;
         return JsonSerializer.Deserialize<T>(File.ReadAllText(path), Json) ?? throw new InvalidDataException($"File {filename} non valido. Una copia rimane in {Folder}.");
     }
+    public static bool UpgradeReceiveProfiles(IEnumerable<MachineProfile> profiles)
+    {
+        bool changed = false;
+        foreach (var machine in profiles)
+        {
+            bool biglia = machine.Id == "mch-biglias131" || string.Equals(machine.ImportedFrom?.FileName, "BIGLIAS131.mch", StringComparison.OrdinalIgnoreCase);
+            if (!biglia || machine.ReceiveFormatVersion >= 1) continue;
+            var rx = machine.Settings.Receive;
+            rx.OmitEmpty = true; rx.LineEnding = "CRLF";
+            // DC2/DC4 delimit the serial tape stream; they are not NC program text.
+            foreach (int control in new[] { 18, 20 })
+                if (!SerialText.Control(rx.RemoveCharacters).Contains((char)control)) rx.RemoveCharacters += "\\" + control;
+            machine.ReceiveFormatVersion = 1; changed = true;
+        }
+        return changed;
+    }
     public static List<MachineProfile> Defaults()
     {
         var profiles = Resource<List<MachineProfile>>("machines");
         foreach (var m in profiles) { m.PortName = m.ImportedFrom?.Port ?? ""; m.Settings.Validate(); }
-        return profiles;
+        UpgradeReceiveProfiles(profiles); return profiles;
     }
 }

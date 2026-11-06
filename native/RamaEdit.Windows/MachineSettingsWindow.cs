@@ -110,6 +110,7 @@ public class MachineSettingsWindow : Window
         using var json = JsonDocument.Parse(text); var array = json.RootElement.ValueKind == JsonValueKind.Array ? json.RootElement : json.RootElement.GetProperty("machines");
         var imported = JsonSerializer.Deserialize<List<MachineProfile>>(array.GetRawText(), Storage.Json) ?? throw new InvalidDataException("File non valido.");
         foreach (var m in imported) { m.Settings.Validate(); if (string.IsNullOrWhiteSpace(m.Name) || m.Name.Length > 80) throw new InvalidDataException("Nome macchina non valido."); if (string.IsNullOrWhiteSpace(m.PortName)) m.PortName = m.ImportedFrom?.Port ?? ""; }
+        Storage.UpgradeReceiveProfiles(imported);
         var next = Storage.Clone(machines);
         foreach (var m in imported) { m.Id = Guid.NewGuid().ToString(); if (next.Any(n => n.Name.Equals(m.Name, StringComparison.OrdinalIgnoreCase))) m.Name += " (importata)"; next.Add(m); }
         Storage.Save("machines.json", next); machines.Clear(); machines.AddRange(next); Saved = true; Refresh(imported.FirstOrDefault()?.Id);

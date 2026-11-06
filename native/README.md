@@ -6,7 +6,7 @@ Applicazione nativa in C#/.NET 10 e WPF, con editor AvalonEdit e porte COM gesti
 
 La versione EXE 0.2.2 non è firmata. Su Windows 11 con **Controllo intelligente delle app** attivo, Windows può impedirne completamente l'avvio. Anche lo ZIP contiene un eseguibile non firmato: non costituisce una soluzione al blocco.
 
-Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.7](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.7). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
+Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.8](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.8). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
 
 ## Funzioni
 
@@ -17,12 +17,12 @@ Le versioni di prova successive vengono pubblicate solo con un incremento esplic
 - Lista utensili con descrizioni, correttori e preselezioni, esportabile in TXT e stampabile.
 - Anteprima geometrica fresatrice/tornio, piani 3D/XY/XZ/YZ, X a diametro o raggio, avanzamento con evidenziazione della riga, zoom con rotella e trascinamento, origine attiva G54–G59 e G10 P0.
 - G0/G1, archi G2/G3, unità e quote modali, G71 tipo I a due righe con A/R e G70 sul profilo già definito. G92 S come limite mandrino e M26 come stato contropunta. Le funzioni non supportate interrompono l'anteprima, conservando la parte già calcolata.
-- Pagine Trasmissione e Ricezione con testo a tutta larghezza e comandi nella barra superiore. File ricevuto separato, salvataggio che conserva CR/LF, filtri e trigger, timeout, arresto e recupero del testo dopo un errore.
+- Pagine Trasmissione e Ricezione con testo a tutta larghezza e comandi nella barra superiore. A fine ricezione, apertura automatica in una nuova scheda attiva di Scrittura / Simulazione, modificabile e ancora da salvare. Apri in scrittura recupera anche una ricezione precedente. Filtri e trigger, timeout, arresto e recupero del testo dopo un errore. Il profilo Biglia S131 omette le righe vuote, normalizza i fine riga in CR/LF e rimuove DC2/DC4, conservando il testo dei blocchi e gli spazi nei commenti.
 - Configuratore macchine con schede Porta, Trasmissione, Ricezione, Directory e Info versione. Profili locali importabili/esportabili in JSON. Sono incluse le sette configurazioni MCH già fornite.
 - Porte COM reali, parità, bit dati/stop, DTR/RTS, handshake RTS/CTS e XON/XOFF anche combinati e con caratteri configurabili. L'invio viene avviato dall'utente dopo la scelta di macchina e porta.
 - Ripristino della sessione e delle impostazioni da %LOCALAPPDATA%\Rama Edit. Il salvataggio dei file sul disco resta esplicito.
 
-Al primo avvio della versione 0.2.7 viene applicata la nuova palette ISO. L’eventuale palette precedente è conservata in palette-before-iso-reference.json nella cartella dei dati locali. Le personalizzazioni effettuate dopo l’aggiornamento vengono mantenute ai successivi avvii.
+Dal primo avvio della versione 0.2.6 viene applicata la nuova palette ISO. L’eventuale palette precedente è conservata in palette-before-iso-reference.json nella cartella dei dati locali. Le personalizzazioni effettuate dopo l’aggiornamento vengono mantenute ai successivi avvii.
 
 Le impostazioni modificate nel browser non sono accessibili automaticamente all'app nativa. Le sette macchine di partenza sono incluse; i cambi successivi si impostano nel configuratore nativo o si importano da un JSON con lo schema machines della versione web.
 

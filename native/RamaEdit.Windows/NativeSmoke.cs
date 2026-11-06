@@ -68,6 +68,34 @@ public static class NativeSmoke
                 await Task.Delay(350); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 Check(w.Editor.Text == raw, "Ricezione oltre 200.000 caratteri: nessuna perdita di dati e CR/LF conservati");
 
+                var bigliaWindow = new MainWindow(true);
+                try
+                {
+                    bigliaWindow.SelectTransferMachine("mch-biglias131"); bigliaWindow.Navigate("receive"); bigliaWindow.Show();
+                    var filter = new ReceptionFilter(Storage.Defaults().Single(m => m.Id == "mch-biglias131").Settings.Receive);
+                    string wire = "\x12%\r\n\r\n\r\n:0118\r\n\r\n\r\nN10G10P0Z4.6\r\n\r\n\r\nN20T707G97S1400M3\r\n\r\n\r\nN30G0X0Z2M8\r\n\r\n\r\nN40G1Z-7.65F0.06\r\n\r\n\r\nM30\r\n\r\n\r\n%\r\n";
+                    foreach (char c in wire) bigliaWindow.AcceptReceived(filter.Push(c.ToString()));
+                    bigliaWindow.AcceptReceived(filter.Finish());
+                    await Task.Delay(200); await bigliaWindow.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                    Check(bigliaWindow.Editor.Text == "%\r\n:0118\r\nN10G10P0Z4.6\r\nN20T707G97S1400M3\r\nN30G0X0Z2M8\r\nN40G1Z-7.65F0.06\r\nM30\r\n%\r\n", "Ricezione Biglia visualizzata senza righe vuote e senza DC2, un blocco per riga");
+                    Shot(bigliaWindow, "ricezione-biglia");
+                    int beforeReception = bigliaWindow.Documents.Count; string clean = bigliaWindow.Editor.Text;
+                    bigliaWindow.CompleteReception("Ricezione terminata per inattività.");
+                    await bigliaWindow.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                    var incoming = bigliaWindow.Documents[^1];
+                    Check(bigliaWindow.Documents.Count == beforeReception + 1 && incoming.Model.Dirty && incoming.Model.Path is null && incoming.Model.Machine == "lathe" && bigliaWindow.Editor.Document == incoming.Text && !bigliaWindow.Editor.IsReadOnly && incoming.Text.Text == clean && VisibleButton(bigliaWindow, "ricevuto.txt ●"), "Fine ricezione: nuova scheda attiva modificabile, Tornio, nome TXT e programma ancora da salvare");
+                    Shot(bigliaWindow, "ricevuto-in-scrittura");
+                    bigliaWindow.CompleteReception("Notifica duplicata.");
+                    Check(bigliaWindow.Documents.Count == beforeReception + 1, "Una sola scheda per ricezione, anche con notifiche ripetute");
+                    bigliaWindow.Navigate("receive");
+                    Check(bigliaWindow.Editor.Text.Length == 0, "La ricezione successiva inizia da un documento vuoto");
+                    // The explicit command also recovers a draft produced by an old version.
+                    bigliaWindow.AcceptReceived(wire);
+                    Check(bigliaWindow.OpenReceivedProgram() && bigliaWindow.Documents.Count == beforeReception + 2 && bigliaWindow.Documents[^1].Model.Name == "ricevuto_2.txt" && bigliaWindow.Editor.Text == clean && incoming.Text.Text == clean, "Apri in scrittura pulisce il vecchio testo Biglia e crea un nome distinto senza sovrascrivere il primo programma");
+
+                }
+                finally { bigliaWindow.Close(); }
+
                 w.Navigate("workspace"); Check(w.Editor.Text == doc.Text.Text && w.Documents.Count == 3, "Il cambio pagina conserva i documenti");
                 var colors = w.CreateColorSettings(); colors.Show(); await colors.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 Check(VisibleButton(colors, "Campione Rapido · G0") && VisibleButton(colors, "Campione Lineare · G1 e cicli"), "Campioni colore visibili per rapido e lavorazione");
