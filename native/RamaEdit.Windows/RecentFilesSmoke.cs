@@ -1,8 +1,10 @@
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using RamaEdit.Core;
 
@@ -29,6 +31,10 @@ internal static class RecentFilesSmoke
             check(menu.IsOpen && menu.Items.OfType<MenuItem>().Where(i => i.Tag is string).Select(i => (string)i.Tag).SequenceEqual(new[] { third, second, first }),
                 "Freccia Apri apre il menu con i file dal più recente e percorsi distinti per nomi uguali");
             check(menu.IsVisible && menu.ActualWidth > 0 && menu.ActualHeight > 0, $"Menu recenti caricato e visibile (aperto {menu.IsOpen}, caricato {menu.IsLoaded}, visibile {menu.IsVisible}, template {menu.Template is not null}, {menu.ActualWidth:0}x{menu.ActualHeight:0}, previsto {menu.DesiredSize})");
+            var popup = PresentationSource.FromVisual(menu) as HwndSource;
+            double scale = popup?.CompositionTarget?.TransformToDevice.M11 ?? 1;
+            check(popup is not null && GetWindowRect(popup.Handle, out var bounds) && bounds.Right - bounds.Left >= menu.ActualWidth * scale - 1 && bounds.Bottom - bounds.Top >= menu.ActualHeight * scale - 1,
+                "Popup dei recenti ospitato in una finestra Windows con dimensioni reali positive");
             shot(menu, "file-recenti-menu"); shot(window, "apri-file-recenti");
             int before = window.Documents.Count;
             menu.IsOpen = false;
@@ -66,4 +72,7 @@ internal static class RecentFilesSmoke
             if (FindButton(VisualTreeHelper.GetChild(root, i), name) is { } found) return found;
         return null;
     }
+    [StructLayout(LayoutKind.Sequential)]
+    struct NativeRect { public int Left, Top, Right, Bottom; }
+    [DllImport("user32.dll")] static extern bool GetWindowRect(nint window, out NativeRect rect);
 }

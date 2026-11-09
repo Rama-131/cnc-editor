@@ -274,6 +274,12 @@ public class MainWindow : Window
         recentMenu.PlacementTarget = group; recentMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
         recentMenu.Style = (Style)FindResource("RecentFilesMenu");
         recentMenu.ItemContainerStyle = (Style)FindResource("RecentFileMenuItem");
+        recentMenu.Opened += (_, _) =>
+        {
+            recentMenu.ApplyTemplate(); recentMenu.Measure(new Size(recentMenu.MaxWidth, recentMenu.MaxHeight));
+            recentMenu.Arrange(new Rect(recentMenu.DesiredSize)); recentMenu.UpdateLayout();
+            if (PresentationSource.FromVisual(recentMenu)?.RootVisual is UIElement popupRoot) { popupRoot.InvalidateMeasure(); popupRoot.UpdateLayout(); }
+        };
         return group;
     }
     void RememberRecentFile(string path, bool persist = true)
