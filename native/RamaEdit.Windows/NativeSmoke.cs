@@ -73,7 +73,7 @@ public static class NativeSmoke
             await w.CloseDocument(w.Documents[0]);
             Check(w.Documents.Count == 0 && w.Editor.IsReadOnly, "Chiusura di tutte le schede");
             w.NewDocument(); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
-            Check(!w.Editor.IsReadOnly && VisibleButton(w, "Aggiungi spazi") && VisibleButton(w, "Trova / sostituisci") && VisibleButton(w, "↓ Salva"), "Nuovo dopo chiusura di tutte le schede ripristina editor e comandi");
+            Check(!w.Editor.IsReadOnly && VisibleButton(w, "Aggiungi spazi") && VisibleButton(w, "Trova / sostituisci") && VisibleButton(w, "Salva"), "Nuovo dopo chiusura di tutte le schede ripristina editor e comandi");
             w.UpdateLayout();
             var workspaceNav = NamedButton(w, "Scrittura / Simulazione")!; var sendNav = NamedButton(w, "Trasmissione")!; var receiveNav = NamedButton(w, "Ricezione")!;
             var fileTab = NamedButton(w, w.Documents[0].Model.Name)!; var undo = NamedButton(w, "Annulla")!;

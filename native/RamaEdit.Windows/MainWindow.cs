@@ -105,7 +105,8 @@ public class MainWindow : Window
         var brand = new TextBlock { FontWeight = FontWeights.Bold, FontSize = 19, Margin = new(0, 10, 0, 10) };
         brand.Inlines.Add(new Run("Rama Edit")); brand.Inlines.Add(new Run(" " + AppInfo.Version) { FontSize = 14, FontWeight = FontWeights.Normal, Foreground = Brushes.LightSteelBlue });
         AutomationProperties.SetName(brand, AppInfo.DisplayName); context.Children.Add(brand); context.Children.Add(pageTitle); header.Children.Add(context);
-        fileActions.Children.Add(BuildOpenButton()); saveButton = BA("↓ Salva", () => Save(false)); saveAsButton = BA("▣ Salva con nome", () => Save(true)); printButton = B("▤ Stampa", Print);
+        fileActions.Children.Add(BuildOpenButton()); saveButton = BA("Salva", () => Save(false)); saveAsButton = BA("Salva con nome", () => Save(true)); printButton = B("▤ Stampa", Print);
+        saveButton.Content = FileCommandIcons.DiskLabel("Salva"); saveAsButton.Content = FileCommandIcons.DiskLabel("Salva con nome");
         fileActions.Children.Add(saveButton); fileActions.Children.Add(saveAsButton); fileActions.Children.Add(printButton); examplesButton = B("▧ Esempi", Examples); fileActions.Children.Add(examplesButton); colorsButton = B("◉ Colori", Colors); fileActions.Children.Add(colorsButton); header.Children.Add(fileActions);
         tabScroll = new() { Content = tabs, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Background = new SolidColorBrush(Color.FromRgb(26, 34, 43)) }; DockPanel.SetDock(tabScroll, Dock.Top); main.Children.Add(tabScroll);
         toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); toolbar.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) }); toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
@@ -281,7 +282,7 @@ public class MainWindow : Window
         AutomationProperties.SetName(arrow, "File recenti");
         var divider = new Border { Child = arrow, BorderBrush = new SolidColorBrush(Color.FromRgb(61, 80, 96)), BorderThickness = new(1, 0, 0, 0) };
         DockPanel.SetDock(divider, Dock.Right); buttons.Children.Add(divider);
-        var open = BA("📂 Apri", OpenFiles); open.Margin = new(0); open.Padding = new(14, 8, 14, 8); open.Background = Brushes.Transparent; open.BorderThickness = new(0); buttons.Children.Add(open);
+        var open = BA("Apri", OpenFiles); open.Content = FileCommandIcons.FolderLabel("Apri"); open.Margin = new(0); open.Padding = new(14, 8, 14, 8); open.Background = Brushes.Transparent; open.BorderThickness = new(0); buttons.Children.Add(open);
         group.Children.Add(new Border { Child = buttons, Background = new SolidColorBrush(Color.FromRgb(35, 49, 61)), BorderBrush = new SolidColorBrush(Color.FromRgb(61, 80, 96)), BorderThickness = new(1), CornerRadius = new(4) });
         var hover = new Border { IsHitTestVisible = false, BorderBrush = new SolidColorBrush(Color.FromRgb(25, 200, 255)), BorderThickness = new(2), CornerRadius = new(4) };
         var hoverStyle = new Style(typeof(Border)); hoverStyle.Setters.Add(new Setter(VisibilityProperty, Visibility.Collapsed));
