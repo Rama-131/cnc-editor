@@ -96,19 +96,43 @@ public interface ISerialDevice : IAsyncDisposable
     bool HardwareReady { get; }
     ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken token);
     ValueTask WriteAsync(ReadOnlyMemory<byte> bytes, CancellationToken token);
+    ValueTask DrainAsync(CancellationToken token);
+    void DiscardOutput();
 }
 public sealed class SerialSession : IAsyncDisposable
 {
     readonly ISerialDevice device; readonly SerialSettings settings; readonly CancellationTokenSource life = new(); readonly SemaphoreSlim writer = new(1, 1); readonly object gate = new();
-    Task? reader; ReceptionFilter? filter; bool faulted, sending; volatile bool paused; volatile bool flowSeen;
+    Task? reader; ReceptionFilter? filter; volatile bool faulted, sending; volatile bool paused; volatile bool flowSeen; string? faultMessage;
     DateTime lastReceived; int receivedLength; CancellationTokenSource? sendCancel;
     public bool Receiving { get { lock (gate) return filter is not null; } }
     public bool Sending => sending; public bool Faulted => faulted;
+    public string? FaultMessage { get { lock (gate) return faultMessage; } }
     public event Action<string>? Received; public event Action<string>? Log; public event Action<string>? Error; public event Action<string>? ReceptionEnded;
     public SerialSession(ISerialDevice device, SerialSettings settings) { settings.Validate(); this.device = device; this.settings = Storage.Clone(settings); }
-    public void Start() { if (reader is not null) throw new InvalidOperationException("Collegamento già avviato."); reader = ReadLoop(); }
-    public void ReportFault(string message) => Fault(message);
-    void Fault(string message) { lock (gate) { faulted = true; filter = null; } sendCancel?.Cancel(); Error?.Invoke(message + " I dati ricevuti sono conservati. Ricollega la porta prima di continuare."); }
+    public void Start()
+    {
+        if (reader is not null) throw new InvalidOperationException("Collegamento già avviato.");
+        Trace($"Porta: {settings.BaudRate} baud, {settings.DataBits} bit, parità {settings.Parity}, stop {settings.StopBits}; flusso {settings.FlowControl}; DTR {settings.Port.Dtr}, RTS {settings.Port.Rts}; controllo errori parità {settings.Port.CheckParity}; timeout handshake {settings.Transmit.HandshakeTimeout} s (0 = nessuno).");
+        reader = ReadLoop();
+    }
+    void Trace(string message) => Log?.Invoke($"\r\n[{DateTime.Now:HH:mm:ss}] {message}\r\n");
+    public void ReportFault(string message, bool parityOnly = false)
+    {
+        if (parityOnly && !settings.Port.CheckParity) { Trace(message + " Controllo errori parità disattivato nel profilo; parità del collegamento invariata."); return; }
+        Fault(message);
+    }
+    void Fault(string message)
+    {
+        string detail;
+        lock (gate)
+        {
+            if (faulted) return;
+            faulted = true; filter = null;
+            faultMessage = detail = message + " I dati ricevuti sono conservati. Ricollega la porta prima di continuare.";
+            sendCancel?.Cancel();
+        }
+        Trace(detail); Error?.Invoke(detail);
+    }
     async Task ReadLoop()
     {
         byte[] buffer = new byte[4096]; byte xon = (byte)SerialText.Control(settings.Port.Xon)[0], xoff = (byte)SerialText.Control(settings.Port.Xoff)[0];
@@ -126,7 +150,7 @@ public sealed class SerialSession : IAsyncDisposable
                 for (int i = 0; i < count; i++)
                 {
                     byte b = buffer[i];
-                    if (settings.FlowControl is "software" or "both" && (b == xon || b == xoff)) { paused = b == xoff; if (b == xon) flowSeen = true; continue; }
+                    if (settings.FlowControl is "software" or "both" && (b == xon || b == xoff)) { paused = b == xoff; if (b == xon) flowSeen = true; Trace(b == xoff ? "XOFF ricevuto: invio in pausa." : "XON ricevuto: invio consentito."); continue; }
                     if (b > 127) throw new InvalidDataException("Ricevuto un byte non ASCII. Verifica parità e bit dati.");
                     text.Append((char)b);
                 }
@@ -172,41 +196,55 @@ public sealed class SerialSession : IAsyncDisposable
         byte[] bytes = Encoding.ASCII.GetBytes(SerialText.Control(text)); if (bytes.Length == 0) return;
         await writer.WaitAsync(life.Token); try { await device.WriteAsync(bytes, life.Token); } finally { writer.Release(); }
     }
-    public void CancelSend() => sendCancel?.Cancel();
+    public void CancelSend() { lock (gate) sendCancel?.Cancel(); }
     public async Task<bool> SendAsync(string source, IProgress<double>? progress = null)
     {
         var plan = SerialText.Prepare(source, settings);
-        lock (gate) { if (faulted || sending || filter is not null) throw new InvalidOperationException("Porta occupata o in errore."); sending = true; }
-        sendCancel = CancellationTokenSource.CreateLinkedTokenSource(life.Token); var token = sendCancel.Token;
+        CancellationTokenSource cancellation;
+        lock (gate) { if (faulted || sending || filter is not null) throw new InvalidOperationException("Porta occupata o in errore."); sending = true; sendCancel = cancellation = CancellationTokenSource.CreateLinkedTokenSource(life.Token); }
+        var token = cancellation.Token;
         try
         {
+            Trace($"Invio avviato: {plan.Total} byte; attesa XON iniziale {settings.Transmit.WaitForXon}.");
             int sent = 0; DateTime waiting = DateTime.UtcNow;
             foreach (var packet in plan.Packets)
             {
                 if (settings.Transmit.BeforeLineDelay + settings.Delay > 0) await Task.Delay(settings.Transmit.BeforeLineDelay + settings.Delay, token);
                 for (int i = 0; i < packet.Length; i += 32)
                 {
+                    bool waitLogged = false;
                     while (paused || (settings.Transmit.WaitForXon && !flowSeen) || !device.HardwareReady)
                     {
                         token.ThrowIfCancellationRequested();
                         if (faulted) throw new IOException("Porta seriale in errore.");
+                        if (!waitLogged) { Trace($"Attesa consenso: pausa XOFF {paused}, XON iniziale mancante {settings.Transmit.WaitForXon && !flowSeen}, CTS pronto {device.HardwareReady}."); waitLogged = true; }
                         if (settings.Transmit.HandshakeTimeout > 0 && (DateTime.UtcNow - waiting).TotalSeconds >= settings.Transmit.HandshakeTimeout) throw new TimeoutException("Tempo limite handshake scaduto. Verifica XON e CTS.");
                         await Task.Delay(10, token);
                     }
                     int size = Math.Min(32, packet.Length - i);
-                    await writer.WaitAsync(token); try { await device.WriteAsync(packet.AsMemory(i, size), token); } finally { writer.Release(); }
+                    await writer.WaitAsync(token);
+                    try
+                    {
+                        await device.WriteAsync(packet.AsMemory(i, size), token);
+                        // Bound queued output so an XOFF can stop the next chunk instead of
+                        // arriving after the entire file has already entered the Windows queue.
+                        await device.DrainAsync(token);
+                        token.ThrowIfCancellationRequested();
+                    }
+                    finally { writer.Release(); }
                     sent += size; waiting = DateTime.UtcNow; progress?.Report(100d * sent / plan.Total);
                 }
             }
-            return plan.Limited;
+            token.ThrowIfCancellationRequested();
+            Trace("Invio terminato: coda di uscita svuotata. Verificare la ricezione sulla CNC."); return plan.Limited;
         }
-        catch (OperationCanceledException) { throw; }
-        catch (Exception e) { Fault(e.Message); throw; }
-        finally { lock (gate) sending = false; sendCancel.Dispose(); sendCancel = null; }
+        catch (OperationCanceledException) { device.DiscardOutput(); Trace("Invio interrotto; coda di uscita annullata. Verificare il programma parziale sulla CNC."); throw; }
+        catch (Exception e) { device.DiscardOutput(); Fault(e.Message); throw; }
+        finally { lock (gate) { sending = false; sendCancel = null; cancellation.Dispose(); } }
     }
     public async ValueTask DisposeAsync()
     {
-        life.Cancel(); sendCancel?.Cancel(); await device.DisposeAsync(); if (reader is not null) await reader;
+        life.Cancel(); CancelSend(); await device.DisposeAsync(); if (reader is not null) await reader;
         lock (gate) filter = null;
     }
 }

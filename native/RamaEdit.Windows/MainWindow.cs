@@ -150,7 +150,7 @@ public class MainWindow : Window
     Button BA(string text, Func<Task> action)
     {
         var b = new Button { Content = text }; AutomationProperties.SetName(b, text);
-        b.Click += async (_, _) => { try { await action(); } catch (OperationCanceledException) { if (serial?.Faulted == true) Error("Porta seriale in errore. Ricollega la porta e verifica i dati presenti sulla CNC."); else Notify("Operazione interrotta. Verifica i dati presenti sulla CNC."); } catch (Exception e) { Error(e.Message); } finally { TransferState(); } }; return b;
+        b.Click += async (_, _) => { try { await action(); } catch (OperationCanceledException) { if (serial?.Faulted == true) Error(serial.FaultMessage ?? "Porta seriale in errore. Ricollega la porta e verifica i dati presenti sulla CNC."); else Notify("Operazione interrotta. Verifica i dati presenti sulla CNC."); } catch (Exception e) { Error(e.Message); } finally { TransferState(); } }; return b;
     }
     Button Tool(string symbol, string text, Action action, Brush? symbolBrush = null)
     {
@@ -331,10 +331,10 @@ public class MainWindow : Window
             string port = portSelect.Text.Trim().ToUpperInvariant(); machine.Settings.Validate();
             var device = await Task.Run(() => new WindowsSerialDevice(port, machine.Settings)); var session = new SerialSession(device, machine.Settings); serial = session;
             session.Received += AcceptReceived;
-            session.Log += text => { lock (rxGate) { logChunks.Enqueue(text); logLength += text.Length; while (logLength > 200000 && logChunks.Count > 0) logLength -= logChunks.Dequeue().Length; } };
+            session.Log += AppendTransferLog;
             session.Error += text => Dispatcher.BeginInvoke(() => { Error(text); TransferState(); });
             session.ReceptionEnded += text => Dispatcher.BeginInvoke(() => CompleteReception(text, machine));
-            device.PortError += session.ReportFault; session.Start(); machine.PortName = port;
+            device.PortError += session.ReportFault; AppendTransferLog($"\r\nCollegamento: {machine.Name} · {port}\r\n"); session.Start(); machine.PortName = port;
             try { if (!testMode && !persistenceFailed) Storage.Save("machines.json", machines); } catch (Exception e) { Error("Porta collegata; impossibile salvare la scelta: " + e.Message); return; }
             Notify("Collegato a " + machine.Name + " · " + port + ". Avvia l’invio o la ricezione.");
         }
@@ -345,8 +345,10 @@ public class MainWindow : Window
         if (serial is null) return; if (serial.Sending) { serial.CancelSend(); return; }
         var source = active?.Text.Text ?? ""; _ = SerialText.Prepare(source, SelectedMachine!.Settings);
         var session = serial;
-        var task = session.SendAsync(source, new Progress<double>(p => { sendButton.Content = $"■ Interrompi · {p:0}%"; Notify($"Invio a {SelectedMachine?.Name} · {p:0}%"); }));
-        TransferState(); bool limited = await task;
+        var task = session.SendAsync(source, new Progress<double>(p => { if (serial != session || session.Faulted || !session.Sending) return; sendButton.Content = $"■ Interrompi · {p:0}%"; Notify($"Invio a {SelectedMachine?.Name} · {p:0}%"); }));
+        TransferState(); bool limited;
+        try { limited = await task; }
+        catch (Exception e) when (session.FaultMessage is not null) { throw new IOException(session.FaultMessage, e); }
         Notify(limited ? "Invio parziale: raggiunto il limite di caratteri configurato. Verifica sulla CNC." : "Dati scritti sulla porta. Verifica la ricezione sul controllo CNC.");
     }
     async Task Receive()
@@ -410,6 +412,10 @@ public class MainWindow : Window
         if (serial?.Receiving == true) return;
         if (receivedDirty && MessageBox.Show(this, "Eliminare il documento ricevuto non salvato?", "Rama Edit", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
         lock (rxGate) received.Clear(); receivedDocument.Text = ""; receivedName.Text = "ricevuto.txt"; receivedDirty = false; TransferState(); Persist();
+    }
+    void AppendTransferLog(string text)
+    {
+        lock (rxGate) { logChunks.Enqueue(text); logLength += text.Length; while (logLength > 200000 && logChunks.Count > 0) logLength -= logChunks.Dequeue().Length; }
     }
     void ShowLog()
     {

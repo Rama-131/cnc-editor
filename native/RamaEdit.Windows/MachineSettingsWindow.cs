@@ -55,6 +55,7 @@ public class MachineSettingsWindow : Window
         Field(port, draft.Settings, "Parity", "Parità", ["none", "even", "odd", "mark", "space"]);
         Field(port, draft.Settings, "FlowControl", "Controllo flusso", ["none", "software", "hardware", "both"]);
         Field(port, draft.Settings.Port, "Dtr", "Attiva DTR (indeterminato = predefinito)"); Field(port, draft.Settings.Port, "Rts", "Attiva RTS (gestito dal driver con flusso hardware)");
+        Field(port, draft.Settings.Port, "CheckParity", "Controlla errori di parità ricevuti");
         Field(port, draft.Settings.Port, "Xon", @"Carattere XON (\17)"); Field(port, draft.Settings.Port, "Xoff", @"Carattere XOFF (\19)");
         var tx = Tab("Trasmissione");
         Field(tx, draft.Settings, "LineEnding", "Fine riga CR/LF", ["CRLF", "LF", "CR"]);

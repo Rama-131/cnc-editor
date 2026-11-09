@@ -44,6 +44,15 @@ public static class NativeSmoke
         }
         try
         {
+            var mazakSerial = Storage.Defaults().Single(m => m.Id == "mch-mazakhtc400").Settings;
+            using (var port = WindowsSerialDevice.CreatePort("COM1", mazakSerial))
+                Check(!port.IsOpen && port.WriteTimeout == System.IO.Ports.SerialPort.InfiniteTimeout && port.BaudRate == 9600
+                    && port.DataBits == 7 && port.Parity == System.IO.Ports.Parity.Even && port.StopBits == System.IO.Ports.StopBits.Two
+                    && port.Handshake == System.IO.Ports.Handshake.RequestToSend,
+                    "Porta Mazak Windows: 7E2, CTS e timeout zero realmente illimitato, senza aprire una porta fisica");
+            var finiteSerial = Storage.Clone(mazakSerial); finiteSerial.Transmit.HandshakeTimeout = 2;
+            using (var port = WindowsSerialDevice.CreatePort("COM1", finiteSerial))
+                Check(port.WriteTimeout == 2000, "Porta Windows: timeout finito del profilo conservato");
             w = new MainWindow(true); app.MainWindow = w; w.Show(); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle); await Task.Delay(150);
             Check(w.Title == "Rama Edit" && w.Editor.IsLoaded, "Avvio dell’editor WPF");
             Check(WindowPlacement.IsInsideWorkArea(w) && WindowPlacement.HasCaptionButtons(w), "Finestra iniziale intera sullo schermo, barra titolo e pulsanti Windows presenti");
@@ -149,7 +158,9 @@ public static class NativeSmoke
                       w.Preview.CounterclockwiseBrush is SolidColorBrush ccw && ccw.Color == (Color)ColorConverter.ConvertFromString("#527BFF"), "Colori scelti applicati anche al disegno principale");
                 Shot(w, "colori-applicati");
                 var settings = new MachineSettingsWindow(Storage.Defaults(), null) { Owner = w }; settings.Show(); await settings.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
-                Check(settings.IsLoaded && settings.Foreground is SolidColorBrush settingsInk && settingsInk.Color.R > 150, "Configuratore macchine WPF con etichette leggibili"); Shot(settings, "impostazioni"); settings.Close();
+                Check(settings.IsLoaded && settings.Foreground is SolidColorBrush settingsInk && settingsInk.Color.R > 150, "Configuratore macchine WPF con etichette leggibili");
+                Check(FindCheckBox(settings, "Controlla errori di parità ricevuti") is { IsChecked: false }, "Verifica degli errori parità selezionabile e disattivata come nei profili MCH originali");
+                Shot(settings, "impostazioni"); settings.Close();
             }
             finally { File.Delete(path); }
             File.WriteAllText(Path.Combine(folder, "result.json"), JsonSerializer.Serialize(new { success = true, checks }, Storage.Json)); w.Close(); app.Shutdown(0);

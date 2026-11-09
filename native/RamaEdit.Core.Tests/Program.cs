@@ -146,6 +146,7 @@ await using (var device = new FakeDevice())
     await session.StartReceivingAsync(0); device.Inject("%\r\nO1\r\n%"); await Task.Delay(100);
     Check(received == "%\r\nO1\r\n%" && !session.Receiving, "Ricezione con completamento automatico");
 }
+await SerialRegressionTests.Run(Check);
 Console.WriteLine($"Rama Edit: {checks} verifiche superate, {fixtures.RootElement.GetArrayLength()} programmi equivalenti alla versione web.");
 
 sealed class FakeDevice : ISerialDevice
@@ -158,5 +159,7 @@ sealed class FakeDevice : ISerialDevice
         try { var data = await input.Reader.ReadAsync(timeout.Token); data.CopyTo(buffer); return data.Length; } catch (OperationCanceledException) when (!token.IsCancellationRequested) { return 0; }
     }
     public ValueTask WriteAsync(ReadOnlyMemory<byte> bytes, CancellationToken token) { Bytes.AddRange(bytes.ToArray()); return ValueTask.CompletedTask; }
+    public ValueTask DrainAsync(CancellationToken token) => ValueTask.CompletedTask;
+    public void DiscardOutput() { }
     public ValueTask DisposeAsync() { input.Writer.TryComplete(); return ValueTask.CompletedTask; }
 }

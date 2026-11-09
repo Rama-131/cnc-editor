@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace RamaEdit.Core;
 
-public class PortOptions { public bool? Dtr { get; set; } public bool? Rts { get; set; } public string Xon { get; set; } = @"\17"; public string Xoff { get; set; } = @"\19"; }
+public class PortOptions { public bool? Dtr { get; set; } public bool? Rts { get; set; } public bool CheckParity { get; set; } public string Xon { get; set; } = @"\17"; public string Xoff { get; set; } = @"\19"; }
 public class TransmitOptions
 {
     public string StartTrigger { get; set; } = ""; public string EndTrigger { get; set; } = "";
