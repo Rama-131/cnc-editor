@@ -32,7 +32,9 @@ public sealed class TransmissionPanel : Expander
     {
         var header = new Grid(); header.ColumnDefinitions.Add(new()); header.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
         heading.VerticalAlignment = VerticalAlignment.Center; heading.TextTrimming = TextTrimming.CharacterEllipsis; header.Children.Add(heading);
-        close = Button("×", Dismiss); close.Width = 30; close.MinHeight = 26; close.FontSize = 19; close.Padding = new(0); close.Margin = new(4, 0, 0, 0); close.Visibility = Visibility.Collapsed;
+        close = Button("×", Dismiss); close.Width = 38; close.MinHeight = 32; close.FontSize = 24; close.FontWeight = FontWeights.Bold;
+        close.Foreground = new SolidColorBrush(Color.FromRgb(255, 52, 74)); close.BorderBrush = close.Foreground;
+        close.Padding = new(0); close.Margin = new(4, 0, 0, 0); close.Visibility = Visibility.Collapsed;
         close.ToolTip = "Chiudi stato trasmissione"; AutomationProperties.SetName(close, "Chiudi stato trasmissione"); Grid.SetColumn(close, 1); header.Children.Add(close);
         Header = header; SizeChanged += (_, _) => header.Width = Math.Max(0, ActualWidth - 36);
         Visibility = Visibility.Collapsed; Margin = new(8, 4, 8, 3);
