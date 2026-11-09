@@ -14,6 +14,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../RamaEdit.Core/RamaEdit.Core.csproj" />
+    <None Include="../FANUC.md" Link="FANUC.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <None Update="ThirdPartyNotices.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <PackageReference Include="AvalonEdit" Version="6.3.1.120" />
     <PackageReference Include="System.IO.Ports" Version="10.0.0" />

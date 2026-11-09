@@ -48,6 +48,7 @@ foreach (var fixture in fixtures.RootElement.EnumerateArray())
     }
     if (!r.Complete) Check(r.Issues[0].Line == expected.GetProperty("issues")[0].GetProperty("line").GetInt32(), "Riga errore");
 }
+FanucTests.Run(Check, Near);
 var oldPalette = new Dictionary<string, string> { ["g"] = "#123ABC", ["comment"] = "#80FF80" };
 var restoredPalette = AppearancePalette.Restore(oldPalette);
 Check(restoredPalette["g"] == "#123ABC" && restoredPalette["comment"] == "#80FF80" && restoredPalette.ContainsKey("rapid") && restoredPalette.ContainsKey("cut"), "Recupero vecchi colori con rapido/lavorazione nuovi");

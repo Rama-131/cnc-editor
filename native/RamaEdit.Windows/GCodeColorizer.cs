@@ -9,13 +9,14 @@ public class GCodeColorizer : DocumentColorizingTransformer
     public Dictionary<string, string> Palette { get; set; } = AppearancePalette.Defaults();
     public bool UseMotionColors { get; set; } = true;
     public string Machine { get; set; } = "mill";
+    public string LatheSystem { get; set; } = "A";
     object? cachedVersion; List<(int From, int To, string Color)> spans = [];
     public void Invalidate() => cachedVersion = null;
     void Build(TextDocument document)
     {
         if (ReferenceEquals(cachedVersion, document.Version)) return; cachedVersion = document.Version; spans.Clear();
         var text = document.Text;
-        var kinds = UseMotionColors ? EditorMotion.Classify(text, Machine) : null;
+        var kinds = UseMotionColors ? EditorMotion.Classify(text, Machine, LatheSystem) : null;
         var lineStarts = new List<int> { 0 };
         for (int i = 0; i < text.Length; i++) if (text[i] == '\n' || text[i] == '\r' && (i + 1 == text.Length || text[i + 1] != '\n')) lineStarts.Add(i + 1);
         int lineIndex = 0;

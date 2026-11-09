@@ -14,8 +14,12 @@ public record Point3(double X = 0, double Y = 0, double Z = 0)
 public record Segment(Point3 From, Point3 To, bool Rapid, int Line, string? Origin, Point3? WorkShift)
 {
     public int Motion { get; init; } = Rapid ? 0 : 1;
+    public string? Action { get; init; }
 }
-public record SimulationStep(string Kind, int Line, string? Origin, Point3? WorkShift, double? SpindleLimit, Point3 Position, int SegmentCount, string? Action = null);
+public record SimulationStep(string Kind, int Line, string? Origin, Point3? WorkShift, double? SpindleLimit, Point3 Position, int SegmentCount, string? Action = null)
+{
+    public bool PositionKnown { get; init; } = true;
+}
 public record Issue(int Line, string Message);
 public class SimulationResult
 {
@@ -25,6 +29,7 @@ public class SimulationResult
     public HashSet<string> Notes { get; } = [];
     public bool Complete => Issues.Count == 0;
     public double Distance { get; set; }
+    public int OmittedMoves { get; set; }
 }
 public static partial class GCode
 {

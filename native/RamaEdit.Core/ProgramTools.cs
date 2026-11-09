@@ -110,9 +110,11 @@ public static class ProgramTools
         return result;
     }
     static readonly Lazy<Dictionary<string, Dictionary<string, CodeHelp>>> Help = new(() => Storage.Resource<Dictionary<string, Dictionary<string, CodeHelp>>>("codes"));
-    public static CodeHelp CodeInfo(string code, string machine)
+    public static CodeHelp CodeInfo(string code, string machine, string latheSystem = "A")
     {
         string key = Regex.Replace(code.ToUpperInvariant(), @"^([GM])0+(?=\d)", "$1");
+        if (machine == "lathe" && latheSystem != "A" && key is "G90" or "G91" or "G94" or "G95") return Help.Value["mill"][key];
+        if (machine == "lathe" && FanucSupport.Find(key, latheSystem) is { } fanuc) return fanuc;
         return Help.Value[machine].GetValueOrDefault(key) ?? new(key, "Codice specifico del controllo", "Consultare il manuale della macchina.");
     }
 }

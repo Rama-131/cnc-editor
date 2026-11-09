@@ -39,7 +39,7 @@ public class MainWindow : Window
     public IReadOnlyList<NativeDocument> Documents => documents;
     readonly List<NativeDocument> documents = []; NativeDocument? active; readonly bool testMode;
     List<MachineProfile> machines = []; readonly ComboBox machineSelect = new() { Width = 205, DisplayMemberPath = "Name" }, portSelect = new() { Width = 105, IsEditable = true };
-    readonly ComboBox machineType = new() { Width = 145, ItemsSource = new[] { "Fresatrice · 3 assi", "Tornio · XZ" } }, diameter = new() { Width = 130, ItemsSource = new[] { "X a diametro", "X a raggio" } };
+    readonly ComboBox machineType = new() { Width = 145, ItemsSource = new[] { "Fresatrice · 3 assi", "Tornio Fanuc A", "Tornio G90/91" } }, diameter = new() { Width = 130, ItemsSource = new[] { "X a diametro", "X a raggio" } };
     readonly ComboBox viewSelect = new() { Width = 67, ItemsSource = new[] { "3D", "XY", "XZ", "YZ" }, SelectedIndex = 0 }, speed = new() { Width = 66, ItemsSource = new[] { "0.25×", "0.5×", "1×", "2×", "4×", "10×" }, SelectedIndex = 2 };
     readonly TextBlock pageTitle = new() { FontWeight = FontWeights.SemiBold, FontSize = 15, Margin = new(16, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
     readonly TextBlock message = new() { Margin = new(12, 4, 12, 4), TextWrapping = TextWrapping.Wrap, Foreground = Brushes.LightSteelBlue }, editorStatus = new() { Padding = new(10, 4, 10, 4), FontSize = 11, Foreground = Brushes.SlateGray };
@@ -111,7 +111,7 @@ public class MainWindow : Window
         Editor.TextArea.Caret.PositionChanged += (_, _) => Status();
         Editor.MouseHover += Hover; Editor.MouseHoverStopped += (_, _) => { if (Editor.ToolTip is ToolTip t) t.IsOpen = false; };
         machineSelect.SelectionChanged += (_, _) => { if (serial is null) { var m = SelectedMachine; portSelect.Text = m?.PortName ?? ""; } };
-        machineType.SelectionChanged += (_, _) => { if (syncing || active is null) return; active.Model.Machine = machineType.SelectedIndex == 1 ? "lathe" : "mill"; viewSelect.SelectedItem = active.Model.Machine == "lathe" ? "XZ" : "3D"; RebuildSimulation(); };
+        machineType.SelectionChanged += (_, _) => { if (syncing || active is null) return; active.Model.Machine = machineType.SelectedIndex >= 1 ? "lathe" : "mill"; active.Model.LatheSystem = machineType.SelectedIndex == 2 ? "B" : "A"; viewSelect.SelectedItem = active.Model.Machine == "lathe" ? "XZ" : "3D"; RebuildSimulation(); };
         diameter.SelectionChanged += (_, _) => { if (!syncing && active is not null) { active.Model.Diameter = diameter.SelectedIndex == 0; RebuildSimulation(); } };
         debounce.Tick += (_, _) => { debounce.Stop(); RebuildSimulation(); };
         autosave.Tick += (_, _) => Persist(); playback.Tick += (_, _) => Tick();
@@ -172,7 +172,7 @@ public class MainWindow : Window
     void Activate(NativeDocument doc, bool capture = true)
     {
         Pause(); if (capture) Capture(); active = doc;
-        if (page != "receive") { syncing = true; Editor.Document = doc.Text; Editor.CaretOffset = Math.Min(doc.Caret, doc.Text.TextLength); Editor.ScrollToVerticalOffset(doc.VerticalOffset); Editor.ScrollToHorizontalOffset(doc.HorizontalOffset); machineType.SelectedIndex = doc.Model.Machine == "lathe" ? 1 : 0; diameter.SelectedIndex = doc.Model.Diameter ? 0 : 1; viewSelect.SelectedItem = doc.View ?? (doc.Model.Machine == "lathe" ? "XZ" : "3D"); Preview.View = viewSelect.SelectedItem?.ToString() ?? "3D"; syncing = false; }
+        if (page != "receive") { syncing = true; Editor.Document = doc.Text; Editor.CaretOffset = Math.Min(doc.Caret, doc.Text.TextLength); Editor.ScrollToVerticalOffset(doc.VerticalOffset); Editor.ScrollToHorizontalOffset(doc.HorizontalOffset); machineType.SelectedIndex = doc.Model.Machine == "lathe" ? (doc.Model.LatheSystem == "B" ? 2 : 1) : 0; diameter.SelectedIndex = doc.Model.Diameter ? 0 : 1; viewSelect.SelectedItem = doc.View ?? (doc.Model.Machine == "lathe" ? "XZ" : "3D"); Preview.View = viewSelect.SelectedItem?.ToString() ?? "3D"; syncing = false; }
         RefreshTabs(); RebuildSimulation(); ApplyPage();
     }
     void RefreshTabs()
@@ -505,9 +505,10 @@ public class MainWindow : Window
     }
     void Examples()
     {
-        var w = new Window { Owner = this, Title = "Rama Edit · Esempi", Width = 400, Height = 220, WindowStartupLocation = WindowStartupLocation.CenterOwner }; var p = new StackPanel { Margin = new(20) };
+        var w = new Window { Owner = this, Title = "Rama Edit · Esempi", Width = 460, Height = 620, WindowStartupLocation = WindowStartupLocation.CenterOwner }; var p = new StackPanel { Margin = new(20) };
         foreach (var (name, machine, sample) in new[] { ("Profilo fresatura", "mill", "mill"), ("Profilo tornitura", "lathe", "lathe"), ("Fanuc G71 / G70", "lathe", "fanuc") }) p.Children.Add(B(name, () => { AddDocument(new() { Name = sample + "_esempio.txt", Text = Storage.Resource<Dictionary<string, string>>("samples")[sample], Machine = machine }); w.Close(); }));
-        w.Content = p; w.ShowDialog();
+        foreach (var example in FanucExamples.All) p.Children.Add(B(example.Name, () => { AddDocument(new() { Name = example.Name, Text = example.Text, Machine = "lathe", LatheSystem = example.System }); w.Close(); }));
+        w.Content = new ScrollViewer { Content = p, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }; w.ShowDialog();
     }
     void Print()
     {
@@ -529,7 +530,7 @@ public class MainWindow : Window
         foreach (Match m in Regex.Matches(text, @"[GM]\s*\d+(?:\.\d+)?", RegexOptions.IgnoreCase))
         {
             if (offset - line.Offset < m.Index || offset - line.Offset > m.Index + m.Length) continue;
-            var info = CoreTools.CodeInfo(m.Value.Replace(" ", ""), active.Model.Machine); var tip = new ToolTip { Content = new TextBlock { Text = info.Code + " · " + info.Title + "\n" + info.Description, MaxWidth = 440, TextWrapping = TextWrapping.Wrap }, IsOpen = true }; Editor.ToolTip = tip; break;
+            var info = CoreTools.CodeInfo(m.Value.Replace(" ", ""), active.Model.Machine, active.Model.LatheSystem); var tip = new ToolTip { Content = new TextBlock { Text = info.Code + " · " + info.Title + "\n" + info.Description, MaxWidth = 440, TextWrapping = TextWrapping.Wrap }, IsOpen = true }; Editor.ToolTip = tip; break;
         }
     }
     void Status()
@@ -540,7 +541,8 @@ public class MainWindow : Window
     void BuildSimulation()
     {
         simulationPanel.Background = new SolidColorBrush(Color.FromRgb(24, 34, 44));
-        var head = new TextBlock { Text = "⌖  Simulazione percorso", Margin = new(10, 8, 10, 5), FontWeight = FontWeights.SemiBold }; DockPanel.SetDock(head, Dock.Top); simulationPanel.Children.Add(head);
+        var head = new DockPanel(); var info = B("Dettagli", SimulationDetails); info.FontSize = 11; info.MinHeight = 26; info.Padding = new(7, 3, 7, 3); DockPanel.SetDock(info, Dock.Right); head.Children.Add(info); head.Children.Add(new TextBlock { Text = "⌖  Simulazione percorso", Margin = new(10, 8, 10, 5), FontWeight = FontWeights.SemiBold }); DockPanel.SetDock(head, Dock.Top); simulationPanel.Children.Add(head);
+        machineType.ToolTip = "Fanuc A: G90/G92/G94 sono cicli. G90/91: quote assolute/incrementali, cicli G77/G78/G79.";
         var controls = new WrapPanel(); controls.Children.Add(machineType); controls.Children.Add(diameter); controls.Children.Add(viewSelect); controls.Children.Add(B("−", () => Preview.Zoom(1 / 1.2))); controls.Children.Add(B("+", () => Preview.Zoom(1.2))); controls.Children.Add(B("Centra", Preview.Reset)); controls.Children.Add(rapids);
         DockPanel.SetDock(controls, Dock.Top); simulationPanel.Children.Add(controls);
         viewSelect.SelectionChanged += (_, _) => { Preview.View = viewSelect.SelectedItem?.ToString() ?? "3D"; if (!syncing && active is not null) active.View = Preview.View; Preview.Reset(); };
@@ -551,17 +553,34 @@ public class MainWindow : Window
         playButton = B("▶", TogglePlay); playbackGrid.Children.Add(playButton); Grid.SetColumn(timeline, 1); playbackGrid.Children.Add(timeline); var reset = B("↺", () => { Pause(); timeline.Value = 0; }); Grid.SetColumn(reset, 2); playbackGrid.Children.Add(reset); Grid.SetColumn(speed, 3); playbackGrid.Children.Add(speed); bottom.Children.Add(playbackGrid);
         timeline.ValueChanged += (_, _) => DrawStep(); simulationPanel.Children.Add(Preview);
     }
-    public void SetMachineType(string machine) => machineType.SelectedIndex = machine == "lathe" ? 1 : 0;
+    public void SetMachineType(string machine) => machineType.SelectedIndex = machine == "lathe-iso" ? 2 : machine == "lathe" ? 1 : 0;
     public void RebuildSimulation()
     {
         Pause(); if (active is null) return;
-        colorizer.Machine = active.Model.Machine; colorizer.Invalidate(); Editor.TextArea.TextView.Redraw();
-        CurrentSimulation = Simulator.Simulate(active.Text.Text, active.Model.Machine, active.Model.Diameter); cumulative = new double[CurrentSimulation.Segments.Count + 1]; for (int i = 0; i < CurrentSimulation.Segments.Count; i++) cumulative[i + 1] = cumulative[i] + CurrentSimulation.Segments[i].From.Distance(CurrentSimulation.Segments[i].To); Preview.Result = CurrentSimulation;
+        colorizer.Machine = active.Model.Machine; colorizer.LatheSystem = active.Model.LatheSystem; colorizer.Invalidate(); Editor.TextArea.TextView.Redraw();
+        CurrentSimulation = Simulator.Simulate(active.Text.Text, active.Model.Machine, active.Model.Diameter, active.Model.LatheSystem); cumulative = new double[CurrentSimulation.Segments.Count + 1]; for (int i = 0; i < CurrentSimulation.Segments.Count; i++) cumulative[i + 1] = cumulative[i] + CurrentSimulation.Segments[i].From.Distance(CurrentSimulation.Segments[i].To); Preview.Result = CurrentSimulation;
         syncing = true; timeline.Maximum = Math.Max(0, CurrentSimulation.Steps.Count - 1); timeline.Value = timeline.Maximum; syncing = false;
-        simulationStatus.Foreground = CurrentSimulation.Complete ? Brushes.MediumAquamarine : Brushes.Orange;
+        simulationStatus.Foreground = CurrentSimulation.Complete && CurrentSimulation.OmittedMoves == 0 ? Brushes.MediumAquamarine : Brushes.Orange;
         simulationStatus.Text = CurrentSimulation.Complete ? $"Anteprima geometrica · {CurrentSimulation.Segments.Count} segmenti" : $"Anteprima parziale · riga {CurrentSimulation.Issues[0].Line}\n{CurrentSimulation.Issues[0].Message}";
-        simulationStatus.Text += "\nNessuna verifica di collisione o asportazione. Cicli non supportati interrompono l’anteprima.";
+        if (CurrentSimulation.OmittedMoves > 0) simulationStatus.Text += $"\n{CurrentSimulation.OmittedMoves} tratti macchina omessi: coordinate di riferimento non definite.";
+        if (CurrentSimulation.Notes.Count > 0) simulationStatus.Text += $"\n{CurrentSimulation.Notes.Count} note: pulsante Dettagli.";
+        simulationStatus.Text += "\nGeometria programmata · Nessuna verifica di collisione o asportazione.";
         DrawStep();
+    }
+    void SimulationDetails()
+    {
+        if (active is null) return;
+        var rows = new List<string> { "SIMULAZIONE · " + active.Model.Name, "", active.Model.Machine == "lathe" ? (active.Model.LatheSystem == "A" ? "Fanuc A: G90/G92/G94 cicli" : "ISO G90/G91: quote assolute/incrementali; G77/G78/G79 cicli") : "Fresatrice", "" };
+        rows.AddRange(CurrentSimulation.Issues.Select(i => $"Riga {i.Line}: {i.Message}"));
+        rows.AddRange(CurrentSimulation.Notes); rows.Add(""); rows.Add("CODICI G PRESENTI NEL PROGRAMMA");
+        foreach (var word in CoreTools.Words(active.Text.Text).Where(w => w.Letter == "G").DistinctBy(w => w.Value).OrderBy(w => w.Value))
+        {
+            var help = CoreTools.CodeInfo("G" + word.Raw.TrimStart('+'), active.Model.Machine, active.Model.LatheSystem);
+            rows.Add(help.Code + " · " + help.Title); rows.Add(help.Description); rows.Add("");
+        }
+        var window = new Window { Owner = this, Title = "Rama Edit · Dettagli simulazione", Width = 800, Height = 620, WindowStartupLocation = WindowStartupLocation.CenterOwner };
+        window.Content = new TextBox { Text = string.Join("\r\n", rows), IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Margin = new(12), FontSize = 14, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        window.ShowDialog();
     }
     SimulationStep? CurrentStep() => CurrentSimulation.Steps.Count > 0 ? CurrentSimulation.Steps[Math.Clamp((int)timeline.Value, 0, CurrentSimulation.Steps.Count - 1)] : null;
     void DrawStep()
@@ -571,7 +590,7 @@ public class MainWindow : Window
         coordinateText.Inlines.Clear();
         foreach (var (axis, value) in new[] { ('X', p.X), ('Y', p.Y), ('Z', p.Z) })
         {
-            coordinateText.Inlines.Add(new Run($"{axis} {value,9:0.000}  ") { Foreground = AxisColors.For(axis), FontWeight = FontWeights.SemiBold });
+            coordinateText.Inlines.Add(new Run(step?.PositionKnown == false ? $"{axis}         —  " : $"{axis} {value,9:0.000}  ") { Foreground = AxisColors.For(axis), FontWeight = FontWeights.SemiBold });
         }
         coordinateText.Inlines.Add(new Run($"\nPercorso {(step is not null && step.SegmentCount < cumulative.Length ? cumulative[step.SegmentCount] : CurrentSimulation.Distance):0.0} mm" + (step?.Action is string action ? " · " + action : "")) { FontSize = 13, Foreground = Brushes.LightSteelBlue });
 

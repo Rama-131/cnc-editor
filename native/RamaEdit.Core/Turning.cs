@@ -2,7 +2,10 @@ using System.Text.RegularExpressions;
 namespace RamaEdit.Core;
 
 public record RoughingHeader(double Depth, double Retract, int Line);
-public record CycleMove(Point3 To, bool Rapid, int Line, string Action);
+public record CycleMove(Point3 To, bool Rapid, int Line, string Action)
+{
+    public int Motion { get; init; } = Rapid ? 0 : 1;
+}
 public record RoughingPlan(List<CycleMove> Moves, int EndIndex, int Passes);
 public class CycleException(int line, string message, string cycle = "G71") : Exception($"{cycle} non simulato: {message}")
 { public int Line { get; } = line; }

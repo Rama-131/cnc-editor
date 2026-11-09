@@ -97,6 +97,23 @@ public static class NativeSmoke
                 finally { bigliaWindow.Close(); }
 
                 w.Navigate("workspace"); Check(w.Editor.Text == doc.Text.Text && w.Documents.Count == 3, "Il cambio pagina conserva i documenti");
+                var fanucWindow = new MainWindow(true);
+                try
+                {
+                    fanucWindow.Show();
+                    foreach (var example in FanucExamples.All)
+                    {
+                        fanucWindow.Documents[^1].Model.Name = example.Name;
+                        fanucWindow.SetMachineType(example.System == "A" ? "lathe" : "lathe-iso");
+                        fanucWindow.Editor.Text = example.Text; fanucWindow.RebuildSimulation();
+                        await fanucWindow.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                        Check(fanucWindow.CurrentSimulation.Complete && fanucWindow.CurrentSimulation.Segments.Count > 0 && fanucWindow.Documents[^1].Model.LatheSystem == example.System && VisibleButton(fanucWindow, "Dettagli"), "Simulazione Fanuc Windows: " + example.Name);
+                        if (example.Name.Contains("g76")) Shot(fanucWindow, "fanuc-g76");
+                        if (example.Name.Contains("g72")) Shot(fanucWindow, "fanuc-g72");
+                        if (example.Name.Contains("iso_g90")) Shot(fanucWindow, "fanuc-iso");
+                    }
+                }
+                finally { fanucWindow.Close(); }
                 var colors = w.CreateColorSettings(); colors.Show(); await colors.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                 Check(VisibleButton(colors, "Campione Rapido · G0") && VisibleButton(colors, "Campione Lineare · G1 e cicli"), "Campioni colore visibili per rapido e lavorazione");
                 Check(LineHasColor(colors.PreviewEditor, 5, "#FFFF55") && LineHasColor(colors.PreviewEditor, 6, "#00D5AF") && LineHasColor(colors.PreviewEditor, 8, "#28B8FF") && LineHasColor(colors.PreviewEditor, 9, "#3986FF"), "Palette delle foto: G0 giallo, G1 turchese, G2 azzurro, G3 blu");

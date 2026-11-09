@@ -38,7 +38,7 @@ public static class EditorMotion
 {
     // Lexical highlighting, independent of simulation support. Only real numeric
     // G words change the modal color; comments, strings and assignments don't.
-    public static MotionColorKind[] Classify(string source, string machine = "mill")
+    public static MotionColorKind[] Classify(string source, string machine = "mill", string latheSystem = "A")
     {
         var lines = ProgramTools.VisibleCode(source.Replace("\r\n", "\n").Replace('\r', '\n')).Split('\n');
         var result = new MotionColorKind[lines.Length];
@@ -54,7 +54,7 @@ public static class EditorMotion
             if (gs.Contains(80)) modal = MotionColorKind.None;
             foreach (var g in gs)
                 if (g == 0) modal = MotionColorKind.Rapid;
-                else if (g == 1) modal = MotionColorKind.Working;
+                else if (g is 1 or 32 or 33 or 34) modal = MotionColorKind.Working;
                 else if (g == 2) modal = MotionColorKind.Clockwise;
                 else if (g == 3) modal = MotionColorKind.Counterclockwise;
             if (gs.Any(g => g is 4 or 10 or 50 or 52)) continue;
@@ -65,11 +65,11 @@ public static class EditorMotion
                 continue;
             }
             bool cycle = gs.Any(g => g >= 70 && g <= 79 || g >= 81 && g <= 89 ||
-                machine == "lathe" && axes && g is 90 or 92 or 94);
+                machine == "lathe" && latheSystem == "A" && axes && g is 90 or 92 or 94);
             if (cycle)
             {
                 result[i] = MotionColorKind.Working;
-                if (gs.Any(g => g >= 81 && g <= 89)) modal = MotionColorKind.Working;
+                if (gs.Any(g => g >= 81 && g <= 89 || machine == "lathe" && axes && (latheSystem == "A" && g is 90 or 92 or 94 || latheSystem != "A" && g is 77 or 78 or 79))) modal = MotionColorKind.Working;
             }
             else if (axes || (modal is MotionColorKind.Clockwise or MotionColorKind.Counterclockwise && Regex.IsMatch(text, @"[IJK]\s*[+-]?(?:\d|\.)", RegexOptions.IgnoreCase)) || gs.Any(g => g is 0 or 1 or 2 or 3))
                 result[i] = modal;

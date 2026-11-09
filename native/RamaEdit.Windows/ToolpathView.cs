@@ -54,7 +54,7 @@ public class ToolpathView : FrameworkElement
         var shift = step?.WorkShift; Point zero = Screen(new Point3().Offset(shift)); var yellow = Brushes.Gold;
         dc.DrawLine(new(yellow, 1), zero - new Vector(7, 0), zero + new Vector(7, 0)); dc.DrawLine(new(yellow, 1), zero - new Vector(0, 7), zero + new Vector(0, 7));
         Text(dc, "0 " + (step?.Origin ?? (step?.WorkShift is not null ? "G10 P0" : "")), zero + new Vector(-14, -25), yellow, 15);
-        if (step is not null) dc.DrawEllipse(Brushes.PaleGreen, new(Brushes.SeaGreen, 4), Screen(step.Position.Offset(shift)), 4, 4);
+        if (step is not null && step.PositionKnown) dc.DrawEllipse(Brushes.PaleGreen, new(Brushes.SeaGreen, 4), Screen(step.Position.Offset(shift)), 4, 4);
         Text(dc, View == "3D" ? "VISTA ISOMETRICA" : "PIANO " + View, new(12, 10), Brushes.LightSteelBlue, 10);
         Text(dc, "Coordinate locali · mm · " + (step?.Origin ?? (step?.WorkShift is not null ? "G10 P0" : "origine non indicata")), new(12, 27), Brushes.SlateGray, 11);
         if (ShowLegend)
