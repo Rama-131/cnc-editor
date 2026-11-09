@@ -9,7 +9,9 @@ namespace RamaEdit.Windows;
 public class ToolpathView : FrameworkElement
 {
     SimulationResult result = new(); public SimulationResult Result { get => result; set { result = value; Reset(); } }
-    public int StepIndex { get; set; } = -1; public string View { get; set; } = "XZ"; public bool ShowRapids { get; set; } = true;
+    public int StepIndex { get; set; } = -1; public string View { get; set; } = "XZ";
+    bool showRapids = true;
+    public bool ShowRapids { get => showRapids; set { if (showRapids == value) return; showRapids = value; Reset(); } }
     public bool ShowLegend { get; set; } = true;
     public Brush RapidBrush { get; set; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString(AppearancePalette.Defaults()["rapid"]));
     public Brush WorkingBrush { get; set; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString(AppearancePalette.Defaults()["cut"]));
@@ -27,7 +29,12 @@ public class ToolpathView : FrameworkElement
     }
     void Fit()
     {
-        var points = result.Segments.SelectMany(s => new[] { s.From.Offset(s.WorkShift), s.To.Offset(s.WorkShift) }).Concat(result.Steps.Select(s => new Point3().Offset(s.WorkShift))).DefaultIfEmpty(new Point3()).Select(Project).ToList();
+        // Hidden positioning/parking moves must not keep the work tiny.
+        // With rapids visible, retain the complete path and work-origin view.
+        var selected = result.Segments.Where(s => ShowRapids || !s.Rapid);
+        var points = selected.SelectMany(s => new[] { s.From.Offset(s.WorkShift), s.To.Offset(s.WorkShift) })
+            .Concat(ShowRapids ? result.Steps.Select(s => new Point3().Offset(s.WorkShift)) : [])
+            .DefaultIfEmpty(new Point3()).Select(Project).ToList();
         double minX = points.Min(p => p.X), maxX = points.Max(p => p.X), minY = points.Min(p => p.Y), maxY = points.Max(p => p.Y);
         center = new((minX + maxX) / 2, (minY + maxY) / 2); scale = Math.Min(Math.Max(50, ActualWidth - 100) / Math.Max(maxX - minX, 1), Math.Max(50, ActualHeight - 100) / Math.Max(maxY - minY, 1));
     }

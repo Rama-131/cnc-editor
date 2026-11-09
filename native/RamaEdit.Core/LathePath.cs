@@ -120,7 +120,11 @@ public static class LathePath
         foreach (var m in profile)
         {
             double d = direction * m.To[depthAxis], f = m.To[feedAxis];
-            if (d < previousDepth - E || f > previousFeed + E || d > stock + E) Fail("profilo non monotono: le tasche tipo II richiedono un formato e un grezzo dedicati.");
+            // A monotone contour may leave the stock/start-radius envelope:
+            // for an internal cycle its tail can return into the existing bore.
+            // That is an air-cut/exit, not a type-II pocket. Each roughing pass
+            // is still stopped at its first intersection with the contour.
+            if (d < previousDepth - E || f > previousFeed + E) Fail("profilo non monotono: le tasche tipo II richiedono un formato e un grezzo dedicati.");
             previousDepth = d; previousFeed = f;
         }
         double depth = header.GetValueOrDefault(code == 72 ? "W" : "U") * unit, retract = header.GetValueOrDefault("R") * unit;

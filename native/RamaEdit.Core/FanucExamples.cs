@@ -28,6 +28,35 @@ public static class FanucExamples
             M30
             %
             """),
+        new("fanuc_g71_interno_uscita.txt", """
+            %
+            O7101 (G71 INTERNO CON USCITA NEL FORO)
+            G18 G21 G40 G99
+            N230 G0 X0 Z2 M8
+            N240 G1 Z-30.2 F0.06
+            N250 G0 Z120 G97 S350 M9
+            N260 T303 G97 S1200 M4
+            N270 G0 X24 Z2
+            N280 G71 U2.02 R0.5
+            N290 G71 P300 Q330 U-1 W0.1 F0.2
+            N300 G0 X30.5
+            N310 G1 Z-1.9
+            N320 X24 A201.8
+            N330 X23.8
+            N340 G0 Z2
+            N360 X31.6
+            N370 G1 Z0 F0.18
+            N380 X30.5 A225
+            N390 Z-1.9
+            N400 X24 A201.8
+            N410
+            N420 G0 Z2
+            N430 G0 X24.3 Z2
+            N440 G1 Z-29.8
+            N450 G0 X24 Z2 M9
+            N460 X200 Z200 M2
+            N470 %
+            """),
         new("fanuc_g72_frontale.txt", """
             %
             O7200 (SGROSSATURA FRONTALE)

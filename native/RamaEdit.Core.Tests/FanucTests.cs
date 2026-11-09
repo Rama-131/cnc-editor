@@ -89,6 +89,29 @@ internal static class FanucTests
         End(arcs, 30, 2);
         check(arcs.Segments.Any(s => s.Motion == 3 && s.Action?.Contains("G70") == true), "G71/G70 conservano gli archi del profilo e il loro verso");
         Run("G0 X60 Z2\nG70 P100 Q130\nM30\nN100 G0 X40\nN110 G1 Z0\nN120 X50 Z-10\nN130 X55 Z-20");
+        var reportedInternal = Run("N270 G0 X24 Z2\nN280 G71 U2.02 R0.5\nN290 G71 P300 Q330 U-1 W0.1 F0.2\nN300 G0 X30.5\nN310 G1 Z-1.9\nN320 X24 A201.8\nN330 X23.8\nM30");
+        End(reportedInternal, 12, 2);
+        var reportedPasses = reportedInternal.Segments.Where(s => !s.Rapid && s.Action?.StartsWith("G71 · passata ") == true).ToList();
+        check(reportedPasses.Count == 2, "G71 della foto: due passate con profondità radiale 2,02 e sovrametallo U-1 diametrale");
+        near(reportedPasses[0].To.X, 14.02, "Prima passata interna: raggio 14,02");
+        near(reportedPasses[1].To.X, 14.75, "Seconda passata interna: raggio finale 14,75");
+        near(reportedPasses[0].To.Z, -1.8 - .73 / Math.Tan(21.8 * Math.PI / 180), "Intersezione analitica prima passata con la conicità A201.8");
+        near(reportedPasses[1].To.Z, -1.8, "La seconda passata termina alla spalla, con W0.1");
+        check(reportedPasses.All(m => m.From.X >= 12 && m.To.X >= 12), "Le passate di sgrossatura non entrano nella zona già aperta del foro");
+        check(reportedInternal.Segments.Any(m => m.Action == "G71 · profilo con sovrametallo" && Math.Abs(m.To.X - 11.4) < 1e-8), "Il tratto finale X23.8 resta nel profilo con il sovrametallo U-1, senza tagliarlo");
+        var outsideExit = Run("G0 X40 Z2\nG71 U2 R0.5\nG71 P100 Q130 U0.2 W0.1 F0.2\nN100 G0 X20\nN110 G1 Z-2\nN120 X40 A135\nN130 X42\nM30");
+        End(outsideExit, 20, 2);
+        check(outsideExit.Segments.Any(m => m.Action == "G71 · profilo con sovrametallo" && Math.Abs(m.To.X - 21.1) < 1e-8), "Anche il profilo esterno può terminare oltre il diametro iniziale senza essere una tasca");
+        foreach (string pocket in new[] {
+            "G0 X60 Z2\nG71 U2 R0.5\nG71 P100 Q130 U0.2 W0.1 F0.2\nN100 G0 X20\nN110 G1 Z0\nN120 X40 Z-5\nN130 X30 Z-10",
+            "G0 X20 Z2\nG71 U2 R0.5\nG71 P100 Q130 U-0.2 W0.1 F0.2\nN100 G0 X40\nN110 G1 Z0\nN120 X30 Z-5\nN130 X35 Z-10",
+            "G0 X24 Z2\nG71 U2.02 R0.5\nG71 P100 Q130 U-1 W0.1 F0.2\nN100 G0 X30.5\nN110 G1 Z-10\nN120 X24 Z-5\nN130 X23.8"
+        })
+        {
+            var rejected = Simulator.Simulate(pocket, "lathe");
+            check(!rejected.Complete && rejected.Issues.Any(i => i.Message.Contains("non monotono")), "Le vere tasche/inversioni interne, esterne o assiali restano segnalate");
+        }
+
         var inside = Run("G0 X20 Z2\nG71 U2 R0.5\nG71 P100 Q130 U-0.2 W0.1 F0.2\nN100 G0 X40\nN110 G1 Z0\nN120 X30 Z-10\nN130 X24 Z-20\nM30");
         End(inside, 10, 2);
         var inch = Run("G20\nG0 X0 Z0.1\nG74 R0.01\nG74 Z-0.3 Q1000 F0.01");

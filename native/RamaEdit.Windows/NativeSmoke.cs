@@ -29,6 +29,13 @@ public static class NativeSmoke
                 if (VisualTreeHelper.GetChild(root, i) is FrameworkElement child && VisibleButton(child, name)) return true;
             return false;
         }
+        CheckBox? FindCheckBox(DependencyObject root, string name)
+        {
+            if (root is CheckBox checkbox && checkbox.Content?.ToString() == name) return checkbox;
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+                if (FindCheckBox(VisualTreeHelper.GetChild(root, i), name) is { } match) return match;
+            return null;
+        }
         bool LineHasColor(ICSharpCode.AvalonEdit.TextEditor editor, int lineNumber, string hex)
         {
             var line = editor.TextArea.TextView.VisualLines.FirstOrDefault(l => l.FirstDocumentLine.LineNumber == lineNumber);
@@ -108,6 +115,16 @@ public static class NativeSmoke
                         fanucWindow.Editor.Text = example.Text; fanucWindow.RebuildSimulation();
                         await fanucWindow.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
                         Check(fanucWindow.CurrentSimulation.Complete && fanucWindow.CurrentSimulation.Segments.Count > 0 && fanucWindow.Documents[^1].Model.LatheSystem == example.System && VisibleButton(fanucWindow, "Dettagli"), "Simulazione Fanuc Windows: " + example.Name);
+                        if (example.Name.Contains("g71_interno"))
+                        {
+                            Check(fanucWindow.CurrentSimulation.Segments.Count(s => !s.Rapid && s.Action?.StartsWith("G71 · passata ") == true) == 2, "G71 interno della foto completato con due passate, senza errore tasche");
+                            Shot(fanucWindow, "fanuc-g71-interno");
+                            var showRapids = FindCheckBox(fanucWindow, "Rapidi");
+                            Check(showRapids is not null, "Selettore rapido visibile"); showRapids!.IsChecked = false;
+                            await fanucWindow.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                            Check(!fanucWindow.Preview.ShowRapids, "Nascondi rapidi centra i soli movimenti di lavorazione");
+                            Shot(fanucWindow, "fanuc-g71-interno-dettaglio"); showRapids.IsChecked = true;
+                        }
                         if (example.Name.Contains("g76")) Shot(fanucWindow, "fanuc-g76");
                         if (example.Name.Contains("g72")) Shot(fanucWindow, "fanuc-g72");
                         if (example.Name.Contains("iso_g90")) Shot(fanucWindow, "fanuc-iso");

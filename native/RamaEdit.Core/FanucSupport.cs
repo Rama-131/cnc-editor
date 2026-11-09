@@ -37,7 +37,7 @@ public static class FanucSupport
         ["G63"] = ("Modo maschiatura", "Riconosciuto nel profilo programmato. Sincronizzazione e inversione reale del mandrino non calcolate."),
         ["G64"] = ("Modo percorso continuo", "Riconosciuto senza alterare il profilo nominale. Raccordi dinamici e tolleranze del controllo non applicati."),
         ["G70"] = ("Ciclo di finitura", "Richiamo del profilo P/Q con G0/G1/G2/G3, angoli A, raccordi R e smussi C; ritorno geometrico al punto di chiamata."),
-        ["G71"] = ("Sgrossatura longitudinale", "Formato a due righe U/R e P/Q/U/W. Profili monotoni tipo I, esterni e interni, anche con archi. Tasche tipo II e formati a una riga richiedono un interprete dedicato."),
+        ["G71"] = ("Sgrossatura longitudinale", "Formato a due righe U/R e P/Q/U/W. Profili monotoni tipo I, esterni e interni, anche con archi e uscita oltre la quota X iniziale. Tasche tipo II e formati a una riga richiedono un interprete dedicato."),
         ["G72"] = ("Sgrossatura frontale", "Formato a due righe W/R e P/Q/U/W. Passate frontali su profilo monotono. Tasche tipo II non calcolate."),
         ["G73"] = ("Ripetizione profilo", "Prima riga U/W/R (sovrametalli radiali/assiali e numero passate), seconda P/Q/U/W. Ripetizioni con riduzione uniforme; forma reale del grezzo non modellata."),
         ["G74"] = ("Foratura/scanalatura frontale", "Due righe: G74 R..., poi Z/W, eventuale X/U e P/Q, F. Q è l’affondo assiale e P lo spostamento radiale in incrementi Fanuc. Scarico di fondo R nella seconda riga supportato solo a zero."),

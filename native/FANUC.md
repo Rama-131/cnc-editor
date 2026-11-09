@@ -44,6 +44,10 @@ La scelta è conservata per ogni documento nella sessione. La selezione X a diam
 | G77/G78/G79            | Cicli equivalenti nella modalità ISO G90/G91.                                                                                                                                                                 |
 | G95–G99                | Modi di avanzamento/mandrino riconosciuti; giri effettivi e tempi non calcolati. G98/G99 sul tornio non selezionano il piano di ritorno come nella fresatura.                                                 |
 
+Nei profili tipo I il tratto finale può oltrepassare la quota X iniziale senza creare una tasca: per esempio, una sgrossatura interna può uscire nel foro già aperto. Le passate di sgrossatura sono fermate alla prima intersezione con il profilo; i cambi di direzione che richiedono il tipo II restano segnalati.
+
+Disattivando **Rapidi**, il centraggio considera soltanto i movimenti di lavorazione. I posizionamenti e i parcheggi restano nel programma e nella simulazione, disponibili riattivando la casella.
+
 ## Unità P/Q e piano R
 
 Nei cicli Fanuc con P/Q interi, un incremento vale **0,001 mm** in G21 oppure **0,0001 pollici** in G20. Per esempio Q3000 in G74 significa 3 mm di affondo assiale; P2000 in G75 significa 2 mm radiali, anche con X a diametro.
