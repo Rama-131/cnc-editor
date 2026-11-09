@@ -75,7 +75,18 @@ public class MainWindow : Window
         var rail = new DockPanel { Width = 65, Background = new SolidColorBrush(Color.FromRgb(17, 25, 32)) }; DockPanel.SetDock(rail, Dock.Left); root.Children.Add(rail);
         var navigation = new StackPanel(); DockPanel.SetDock(navigation, Dock.Top); rail.Children.Add(navigation);
         navigation.Children.Add(new TextBlock { Text = "R", FontSize = 28, FontWeight = FontWeights.Bold, Foreground = Brushes.LightGreen, HorizontalAlignment = HorizontalAlignment.Center, Margin = new(0, 10, 0, 12) });
-        foreach (var (symbol, label, target) in new[] { ("⌨", "Scrittura / Simulazione", "workspace"), ("⇧", "Trasmissione", "send"), ("⇩", "Ricezione", "receive") }) { var b = B(symbol, () => Navigate(target)); b.ToolTip = label; AutomationProperties.SetName(b, label); navigation.Children.Add(b); }
+        foreach (var (symbol, label, target) in new[] { ("⌨", "Scrittura / Simulazione", "workspace"), ("⇧", "Trasmissione", "send"), ("⇩", "Ricezione", "receive") })
+        {
+            var b = B(symbol, () => Navigate(target)); b.ToolTip = label; AutomationProperties.SetName(b, label);
+            if (target is "send" or "receive")
+            {
+                var content = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center };
+                content.Children.Add(new TextBlock { Text = symbol, FontSize = 23, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center, Foreground = new SolidColorBrush(target == "send" ? Color.FromRgb(58, 168, 255) : Color.FromRgb(57, 237, 154)) });
+                content.Children.Add(new TextBlock { Text = target == "send" ? "INVIA" : "RICEVI", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center, Margin = new(0, 2, 0, 0) });
+                b.Content = content; b.Padding = new(4, 6, 4, 6); b.MinHeight = 60;
+            }
+            navigation.Children.Add(b);
+        }
         var settingsButton = B("⚙", Settings); settingsButton.ToolTip = "Impostazioni macchine";
         AutomationProperties.SetName(settingsButton, "Impostazioni macchine"); DockPanel.SetDock(settingsButton, Dock.Bottom); rail.Children.Add(settingsButton);
         rail.Children.Add(new Border());
@@ -94,7 +105,8 @@ public class MainWindow : Window
         toolListButton = Tool("☷", "Crea lista utensili", ToolList); editTools.Children.Add(toolListButton);
         extraTools.Children.Add(Tool("F", "Avanzamento", () => Adjust("F"))); extraTools.Children.Add(Tool("S", "Giri mandrino", () => Adjust("S")));
         findButton = Tool("⌕", "Trova / sostituisci", ToggleFind); extraTools.Children.Add(findButton);
-        extraTools.Children.Add(Tool("◁", "Utensile precedente", () => ToolNavigate(false))); extraTools.Children.Add(Tool("▷", "Prossimo utensile", () => ToolNavigate(true)));
+        extraTools.Children.Add(Tool("◁", "Utensile precedente", () => ToolNavigate(false), new SolidColorBrush(Color.FromRgb(255, 98, 110))));
+        extraTools.Children.Add(Tool("▷", "Prossimo utensile", () => ToolNavigate(true), new SolidColorBrush(Color.FromRgb(57, 237, 154))));
         previewButton = Tool("◫", "Nascondi simulazione", () => { simulationVisible = !simulationVisible; ApplyPage(); }); extraTools.Children.Add(previewButton);
         transferTools.Children.Add(Labeled("Macchina", machineSelect)); transferSettingsButton = B("⚙ Impostazioni", Settings); transferTools.Children.Add(transferSettingsButton); transferTools.Children.Add(Labeled("Porta", portSelect)); transferTools.Children.Add(B("⟳", RefreshPorts));
         connectButton = BA("Collega porta", Connect); sendButton = BA("⇧ Invia programma", Send); receiveButton = BA("⇩ Avvia ricezione", Receive);
@@ -140,7 +152,18 @@ public class MainWindow : Window
         var b = new Button { Content = text }; AutomationProperties.SetName(b, text);
         b.Click += async (_, _) => { try { await action(); } catch (OperationCanceledException) { if (serial?.Faulted == true) Error("Porta seriale in errore. Ricollega la porta e verifica i dati presenti sulla CNC."); else Notify("Operazione interrotta. Verifica i dati presenti sulla CNC."); } catch (Exception e) { Error(e.Message); } finally { TransferState(); } }; return b;
     }
-    Button Tool(string symbol, string text, Action action) { var b = B(text, action); b.Content = new TextBlock { Text = symbol + "\n" + text, TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap }; b.Width = 94; b.MinHeight = 60; b.Padding = new(5); b.ToolTip = text; return b; }
+    Button Tool(string symbol, string text, Action action, Brush? symbolBrush = null)
+    {
+        var b = B(text, action);
+        var content = new TextBlock { TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap };
+        if (symbolBrush is null) content.Text = symbol + "\n" + text;
+        else
+        {
+            content.Inlines.Add(new Run(symbol) { Foreground = symbolBrush });
+            content.Inlines.Add(new Run("\n" + text));
+        }
+        b.Content = content; b.Width = 94; b.MinHeight = 60; b.Padding = new(5); b.ToolTip = text; return b;
+    }
     void Notify(string text) { message.Foreground = Brushes.LightSteelBlue; message.Text = text; }
     public void Error(string text) { message.Foreground = Brushes.LightSalmon; message.Text = text; }
     int restoredIndex; string? restoredMachineId;
