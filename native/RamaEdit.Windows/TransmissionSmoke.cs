@@ -59,6 +59,14 @@ internal static class TransmissionSmoke
                 bool cancelled = false; try { await send; } catch (OperationCanceledException) { cancelled = true; }
                 check(cancelled && panel.StatusText.Contains("interrotto") && !panel.CanStop && panel.ProgressPercent == 0,
                     "Interrompi dal pannello annulla l’attesa CTS e conserva lo stato interrotto senza falso 100%");
+                var close = FindButton(panel, "Chiudi stato trasmissione")!;
+                window.UpdateLayout(); double right = close.TranslatePoint(new Point(close.ActualWidth, 0), panel).X;
+                check(close.IsVisible && close.ActualWidth > 0 && right > panel.ActualWidth - 24 && right <= panel.ActualWidth,
+                    "X di chiusura visibile a destra dopo l’interruzione dell’invio");
+                shot(window, "stato-trasmissione-interrotta");
+                close.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                window.Navigate("workspace"); window.Navigate("send");
+                check(!panel.IsVisible && !panel.HasTransmission, "X chiude completamente lo stato di trasmissione anche tornando alla pagina");
             }
             finally { await window.Connect(); }
         }

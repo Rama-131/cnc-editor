@@ -63,6 +63,9 @@ public class MainWindow : Window
     readonly Queue<string> logChunks = new(); int logLength; int receivedPending; readonly DispatcherTimer receivedRefresh = new() { Interval = TimeSpan.FromMilliseconds(80) }; double[] cumulative = []; bool playing; double playbackPosition;
     readonly TransmissionPanel transmissionPanel = new();
     internal TransmissionPanel TransmissionDetails => transmissionPanel;
+    readonly List<string> recentFiles = [];
+    internal IReadOnlyList<string> RecentFilePaths => recentFiles;
+    readonly ContextMenu recentMenu = new() { MinWidth = 340, MaxWidth = 600, Background = new SolidColorBrush(Color.FromRgb(26, 41, 53)), Foreground = new SolidColorBrush(Color.FromRgb(215, 226, 235)), BorderBrush = new SolidColorBrush(Color.FromRgb(61, 80, 96)), BorderThickness = new(1), Padding = new(4) };
     public MainWindow(bool testMode = false)
     {
         Style = (Style)Application.Current.FindResource(typeof(Window));
@@ -96,7 +99,7 @@ public class MainWindow : Window
         var header = new DockPanel { Background = new SolidColorBrush(Color.FromRgb(18, 25, 33)), LastChildFill = true };
         DockPanel.SetDock(header, Dock.Top); main.Children.Add(header);
         var context = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(10, 0, 5, 0) }; context.Children.Add(new TextBlock { Text = "Rama Edit", FontWeight = FontWeights.Bold, FontSize = 19, Margin = new(0, 10, 0, 10) }); context.Children.Add(pageTitle); header.Children.Add(context);
-        fileActions.Children.Add(BA("📂 Apri", OpenFiles)); saveButton = BA("↓ Salva", () => Save(false)); saveAsButton = BA("▣ Salva con nome", () => Save(true)); printButton = B("▤ Stampa", Print);
+        fileActions.Children.Add(BuildOpenButton()); saveButton = BA("↓ Salva", () => Save(false)); saveAsButton = BA("▣ Salva con nome", () => Save(true)); printButton = B("▤ Stampa", Print);
         fileActions.Children.Add(saveButton); fileActions.Children.Add(saveAsButton); fileActions.Children.Add(printButton); examplesButton = B("▧ Esempi", Examples); fileActions.Children.Add(examplesButton); colorsButton = B("◉ Colori", Colors); fileActions.Children.Add(colorsButton); header.Children.Add(fileActions);
         tabScroll = new() { Content = tabs, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Background = new SolidColorBrush(Color.FromRgb(26, 34, 43)) }; DockPanel.SetDock(tabScroll, Dock.Top); main.Children.Add(tabScroll);
         toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); toolbar.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) }); toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
@@ -177,6 +180,7 @@ public class MainWindow : Window
         {
             var state = Storage.Read<WorkspaceState>("workspace.json"); if (state is null) return; restoredIndex = state.ActiveIndex; restoredMachineId = state.SelectedMachineId; simulationVisible = state.SimulationVisible;
             foreach (var d in state.Documents.Where(d => d.Text.Length <= SerialText.MaxReceived)) { documents.Add(new() { Model = d, Text = new(d.Text) }); }
+            RestoreRecentFiles(state.RecentFiles ?? state.Documents.Where(d => d.Path is not null).Select(d => d.Path!).Reverse().ToList());
             received.Append(state.Received); receivedDocument.Text = state.Received; receivedName.Text = state.ReceivedName; receivedDirty = state.ReceivedDirty;
         }
         catch (Exception e) { persistenceFailed = true; Loaded += (_, _) => Error("Sessione non caricata; i dati originali restano sul PC. " + e.Message); }
@@ -188,7 +192,7 @@ public class MainWindow : Window
         {
             foreach (var d in documents) d.Model.Text = d.Text.Text;
             string raw; lock (rxGate) raw = received.ToString();
-            Storage.Save("workspace.json", new WorkspaceState { Documents = documents.Select(d => d.Model).ToList(), ActiveIndex = active is null ? 0 : documents.IndexOf(active), SelectedMachineId = SelectedMachine?.Id, SimulationVisible = simulationVisible, Received = raw, ReceivedName = receivedName.Text, ReceivedDirty = receivedDirty });
+            Storage.Save("workspace.json", new WorkspaceState { Documents = documents.Select(d => d.Model).ToList(), RecentFiles = recentFiles.ToList(), ActiveIndex = active is null ? 0 : documents.IndexOf(active), SelectedMachineId = SelectedMachine?.Id, SimulationVisible = simulationVisible, Received = raw, ReceivedName = receivedName.Text, ReceivedDirty = receivedDirty });
         }
         catch (Exception e) { persistenceFailed = true; Error("Impossibile salvare la sessione. Salva i file sul PC. " + e.Message); }
     }
@@ -240,14 +244,76 @@ public class MainWindow : Window
     }
     public void OpenPath(string path)
     {
-        var existing = documents.FirstOrDefault(d => string.Equals(d.Model.Path, Path.GetFullPath(path), StringComparison.OrdinalIgnoreCase)); if (existing is not null) { Activate(existing); return; }
+        path = Path.GetFullPath(path);
+        var existing = documents.FirstOrDefault(d => string.Equals(d.Model.Path, path, StringComparison.OrdinalIgnoreCase)); if (existing is not null) { Activate(existing); RememberRecentFile(path); return; }
         if (new FileInfo(path).Length > SerialText.MaxReceived) throw new InvalidDataException("Il file supera 2 MB.");
         byte[] bytes = File.ReadAllBytes(path); string text;
         try { text = new UTF8Encoding(false, true).GetString(bytes).TrimStart('\uFEFF'); }
         catch (DecoderFallbackException) { Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); text = Encoding.GetEncoding(1252).GetString(bytes); }
         if (text.Contains('\0')) throw new InvalidDataException("Il file contiene dati binari. Aprire un programma di testo.");
-        AddDocument(new() { Name = Path.GetFileName(path), Path = Path.GetFullPath(path), Text = text });
+        AddDocument(new() { Name = Path.GetFileName(path), Path = path, Text = text }); RememberRecentFile(path);
     }
+    UIElement BuildOpenButton()
+    {
+        var group = new Grid { Width = 124, MinHeight = 40, Margin = new(3) };
+        var buttons = new DockPanel();
+        var arrow = B("▾", ShowRecentFiles); arrow.Width = 28; arrow.Margin = new(0); arrow.Padding = new(0); arrow.Background = Brushes.Transparent; arrow.BorderThickness = new(0); arrow.ToolTip = "Ultimi file aperti";
+        AutomationProperties.SetName(arrow, "File recenti");
+        var divider = new Border { Child = arrow, BorderBrush = new SolidColorBrush(Color.FromRgb(61, 80, 96)), BorderThickness = new(1, 0, 0, 0) };
+        DockPanel.SetDock(divider, Dock.Right); buttons.Children.Add(divider);
+        var open = BA("📂 Apri", OpenFiles); open.Margin = new(0); open.Padding = new(14, 8, 14, 8); open.Background = Brushes.Transparent; open.BorderThickness = new(0); buttons.Children.Add(open);
+        group.Children.Add(new Border { Child = buttons, Background = new SolidColorBrush(Color.FromRgb(35, 49, 61)), BorderBrush = new SolidColorBrush(Color.FromRgb(61, 80, 96)), BorderThickness = new(1), CornerRadius = new(4) });
+        var hover = new Border { IsHitTestVisible = false, BorderBrush = new SolidColorBrush(Color.FromRgb(25, 200, 255)), BorderThickness = new(2), CornerRadius = new(4) };
+        var hoverStyle = new Style(typeof(Border)); hoverStyle.Setters.Add(new Setter(VisibilityProperty, Visibility.Collapsed));
+        foreach (string property in new[] { nameof(IsMouseOver), nameof(IsKeyboardFocusWithin) })
+        {
+            var trigger = new DataTrigger { Binding = new Binding(property) { Source = group }, Value = true };
+            trigger.Setters.Add(new Setter(VisibilityProperty, Visibility.Visible)); hoverStyle.Triggers.Add(trigger);
+        }
+        hover.Style = hoverStyle; group.Children.Add(hover);
+        recentMenu.PlacementTarget = group; recentMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        recentMenu.ItemContainerStyle = (Style)FindResource("RecentFileMenuItem");
+        return group;
+    }
+    void RememberRecentFile(string path, bool persist = true)
+    {
+        path = Path.GetFullPath(path); recentFiles.RemoveAll(p => string.Equals(p, path, StringComparison.OrdinalIgnoreCase)); recentFiles.Insert(0, path);
+        if (recentFiles.Count > 20) recentFiles.RemoveRange(20, recentFiles.Count - 20);
+        if (persist) Persist();
+    }
+    internal void RestoreRecentFiles(IEnumerable<string> paths)
+    {
+        recentFiles.Clear();
+        foreach (string path in paths.Take(20).Reverse())
+            try { if (!string.IsNullOrWhiteSpace(path) && Path.IsPathFullyQualified(path)) RememberRecentFile(path, false); }
+            catch (Exception e) when (e is ArgumentException or NotSupportedException or PathTooLongException) { }
+    }
+    internal void ShowRecentFiles()
+    {
+        recentMenu.Items.Clear(); recentMenu.MaxHeight = Math.Min(520, SystemParameters.WorkArea.Height * .75);
+        if (recentFiles.Count == 0) recentMenu.Items.Add(new MenuItem { Header = "Nessun file recente", IsEnabled = false });
+        foreach (string path in recentFiles)
+        {
+            var header = new StackPanel { MaxWidth = 520 };
+            header.Children.Add(new TextBlock { Text = Path.GetFileName(path), FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
+            header.Children.Add(new TextBlock { Text = Path.GetDirectoryName(path), FontSize = 11, Opacity = .75, TextTrimming = TextTrimming.CharacterEllipsis });
+            var item = new MenuItem { Header = header, ToolTip = path, Tag = path }; AutomationProperties.SetName(item, "Apri " + Path.GetFileName(path));
+            item.Click += (_, _) =>
+            {
+                try { OpenPath(path); }
+                catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException) { Error("File non disponibile: " + path); }
+                catch (Exception e) { Error(e.Message); }
+            };
+            recentMenu.Items.Add(item);
+        }
+        if (recentFiles.Count > 0)
+        {
+            recentMenu.Items.Add(new Separator());
+            var clear = new MenuItem { Header = "Svuota lista" }; clear.Click += (_, _) => { recentFiles.Clear(); Persist(); }; recentMenu.Items.Add(clear);
+        }
+        recentMenu.IsOpen = true;
+    }
+    internal ContextMenu RecentFilesMenu => recentMenu;
     Task OpenFiles()
     {
         // The Windows shell namespace opens This PC, including when Documents is redirected to OneDrive.

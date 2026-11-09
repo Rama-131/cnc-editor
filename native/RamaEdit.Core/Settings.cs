@@ -59,7 +59,7 @@ public class MachineProfile
     public override string ToString() => Name;
 }
 public class SavedDocument { public string Name { get; set; } = "nuovo_programma.txt"; public string? Path { get; set; } public string Text { get; set; } = ""; public bool Dirty { get; set; } public string Machine { get; set; } = "mill"; public string LatheSystem { get; set; } = "A"; public bool Diameter { get; set; } = true; }
-public class WorkspaceState { public List<SavedDocument> Documents { get; set; } = []; public int ActiveIndex { get; set; } public string? SelectedMachineId { get; set; } public bool SimulationVisible { get; set; } = true; public string Received { get; set; } = ""; public string ReceivedName { get; set; } = "ricevuto.txt"; public bool ReceivedDirty { get; set; } }
+public class WorkspaceState { public List<SavedDocument> Documents { get; set; } = []; public List<string>? RecentFiles { get; set; } public int ActiveIndex { get; set; } public string? SelectedMachineId { get; set; } public bool SimulationVisible { get; set; } = true; public string Received { get; set; } = ""; public string ReceivedName { get; set; } = "ricevuto.txt"; public bool ReceivedDirty { get; set; } }
 public static class Storage
 {
     public static readonly JsonSerializerOptions Json = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true, WriteIndented = true };

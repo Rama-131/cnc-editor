@@ -17,7 +17,7 @@ public sealed class TransmissionPanel : Expander
     readonly TextBlock counts = new() { FontSize = 12 }, elapsed = new() { FontSize = 12, HorizontalAlignment = HorizontalAlignment.Right };
     readonly ProgressBar progress = new() { Minimum = 0, Maximum = 100, Height = 12, Margin = new(0, 5, 0, 5), Foreground = new SolidColorBrush(Color.FromRgb(58, 168, 255)) };
     readonly TextBox log = new() { IsReadOnly = true, AcceptsReturn = true, FontFamily = new("Consolas"), FontSize = 12, Height = 88, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new(0, 5, 0, 3) };
-    readonly Button stop;
+    readonly Button stop, close;
     readonly Stopwatch clock = new();
     readonly DispatcherTimer refresh = new() { Interval = TimeSpan.FromMilliseconds(100) };
     readonly object gate = new(); readonly StringBuilder pending = new();
@@ -30,7 +30,12 @@ public sealed class TransmissionPanel : Expander
 
     public TransmissionPanel()
     {
-        Header = heading; Visibility = Visibility.Collapsed; Margin = new(8, 4, 8, 3);
+        var header = new Grid(); header.ColumnDefinitions.Add(new()); header.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
+        heading.VerticalAlignment = VerticalAlignment.Center; heading.TextTrimming = TextTrimming.CharacterEllipsis; header.Children.Add(heading);
+        close = Button("×", Dismiss); close.Width = 30; close.MinHeight = 26; close.FontSize = 19; close.Padding = new(0); close.Margin = new(4, 0, 0, 0); close.Visibility = Visibility.Collapsed;
+        close.ToolTip = "Chiudi stato trasmissione"; AutomationProperties.SetName(close, "Chiudi stato trasmissione"); Grid.SetColumn(close, 1); header.Children.Add(close);
+        Header = header; SizeChanged += (_, _) => header.Width = Math.Max(0, ActualWidth - 36);
+        Visibility = Visibility.Collapsed; Margin = new(8, 4, 8, 3);
         Background = new SolidColorBrush(Color.FromRgb(26, 41, 53)); Foreground = new SolidColorBrush(Color.FromRgb(215, 226, 235));
         HorizontalContentAlignment = HorizontalAlignment.Stretch;
         var panel = new StackPanel { Margin = new(9, 5, 9, 5) }; Content = panel;
@@ -53,6 +58,11 @@ public sealed class TransmissionPanel : Expander
         button.Click += (_, _) => action(); return button;
     }
     void StopSending() { source?.CancelSend(); stop.IsEnabled = false; }
+    void Dismiss()
+    {
+        lock (gate) if (running) return;
+        HasTransmission = false; Visibility = Visibility.Collapsed;
+    }
     public void Begin(SerialSession session, string file, string machine, string port, SerialSettings settings)
     {
         refresh.Stop();
@@ -66,7 +76,7 @@ public sealed class TransmissionPanel : Expander
         context.Text = $"{machine} · {port} · {file}\n{settings.BaudRate} baud · {settings.DataBits} bit · parità {parity} · {settings.StopBits} stop · {flow}";
         state.Text = "Preparazione dell’invio…"; state.Foreground = Brushes.LightSkyBlue; detail.Text = "";
         heading.Text = "Stato trasmissione · Preparazione"; progress.Value = 0; counts.Text = "0 byte"; elapsed.Text = "Tempo 00:00:00";
-        stop.IsEnabled = true; Visibility = Visibility.Visible; IsExpanded = true; refresh.Start();
+        stop.IsEnabled = true; close.Visibility = Visibility.Collapsed; Visibility = Visibility.Visible; IsExpanded = true; refresh.Start();
     }
     public void Append(SerialSession session, string text)
     {
@@ -120,7 +130,7 @@ public sealed class TransmissionPanel : Expander
         var status = started ? source?.GetTransmissionStatus() ?? new(TransmissionPhase.Idle) : new(TransmissionPhase.Idle);
         if (ReferenceEquals(status, previous)) status = new(TransmissionPhase.Idle);
         if (error is not null) status = status with { Phase = TransmissionPhase.Failed, Error = error };
-        ShowStatus(status); stop.IsEnabled = false;
+        ShowStatus(status); stop.IsEnabled = false; close.Visibility = Visibility.Visible;
         if (status.Phase == TransmissionPhase.Failed) IsExpanded = true;
     }
     internal string Report()
