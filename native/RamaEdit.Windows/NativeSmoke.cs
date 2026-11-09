@@ -29,6 +29,13 @@ public static class NativeSmoke
                 if (VisualTreeHelper.GetChild(root, i) is FrameworkElement child && VisibleButton(child, name)) return true;
             return false;
         }
+        Button? NamedButton(DependencyObject root, string name)
+        {
+            if (root is Button button && AutomationProperties.GetName(button) == name) return button;
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+                if (NamedButton(VisualTreeHelper.GetChild(root, i), name) is { } found) return found;
+            return null;
+        }
         CheckBox? FindCheckBox(DependencyObject root, string name)
         {
             if (root is CheckBox checkbox && checkbox.Content?.ToString() == name) return checkbox;
@@ -67,6 +74,14 @@ public static class NativeSmoke
             Check(w.Documents.Count == 0 && w.Editor.IsReadOnly, "Chiusura di tutte le schede");
             w.NewDocument(); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
             Check(!w.Editor.IsReadOnly && VisibleButton(w, "Aggiungi spazi") && VisibleButton(w, "Trova / sostituisci") && VisibleButton(w, "↓ Salva"), "Nuovo dopo chiusura di tutte le schede ripristina editor e comandi");
+            w.UpdateLayout();
+            var workspaceNav = NamedButton(w, "Scrittura / Simulazione")!; var sendNav = NamedButton(w, "Trasmissione")!; var receiveNav = NamedButton(w, "Ricezione")!;
+            var fileTab = NamedButton(w, w.Documents[0].Model.Name)!; var undo = NamedButton(w, "Annulla")!;
+            Check(Math.Abs(workspaceNav.TranslatePoint(new Point(), w).Y - fileTab.TranslatePoint(new Point(), w).Y) <= 2,
+                "Pulsante Scrittura della barra laterale allineato alla riga delle schede file");
+            Check(Math.Abs(sendNav.TranslatePoint(new Point(), w).Y - undo.TranslatePoint(new Point(), w).Y) <= 1
+                && Math.Abs(sendNav.ActualHeight - undo.ActualHeight) <= 1 && Math.Abs(sendNav.ActualHeight - receiveNav.ActualHeight) <= .5,
+                "INVIA laterale allineato ai tasti funzione; INVIA e RICEVI della stessa altezza dei tasti funzione");
             w.NewDocument(); w.Editor.Document.Insert(0, "G1 X12\nM30"); w.RebuildSimulation(); Check(w.Documents.Count == 2 && w.CurrentSimulation.Segments[^1].To.X == 12, "Schede e aggiornamento simulazione");
             w.Editor.Undo(); Check(w.Editor.Text.Length == 0, "Annulla dell’editor nativo"); w.Editor.Redo(); Check(w.Editor.Text.Contains("X12"), "Ripristina dell’editor nativo");
             string path = Path.Combine(Path.GetTempPath(), "rama-smoke-" + Guid.NewGuid().ToString("N") + ".txt");

@@ -79,17 +79,20 @@ public class MainWindow : Window
         var root = new DockPanel(); Content = root;
         var rail = new DockPanel { Width = 65, Background = new SolidColorBrush(Color.FromRgb(17, 25, 32)) }; DockPanel.SetDock(rail, Dock.Left); root.Children.Add(rail);
         var navigation = new StackPanel(); DockPanel.SetDock(navigation, Dock.Top); rail.Children.Add(navigation);
-        navigation.Children.Add(new TextBlock { Text = "R", FontSize = 28, FontWeight = FontWeights.Bold, Foreground = Brushes.LightGreen, HorizontalAlignment = HorizontalAlignment.Center, Margin = new(0, 10, 0, 12) });
+        var navigationHeader = new Border(); var navigationGap = new Border(); navigation.Children.Add(navigationHeader);
+        var navigationButtons = new Dictionary<string, Button>();
         foreach (var (symbol, label, target) in new[] { ("⌨", "Scrittura / Simulazione", "workspace"), ("⇧", "Trasmissione", "send"), ("⇩", "Ricezione", "receive") })
         {
             var b = B(symbol, () => Navigate(target)); b.ToolTip = label; AutomationProperties.SetName(b, label);
+            b.Margin = new(3, target == "receive" ? 6 : 0, 3, 0); navigationButtons.Add(target, b);
             if (target is "send" or "receive")
             {
                 var content = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center };
                 content.Children.Add(new TextBlock { Text = symbol, FontSize = 23, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center, Foreground = new SolidColorBrush(target == "send" ? Color.FromRgb(58, 168, 255) : Color.FromRgb(57, 237, 154)) });
                 content.Children.Add(new TextBlock { Text = target == "send" ? "INVIA" : "RICEVI", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center, Margin = new(0, 2, 0, 0) });
-                b.Content = content; b.Padding = new(4, 6, 4, 6); b.MinHeight = 60;
+                b.Content = content; b.Padding = new(4, 6, 4, 6); b.MinHeight = 60; b.Height = 70;
             }
+            if (target == "send") navigation.Children.Add(navigationGap);
             navigation.Children.Add(b);
         }
         var settingsButton = B("⚙", Settings); settingsButton.ToolTip = "Impostazioni macchine";
@@ -130,6 +133,18 @@ public class MainWindow : Window
         receiveHeader.Children.Add(receivedName); newReceiveButton = B("+ Nuova ricezione", ClearReceived); receiveHeader.Children.Add(newReceiveButton); openReceivedButton = B("Apri in scrittura", () => OpenReceivedProgram()); receiveHeader.Children.Add(openReceivedButton); DockPanel.SetDock(receiveHeader, Dock.Top); editorPanel.Children.Add(receiveHeader);
         var statusRow = new DockPanel(); DockPanel.SetDock(statusRow, Dock.Bottom); DockPanel.SetDock(follow, Dock.Right); statusRow.Children.Add(follow); editorStatus.TextTrimming = TextTrimming.CharacterEllipsis; statusRow.Children.Add(editorStatus); editorPanel.Children.Add(statusRow); editorPanel.Children.Add(Editor);
         BuildSimulation(); Editor.TextArea.TextView.LineTransformers.Add(colorizer); Editor.TextArea.TextView.BackgroundRenderers.Add(execution);
+        void AlignNavigation()
+        {
+            double tabHeight = Math.Max(34, tabs.ActualHeight);
+            double functionHeight = toolListButton.IsVisible && toolListButton.ActualHeight >= 60 ? toolListButton.ActualHeight : navigationButtons["send"].Height;
+            navigationHeader.Height = header.ActualHeight;
+            navigationButtons["workspace"].Height = tabHeight;
+            navigationGap.Height = (tabScroll.IsVisible ? Math.Max(0, tabScroll.ActualHeight - tabHeight) : 0) + toolbarScroll.Padding.Top + toolListButton.Margin.Top;
+            navigationButtons["send"].Height = navigationButtons["receive"].Height = functionHeight;
+        }
+        header.SizeChanged += (_, _) => AlignNavigation(); tabs.SizeChanged += (_, _) => AlignNavigation();
+        tabScroll.SizeChanged += (_, _) => AlignNavigation(); toolListButton.SizeChanged += (_, _) => AlignNavigation();
+        tabScroll.IsVisibleChanged += (_, _) => AlignNavigation(); Loaded += (_, _) => AlignNavigation();
         Editor.Options.EnableHyperlinks = false; Editor.Options.EnableEmailHyperlinks = false; Editor.Options.ConvertTabsToSpaces = true;
         Editor.TextChanged += (_, _) => { if (syncing || page == "receive" || active is null) return; active.Model.Dirty = true; RefreshTabs(); debounce.Stop(); debounce.Start(); Status(); };
         Editor.TextArea.Caret.PositionChanged += (_, _) => Status();
