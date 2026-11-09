@@ -136,6 +136,6 @@ public sealed class TransmissionPanel : Expander
     internal string Report()
     {
         FlushLog();
-        return $"Rama Edit · Stato trasmissione\n{connection}\n\n{state.Text}\n{detail.Text}\n{counts.Text}\n{elapsed.Text}\n\nRegistro{(truncated ? " (ultimi 64.000 caratteri)" : "")}\n{log.Text}";
+        return $"{AppInfo.DisplayName} · Stato trasmissione\n{connection}\n\n{state.Text}\n{detail.Text}\n{counts.Text}\n{elapsed.Text}\n\nRegistro{(truncated ? " (ultimi 64.000 caratteri)" : "")}\n{log.Text}";
     }
 }

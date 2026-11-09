@@ -54,7 +54,7 @@ public static class NativeSmoke
             using (var port = WindowsSerialDevice.CreatePort("COM1", finiteSerial))
                 Check(port.WriteTimeout == 2000, "Porta Windows: timeout finito del profilo conservato");
             w = new MainWindow(true); app.MainWindow = w; w.Show(); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle); await Task.Delay(150);
-            Check(w.Title == "Rama Edit" && w.Editor.IsLoaded, "Avvio dell’editor WPF");
+            Check(w.Title == AppInfo.DisplayName && w.Title.Contains(AppInfo.Version) && w.Editor.IsLoaded, "Avvio dell’editor WPF con versione del programma nel titolo");
             Check(WindowPlacement.IsInsideWorkArea(w) && WindowPlacement.HasCaptionButtons(w), "Finestra iniziale intera sullo schermo, barra titolo e pulsanti Windows presenti");
             var work = SystemParameters.WorkArea;
             w.Left = work.Left - 350; w.Top = work.Top - 250; w.Width = Math.Max(w.MinWidth, work.Width + 300); w.Height = Math.Max(w.MinHeight, work.Height + 300);

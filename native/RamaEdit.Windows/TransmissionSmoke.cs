@@ -17,12 +17,20 @@ internal static class TransmissionSmoke
         var machine = Storage.Defaults().Single(m => m.Id == "mch-mazakhtc400");
         string text = "%\nO0001 (PROVA TRASMISSIONE)\nG0 X10 Z2\nM30\n%";
         window.Navigate("send"); window.SelectTransferMachine(machine.Id);
+        window.NewDocument(); window.Documents[^1].Model.Name = "prova_mazak.txt"; window.Editor.Text = text;
         var panel = window.TransmissionDetails;
         await using (var device = new TestDevice { HardwareReady = false, HoldDrain = true })
         {
             var session = new SerialSession(device, machine.Settings); window.AttachSerialSession(session, machine); session.Start();
             try
             {
+                var sendButton = FindButton(window, "⇧ INVIA PROGRAMMA")!; var refresh = FindButton(window, "Aggiorna porte")!;
+                window.UpdateLayout();
+                check(sendButton.IsEnabled && sendButton.Background is SolidColorBrush blue && blue.Color.B > 230 && blue.Color.R < 30
+                    && ((Panel)sendButton.Parent).Children[0] == sendButton
+                    && ((Panel)refresh.Parent).Children[((Panel)refresh.Parent).Children.Count - 1] == refresh,
+                    "INVIA PROGRAMMA maiuscolo, blu acceso e primo a sinistra; Aggiorna porte all’estremità destra");
+                shot(window, "trasmissione-pronta");
                 var send = window.SendProgram(session, text, "prova_mazak.txt", machine, machine.PortName);
                 await Task.Delay(150); panel.RefreshStatus();
                 check(panel.IsExpanded && panel.IsVisible && panel.StatusText.Contains("CTS") && panel.ProgressPercent == 0,
@@ -85,6 +93,23 @@ internal static class TransmissionSmoke
                     "Errore prima dell’invio visibile nel pannello senza riutilizzare il 100% del file precedente");
             }
             finally { await window.Connect(); }
+        }
+        var receiver = new MainWindow(true);
+        await using (var device = new TestDevice())
+        {
+            try
+            {
+                receiver.Show(); receiver.Navigate("receive"); receiver.SelectTransferMachine(machine.Id);
+                var session = new SerialSession(device, machine.Settings); receiver.AttachSerialSession(session, machine); session.Start();
+                await receiver.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle); receiver.UpdateLayout();
+                var start = FindButton(receiver, "⇩ AVVIA RICEZIONE")!; var refresh = FindButton(receiver, "Aggiorna porte")!;
+                check(start.IsEnabled && start.Content.ToString() == "⇩ AVVIA RICEZIONE" && start.Background is SolidColorBrush green
+                    && green.Color.G > 210 && green.Color.R < 50 && ((Panel)start.Parent).Children.OfType<FrameworkElement>().First(e => e.IsVisible) == start
+                    && ((Panel)refresh.Parent).Children[((Panel)refresh.Parent).Children.Count - 1] == refresh,
+                    "AVVIA RICEZIONE maiuscolo, verde acceso e primo a sinistra; aggiornamento porte all’estremità destra");
+                shot(receiver, "ricezione-pronta"); await receiver.Connect();
+            }
+            finally { receiver.Close(); }
         }
         window.Navigate("workspace");
         check(!panel.IsVisible, "Pannello di trasmissione nascosto in Scrittura / Simulazione");

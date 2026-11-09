@@ -58,7 +58,7 @@ public class MainWindow : Window
     readonly DispatcherTimer debounce = new() { Interval = TimeSpan.FromMilliseconds(350) }, autosave = new() { Interval = TimeSpan.FromSeconds(2) }, playback = new() { Interval = TimeSpan.FromMilliseconds(40) };
     Button spacingButton = null!, toolListButton = null!;
     Button undoButton = null!, redoButton = null!, colorsButton = null!, transferSettingsButton = null!;
-    Button connectButton = null!, sendButton = null!, receiveButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, examplesButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!, openReceivedButton = null!;
+    Button connectButton = null!, sendButton = null!, receiveButton = null!, refreshPortsButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, examplesButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!, openReceivedButton = null!;
     SerialSession? serial; string page = "workspace"; bool syncing, simulationVisible = true, busy, closing, preparingClose, persistenceFailed;
     readonly Queue<string> logChunks = new(); int logLength; int receivedPending; readonly DispatcherTimer receivedRefresh = new() { Interval = TimeSpan.FromMilliseconds(80) }; double[] cumulative = []; bool playing; double playbackPosition;
     readonly TransmissionPanel transmissionPanel = new();
@@ -69,7 +69,7 @@ public class MainWindow : Window
     public MainWindow(bool testMode = false)
     {
         Style = (Style)Application.Current.FindResource(typeof(Window));
-        this.testMode = testMode; Title = "Rama Edit"; MinWidth = 900; MinHeight = 600;
+        this.testMode = testMode; Title = AppInfo.DisplayName; MinWidth = 900; MinHeight = 600;
         WindowStyle = WindowStyle.SingleBorderWindow; ResizeMode = ResizeMode.CanResize; ShowInTaskbar = true;
         WindowPlacement.SetInitialBounds(this, 1440, 920); AllowDrop = true;
         try { machines = testMode ? Storage.Defaults() : Storage.Read<List<MachineProfile>>("machines.json") ?? Storage.Defaults(); foreach (var m in machines) m.Settings.Validate(); }
@@ -98,7 +98,10 @@ public class MainWindow : Window
         var main = new DockPanel(); root.Children.Add(main);
         var header = new DockPanel { Background = new SolidColorBrush(Color.FromRgb(18, 25, 33)), LastChildFill = true };
         DockPanel.SetDock(header, Dock.Top); main.Children.Add(header);
-        var context = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(10, 0, 5, 0) }; context.Children.Add(new TextBlock { Text = "Rama Edit", FontWeight = FontWeights.Bold, FontSize = 19, Margin = new(0, 10, 0, 10) }); context.Children.Add(pageTitle); header.Children.Add(context);
+        var context = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(10, 0, 5, 0) };
+        var brand = new TextBlock { FontWeight = FontWeights.Bold, FontSize = 19, Margin = new(0, 10, 0, 10) };
+        brand.Inlines.Add(new Run("Rama Edit")); brand.Inlines.Add(new Run(" " + AppInfo.Version) { FontSize = 14, FontWeight = FontWeights.Normal, Foreground = Brushes.LightSteelBlue });
+        AutomationProperties.SetName(brand, AppInfo.DisplayName); context.Children.Add(brand); context.Children.Add(pageTitle); header.Children.Add(context);
         fileActions.Children.Add(BuildOpenButton()); saveButton = BA("↓ Salva", () => Save(false)); saveAsButton = BA("▣ Salva con nome", () => Save(true)); printButton = B("▤ Stampa", Print);
         fileActions.Children.Add(saveButton); fileActions.Children.Add(saveAsButton); fileActions.Children.Add(printButton); examplesButton = B("▧ Esempi", Examples); fileActions.Children.Add(examplesButton); colorsButton = B("◉ Colori", Colors); fileActions.Children.Add(colorsButton); header.Children.Add(fileActions);
         tabScroll = new() { Content = tabs, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Background = new SolidColorBrush(Color.FromRgb(26, 34, 43)) }; DockPanel.SetDock(tabScroll, Dock.Top); main.Children.Add(tabScroll);
@@ -113,9 +116,12 @@ public class MainWindow : Window
         extraTools.Children.Add(Tool("◁", "Utensile precedente", () => ToolNavigate(false), new SolidColorBrush(Color.FromRgb(255, 98, 110))));
         extraTools.Children.Add(Tool("▷", "Prossimo utensile", () => ToolNavigate(true), new SolidColorBrush(Color.FromRgb(57, 237, 154))));
         previewButton = Tool("◫", "Nascondi simulazione", () => { simulationVisible = !simulationVisible; ApplyPage(); }); extraTools.Children.Add(previewButton);
-        transferTools.Children.Add(Labeled("Macchina", machineSelect)); transferSettingsButton = B("⚙ Impostazioni", Settings); transferTools.Children.Add(transferSettingsButton); transferTools.Children.Add(Labeled("Porta", portSelect)); transferTools.Children.Add(B("⟳", RefreshPorts));
-        connectButton = BA("Collega porta", Connect); sendButton = BA("⇧ Invia programma", Send); receiveButton = BA("⇩ Avvia ricezione", Receive);
-        transferTools.Children.Add(sendButton); transferTools.Children.Add(receiveButton); transferTools.Children.Add(connectButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
+        transferTools.Children.Add(Labeled("Macchina", machineSelect)); transferSettingsButton = B("⚙ Impostazioni", Settings); transferTools.Children.Add(transferSettingsButton); transferTools.Children.Add(Labeled("Porta", portSelect));
+        refreshPortsButton = B("⟳", RefreshPorts); refreshPortsButton.ToolTip = "Aggiorna porte"; AutomationProperties.SetName(refreshPortsButton, "Aggiorna porte");
+        connectButton = BA("Collega porta", Connect); sendButton = BA("⇧ INVIA PROGRAMMA", Send); receiveButton = BA("⇩ AVVIA RICEZIONE", Receive);
+        sendButton.Background = new SolidColorBrush(Color.FromRgb(8, 126, 255)); sendButton.Foreground = Brushes.White; sendButton.BorderBrush = new SolidColorBrush(Color.FromRgb(77, 163, 255)); sendButton.FontWeight = FontWeights.SemiBold;
+        receiveButton.Background = new SolidColorBrush(Color.FromRgb(33, 220, 130)); receiveButton.Foreground = new SolidColorBrush(Color.FromRgb(8, 37, 24)); receiveButton.BorderBrush = new SolidColorBrush(Color.FromRgb(97, 247, 182)); receiveButton.FontWeight = FontWeights.SemiBold;
+        transferTools.Children.Insert(0, sendButton); transferTools.Children.Insert(1, receiveButton); transferTools.Children.Add(connectButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
         BuildFind(); DockPanel.SetDock(findPanel, Dock.Top); main.Children.Add(findPanel);
         DockPanel.SetDock(transmissionPanel, Dock.Top); main.Children.Add(transmissionPanel);
         DockPanel.SetDock(message, Dock.Top); main.Children.Add(message);
@@ -379,8 +385,8 @@ public class MainWindow : Window
         machineSelect.IsEnabled = !connected && !busy; portSelect.IsEnabled = !connected && !busy;
         connectButton.Content = connected ? "Disconnetti porta" : "Collega porta"; connectButton.IsEnabled = !busy && !tx && (connected || SelectedMachine is not null);
         sendButton.Visibility = page == "receive" ? Visibility.Collapsed : Visibility.Visible; receiveButton.Visibility = page == "receive" ? Visibility.Visible : Visibility.Collapsed;
-        sendButton.Content = tx ? "■ Interrompi invio" : "⇧ Invia programma"; sendButton.IsEnabled = connected && !busy && !rx && serial?.Faulted == false && (tx || !string.IsNullOrWhiteSpace(active?.Text.Text));
-        receiveButton.Content = rx ? "■ Termina ricezione" : received.Length > 0 ? "⇩ Riprendi ricezione" : "⇩ Avvia ricezione"; receiveButton.IsEnabled = connected && !busy && !tx && serial?.Faulted == false;
+        sendButton.Content = tx ? "■ INTERROMPI INVIO" : "⇧ INVIA PROGRAMMA"; sendButton.IsEnabled = connected && !busy && !rx && serial?.Faulted == false && (tx || !string.IsNullOrWhiteSpace(active?.Text.Text));
+        receiveButton.Content = rx ? "■ TERMINA RICEZIONE" : received.Length > 0 ? "⇩ RIPRENDI RICEZIONE" : "⇩ AVVIA RICEZIONE"; receiveButton.IsEnabled = connected && !busy && !tx && serial?.Faulted == false;
         openReceivedButton.IsEnabled = !rx && received.Length > 0;
         newReceiveButton.IsEnabled = !rx; printButton.IsEnabled = !rx && !tx && (page == "receive" ? received.Length > 0 : active is not null);
         saveButton.IsEnabled = !rx && (page == "receive" ? received.Length > 0 : active is not null); saveAsButton.IsEnabled = saveButton.IsEnabled;
@@ -429,7 +435,7 @@ public class MainWindow : Window
         try
         {
             _ = SerialText.Prepare(source, machine.Settings); started = true;
-            var task = session.SendAsync(source, new Progress<double>(p => { if (serial != session || session.Faulted || !session.Sending) return; sendButton.Content = $"■ Interrompi · {p:0}%"; Notify($"Invio a {machine.Name} · {p:0}%"); }));
+            var task = session.SendAsync(source, new Progress<double>(p => { if (serial != session || session.Faulted || !session.Sending) return; sendButton.Content = $"■ INTERROMPI · {p:0}%"; Notify($"Invio a {machine.Name} · {p:0}%"); }));
             TransferState(); bool limited = await task;
             Notify(limited ? "Invio parziale: raggiunto il limite di caratteri configurato. Verifica sulla CNC." : "Dati scritti sulla porta. Verifica la ricezione sul controllo CNC.");
             return limited;
@@ -613,6 +619,7 @@ public class MainWindow : Window
         toolbarRight.Children.Clear();
         editTools.Children.Remove(spacingButton); editTools.Children.Remove(toolListButton);
         transferTools.Children.Remove(transferSettingsButton);
+        transferTools.Children.Remove(refreshPortsButton);
         if (page == "send")
         {
             toolbarRight.Children.Add(spacingButton); toolbarRight.Children.Add(toolListButton);
@@ -622,7 +629,9 @@ public class MainWindow : Window
             editTools.Children.Add(spacingButton); editTools.Children.Add(toolListButton);
         }
         if (page == "receive") toolbarRight.Children.Add(transferSettingsButton);
-        else if (page == "workspace") transferTools.Children.Insert(1, transferSettingsButton);
+        else if (page == "workspace") transferTools.Children.Insert(3, transferSettingsButton);
+        if (page is "send" or "receive") toolbarRight.Children.Add(refreshPortsButton);
+        else transferTools.Children.Add(refreshPortsButton);
     }
     void Examples()
     {
