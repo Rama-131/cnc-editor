@@ -77,9 +77,11 @@ public class MainWindow : Window
         try { if (Storage.UpgradeReceiveProfiles(machines) && !testMode) Storage.Save("machines.json", machines); }
         catch (Exception e) { Loaded += (_, _) => Error("Formato ricezione aggiornato, ma non salvato: " + e.Message); }
         var root = new DockPanel(); Content = root;
+        var header = new DockPanel { Background = new SolidColorBrush(Color.FromRgb(18, 25, 33)), LastChildFill = true };
+        DockPanel.SetDock(header, Dock.Top); root.Children.Add(header);
         var rail = new DockPanel { Width = 65, Background = new SolidColorBrush(Color.FromRgb(17, 25, 32)) }; DockPanel.SetDock(rail, Dock.Left); root.Children.Add(rail);
         var navigation = new StackPanel(); DockPanel.SetDock(navigation, Dock.Top); rail.Children.Add(navigation);
-        var navigationHeader = new Border(); var navigationGap = new Border(); navigation.Children.Add(navigationHeader);
+        var navigationGap = new Border();
         var navigationButtons = new Dictionary<string, Button>();
         foreach (var (symbol, label, target) in new[] { ("⌨", "Scrittura / Simulazione", "workspace"), ("⇧", "Trasmissione", "send"), ("⇩", "Ricezione", "receive") })
         {
@@ -99,8 +101,6 @@ public class MainWindow : Window
         AutomationProperties.SetName(settingsButton, "Impostazioni macchine"); DockPanel.SetDock(settingsButton, Dock.Bottom); rail.Children.Add(settingsButton);
         rail.Children.Add(new Border());
         var main = new DockPanel(); root.Children.Add(main);
-        var header = new DockPanel { Background = new SolidColorBrush(Color.FromRgb(18, 25, 33)), LastChildFill = true };
-        DockPanel.SetDock(header, Dock.Top); main.Children.Add(header);
         var context = new StackPanel { Orientation = Orientation.Horizontal, Margin = new(10, 0, 5, 0) };
         var brand = new TextBlock { FontWeight = FontWeights.Bold, FontSize = 19, Margin = new(0, 10, 0, 10) };
         brand.Inlines.Add(new Run("Rama Edit")); brand.Inlines.Add(new Run(" " + AppInfo.Version) { FontSize = 14, FontWeight = FontWeights.Normal, Foreground = Brushes.LightSteelBlue });
@@ -137,7 +137,6 @@ public class MainWindow : Window
         {
             double tabHeight = Math.Max(34, tabs.ActualHeight);
             double functionHeight = toolListButton.IsVisible && toolListButton.ActualHeight >= 60 ? toolListButton.ActualHeight : navigationButtons["send"].Height;
-            navigationHeader.Height = header.ActualHeight;
             navigationButtons["workspace"].Height = tabHeight;
             navigationGap.Height = (tabScroll.IsVisible ? Math.Max(0, tabScroll.ActualHeight - tabHeight) : 0) + toolbarScroll.Padding.Top + toolListButton.Margin.Top;
             navigationButtons["send"].Height = navigationButtons["receive"].Height = functionHeight;

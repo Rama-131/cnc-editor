@@ -6,10 +6,11 @@ Applicazione nativa in C#/.NET 10 e WPF, con editor AvalonEdit e porte COM gesti
 
 La versione EXE 0.2.2 non è firmata. Su Windows 11 con **Controllo intelligente delle app** attivo, Windows può impedirne completamente l'avvio. Anche lo ZIP contiene un eseguibile non firmato: non costituisce una soluzione al blocco.
 
-Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.23](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.23). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
+Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.24](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.24). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
 
 ## Funzioni
 
+- Intestazione a tutta larghezza, con Rama Edit, versione, pagina e comandi file allineati verso il bordo sinistro della finestra.
 - Barra laterale senza la R verde: pulsante Scrittura allineato alle schede file, INVIA allineato ai tasti funzione e INVIA/RICEVI della stessa altezza. Allineamenti adattati al ridimensionamento della finestra.
 - Versione del software visibile accanto a Rama Edit e nella barra del titolo, ricavata automaticamente dall’app installata.
 - Editor a schede, scheda attiva blu, nuovi programmi TXT, chiusura con protezione delle modifiche e cronologia separata per documento.
