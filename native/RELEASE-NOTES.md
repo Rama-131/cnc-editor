@@ -1,13 +1,13 @@
-Aggiornamento **Rama Edit 0.2.13 per Windows**.
+Aggiornamento **Rama Edit 0.2.14 per Windows**.
 
-Correzioni alla trasmissione RS-232, dopo la segnalazione sul Mazak HTC 400:
+Premendo **Invia programma** si apre automaticamente il pannello **Stato trasmissione**, sotto la barra dei comandi.
 
-- Rispettato il tempo limite zero del profilo originale: nessun timeout aggiuntivo di 30 secondi imposto dal driver.
-- Ripristinata l’opzione USEPARITY=0 del vecchio trasmettitore: la sola segnalazione di parità ricevuta viene registrata senza fermare l’invio. Il formato del collegamento rimane 7 bit, parità pari, 2 stop. La verifica può essere attivata in Impostazioni macchine → Porta. Gli altri errori seriali continuano a interrompere il trasferimento.
-- Coda di trasmissione limitata: l’app attende l’uscita di ciascun frammento, rispetta le pause XON/XOFF insieme al CTS e svuota la coda su annullamento o errore. Il completamento viene mostrato dopo lo svuotamento della coda del driver.
-- La causa originale dell’errore resta visibile e viene registrata in **Dati ricevuti**, insieme a macchina, porta, parametri e segnali di flusso.
-- Aggiunte prove automatiche con il profilo Mazak, pause XON/XOFF, CTS, annullamento ed errori. Verificata la configurazione del driver Windows senza aprire una porta fisica. La trasmissione sulla macchina reale deve essere verificata dall’utilizzatore.
+- Mostra macchina, porta, file, parametri del collegamento, byte inviati alla porta, percentuale e tempo trascorso.
+- Distingue invio in corso, pausa XOFF, attesa XON e attesa CTS. Il completamento resta legato allo svuotamento della coda del driver.
+- Conserva la causa originale dell’errore e il registro della trasmissione. Il pannello si riapre in caso di errore e rimane consultabile al termine.
+- Pulsanti **Interrompi invio**, **Copia dettagli** e **Nascondi**. Il riepilogo si può riaprire dalla sua intestazione. Un nuovo invio azzera il riepilogo precedente.
+- Prove automatiche degli stati della seriale e dell’interfaccia Windows con una porta simulata: pausa, errore, copia dei dettagli, interruzione, completamento ed errore prima dell’invio.
 
-Scaricare **RamaEdit-Setup-0.2.13-x64.exe**, chiudere Rama Edit e installare sopra la versione precedente. Programmi e impostazioni vengono conservati, inclusa la porta COM scelta dall’utente.
+Scaricare **RamaEdit-Setup-0.2.14-x64.exe**, chiudere Rama Edit e installare sopra la versione precedente. Programmi e impostazioni vengono conservati.
 
 Versione di prova non firmata digitalmente.

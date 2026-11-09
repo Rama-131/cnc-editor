@@ -23,9 +23,13 @@ static class SerialRegressionTests
             session.Start(); var send = session.SendAsync(source);
             await Task.Delay(80);
             check(!send.IsCompleted && device.WriteCalls == 0, "Mazak BOTH: nessun byte prima del CTS, senza richiedere un XON iniziale non configurato");
+            check(session.GetTransmissionStatus() is { Phase: TransmissionPhase.WaitingForCts, SentBytes: 0 } status && status.TotalBytes == expected.Length,
+                "Stato trasmissione: attesa CTS e byte totali del piano disponibili prima della scrittura");
             device.HardwareReady = true;
             await send.WaitAsync(TimeSpan.FromSeconds(3));
             check(device.Output.SequenceEqual(expected) && !session.Faulted, "Mazak: trasmissione completa identica al piano, senza perdita di byte o alterazione dei blocchi");
+            check(session.GetTransmissionStatus() is { Phase: TransmissionPhase.Completed, Percent: 100 } done && done.SentBytes == expected.Length,
+                "Stato terminato al 100% solo dopo lo svuotamento della coda");
         }
 
         await using (var device = new QueuedDevice { HoldDrain = true })
@@ -39,9 +43,11 @@ static class SerialRegressionTests
             device.Inject("\x13"); await xoff.Task.WaitAsync(TimeSpan.FromSeconds(3));
             device.DrainRelease.TrySetResult(); await Task.Delay(80);
             check(device.WriteCalls == 1 && !send.IsCompleted, "XOFF durante lo svuotamento della coda impedisce di accodare il resto del programma");
+            check(session.GetTransmissionStatus().Phase == TransmissionPhase.PausedByXoff, "Stato trasmissione: pausa XOFF distinguibile da attesa CTS");
             device.HardwareReady = false; device.Inject("\x11"); await xon.Task.WaitAsync(TimeSpan.FromSeconds(3));
             await Task.Delay(80);
             check(device.WriteCalls == 1 && !send.IsCompleted, "BOTH: XON da solo non scavalca il CTS disattivato durante l’invio");
+            check(session.GetTransmissionStatus().Phase == TransmissionPhase.WaitingForCts, "Stato trasmissione: XON ripristinato ma attesa CTS ancora visibile");
             device.HardwareReady = true;
             await send.WaitAsync(TimeSpan.FromSeconds(3));
             check(device.Output.SequenceEqual(expected) && device.MaxWrite <= 32 && !session.Faulted,
@@ -57,6 +63,8 @@ static class SerialRegressionTests
             try { await send.WaitAsync(TimeSpan.FromSeconds(3)); } catch (OperationCanceledException) { cancelled = true; }
             check(cancelled && !session.Sending && !session.Faulted && device.DiscardCalls == 1 && device.Pending == 0,
                 "Interrompi annulla anche la coda del driver; nessun falso successo e nessun invio residuo");
+            check(session.GetTransmissionStatus() is { Phase: TransmissionPhase.Cancelled, SentBytes: 0, Percent: 0 },
+                "Stato interrotto senza conteggiare i byte annullati nella coda");
         }
 
         await using (var device = new QueuedDevice { HoldDrain = true })
@@ -88,6 +96,8 @@ static class SerialRegressionTests
                 && !shown.Contains("secondario") && device.Pending == 0,
                 parityCheck ? "Controllo parità attivo: stop, coda annullata e causa RXParity originale conservata"
                     : "USEPARITY=0 non ignora errori Frame: stop, coda annullata e causa originale conservata");
+            check(session.GetTransmissionStatus() is { Phase: TransmissionPhase.Failed } failed && failed.Error == shown,
+                "Il monitor riceve il motivo originale dell’errore e lo conserva dopo il termine dell’invio");
         }
 
         await using (var device = new QueuedDevice { FailDrain = true })
@@ -97,6 +107,13 @@ static class SerialRegressionTests
             try { await session.SendAsync(source).WaitAsync(TimeSpan.FromSeconds(3)); } catch (TimeoutException) { timedOut = true; }
             check(timedOut && session.Faulted && session.FaultMessage!.Contains("CTS") && device.DiscardCalls == 1 && device.Pending == 0,
                 "Timeout del driver: messaggio preciso conservato e coda annullata prima di un nuovo tentativo");
+        }
+        await using (var device = new QueuedDevice())
+        {
+            var limited = Storage.Clone(settings); limited.Transmit.StopAfter = 5;
+            await using var session = new SerialSession(device, limited); session.Start();
+            check(await session.SendAsync(source) && session.GetTransmissionStatus() is { Phase: TransmissionPhase.Limited, SentBytes: 5, TotalBytes: 5 },
+                "Invio limitato distinto dal completamento del file anche quando i byte previsti dal limite sono tutti usciti");
         }
     }
 

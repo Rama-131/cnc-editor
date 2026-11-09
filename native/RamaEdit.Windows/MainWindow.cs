@@ -61,6 +61,8 @@ public class MainWindow : Window
     Button connectButton = null!, sendButton = null!, receiveButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, examplesButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!, openReceivedButton = null!;
     SerialSession? serial; string page = "workspace"; bool syncing, simulationVisible = true, busy, closing, preparingClose, persistenceFailed;
     readonly Queue<string> logChunks = new(); int logLength; int receivedPending; readonly DispatcherTimer receivedRefresh = new() { Interval = TimeSpan.FromMilliseconds(80) }; double[] cumulative = []; bool playing; double playbackPosition;
+    readonly TransmissionPanel transmissionPanel = new();
+    internal TransmissionPanel TransmissionDetails => transmissionPanel;
     public MainWindow(bool testMode = false)
     {
         Style = (Style)Application.Current.FindResource(typeof(Window));
@@ -112,6 +114,7 @@ public class MainWindow : Window
         connectButton = BA("Collega porta", Connect); sendButton = BA("⇧ Invia programma", Send); receiveButton = BA("⇩ Avvia ricezione", Receive);
         transferTools.Children.Add(sendButton); transferTools.Children.Add(receiveButton); transferTools.Children.Add(connectButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
         BuildFind(); DockPanel.SetDock(findPanel, Dock.Top); main.Children.Add(findPanel);
+        DockPanel.SetDock(transmissionPanel, Dock.Top); main.Children.Add(transmissionPanel);
         DockPanel.SetDock(message, Dock.Top); main.Children.Add(message);
         body.ColumnDefinitions.Add(new()); body.ColumnDefinitions.Add(new() { Width = new(0) }); main.Children.Add(body);
         body.Children.Add(editorPanel); Grid.SetColumn(simulationPanel, 1); body.Children.Add(simulationPanel);
@@ -299,6 +302,7 @@ public class MainWindow : Window
         simulationPanel.Visibility = sim ? Visibility.Visible : Visibility.Collapsed; body.ColumnDefinitions[1].Width = sim ? new(1, GridUnitType.Star) : new(0); body.ColumnDefinitions[0].Width = new(1, GridUnitType.Star);
         previewButton.Content = new TextBlock { Text = "◫\n" + (simulationVisible ? "Nascondi simulazione" : "Mostra simulazione"), TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap };
         if (rx || page != "workspace") findPanel.Visibility = Visibility.Collapsed;
+        transmissionPanel.Visibility = page == "send" && transmissionPanel.HasTransmission ? Visibility.Visible : Visibility.Collapsed;
         execution.Line = sim ? CurrentStep()?.Line ?? 0 : 0; Editor.TextArea.TextView.InvalidateLayer(ICSharpCode.AvalonEdit.Rendering.KnownLayer.Background);
         TransferState(); Status();
     }
@@ -320,7 +324,7 @@ public class MainWindow : Window
         try { portSelect.ItemsSource = SerialPort.GetPortNames().Order().ToArray(); } catch (Exception e) { Error(e.Message); }
         portSelect.Text = selected.Length > 0 ? selected : SelectedMachine?.PortName ?? "";
     }
-    async Task Connect()
+    internal async Task Connect()
     {
         if (busy) return; busy = true; TransferState();
         try
@@ -329,27 +333,48 @@ public class MainWindow : Window
             var machine = SelectedMachine ?? throw new InvalidOperationException("Seleziona una macchina.");
             if (!Regex.IsMatch(portSelect.Text.Trim(), @"^COM\d+$", RegexOptions.IgnoreCase)) throw new ArgumentException("Indica una porta COM valida, ad esempio COM3.");
             string port = portSelect.Text.Trim().ToUpperInvariant(); machine.Settings.Validate();
-            var device = await Task.Run(() => new WindowsSerialDevice(port, machine.Settings)); var session = new SerialSession(device, machine.Settings); serial = session;
-            session.Received += AcceptReceived;
-            session.Log += AppendTransferLog;
-            session.Error += text => Dispatcher.BeginInvoke(() => { Error(text); TransferState(); });
-            session.ReceptionEnded += text => Dispatcher.BeginInvoke(() => CompleteReception(text, machine));
+            var device = await Task.Run(() => new WindowsSerialDevice(port, machine.Settings)); var session = new SerialSession(device, machine.Settings); AttachSerialSession(session, machine);
             device.PortError += session.ReportFault; AppendTransferLog($"\r\nCollegamento: {machine.Name} · {port}\r\n"); session.Start(); machine.PortName = port;
             try { if (!testMode && !persistenceFailed) Storage.Save("machines.json", machines); } catch (Exception e) { Error("Porta collegata; impossibile salvare la scelta: " + e.Message); return; }
             Notify("Collegato a " + machine.Name + " · " + port + ". Avvia l’invio o la ricezione.");
         }
         finally { busy = false; TransferState(); }
     }
+    internal void AttachSerialSession(SerialSession session, MachineProfile machine)
+    {
+        if (serial is not null) throw new InvalidOperationException("Una porta è già collegata.");
+        serial = session; session.Received += AcceptReceived; session.Log += AppendTransferLog;
+        session.Error += text => Dispatcher.BeginInvoke(() => { if (serial != session) return; Error(text); TransferState(); });
+        session.ReceptionEnded += text => Dispatcher.BeginInvoke(() => { if (serial == session) CompleteReception(text, machine); });
+        TransferState();
+    }
     async Task Send()
     {
         if (serial is null) return; if (serial.Sending) { serial.CancelSend(); return; }
-        var source = active?.Text.Text ?? ""; _ = SerialText.Prepare(source, SelectedMachine!.Settings);
-        var session = serial;
-        var task = session.SendAsync(source, new Progress<double>(p => { if (serial != session || session.Faulted || !session.Sending) return; sendButton.Content = $"■ Interrompi · {p:0}%"; Notify($"Invio a {SelectedMachine?.Name} · {p:0}%"); }));
-        TransferState(); bool limited;
-        try { limited = await task; }
-        catch (Exception e) when (session.FaultMessage is not null) { throw new IOException(session.FaultMessage, e); }
-        Notify(limited ? "Invio parziale: raggiunto il limite di caratteri configurato. Verifica sulla CNC." : "Dati scritti sulla porta. Verifica la ricezione sul controllo CNC.");
+        await SendProgram(serial, active?.Text.Text ?? "", active?.Model.Name ?? "Programma", SelectedMachine!, portSelect.Text);
+    }
+    internal async Task<bool> SendProgram(SerialSession session, string source, string file, MachineProfile machine, string port)
+    {
+        transmissionPanel.Begin(session, file, machine.Name, port, machine.Settings);
+        void CaptureLog(string text) => transmissionPanel.Append(session, text);
+        session.Log += CaptureLog;
+        bool started = false; string? failure = null;
+        try
+        {
+            _ = SerialText.Prepare(source, machine.Settings); started = true;
+            var task = session.SendAsync(source, new Progress<double>(p => { if (serial != session || session.Faulted || !session.Sending) return; sendButton.Content = $"■ Interrompi · {p:0}%"; Notify($"Invio a {machine.Name} · {p:0}%"); }));
+            TransferState(); bool limited = await task;
+            Notify(limited ? "Invio parziale: raggiunto il limite di caratteri configurato. Verifica sulla CNC." : "Dati scritti sulla porta. Verifica la ricezione sul controllo CNC.");
+            return limited;
+        }
+        catch (Exception e)
+        {
+            failure = session.FaultMessage;
+            if (failure is not null) throw new IOException(failure, e);
+            if (e is not OperationCanceledException) failure = e.Message;
+            throw;
+        }
+        finally { transmissionPanel.Finish(failure, started); session.Log -= CaptureLog; TransferState(); }
     }
     async Task Receive()
     {

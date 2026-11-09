@@ -161,6 +161,7 @@ public static class NativeSmoke
                 Check(settings.IsLoaded && settings.Foreground is SolidColorBrush settingsInk && settingsInk.Color.R > 150, "Configuratore macchine WPF con etichette leggibili");
                 Check(FindCheckBox(settings, "Controlla errori di parità ricevuti") is { IsChecked: false }, "Verifica degli errori parità selezionabile e disattivata come nei profili MCH originali");
                 Shot(settings, "impostazioni"); settings.Close();
+                await TransmissionSmoke.Run(w, Check, Shot);
             }
             finally { File.Delete(path); }
             File.WriteAllText(Path.Combine(folder, "result.json"), JsonSerializer.Serialize(new { success = true, checks }, Storage.Json)); w.Close(); app.Shutdown(0);

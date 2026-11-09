@@ -104,9 +104,20 @@ public sealed class SerialSession : IAsyncDisposable
     readonly ISerialDevice device; readonly SerialSettings settings; readonly CancellationTokenSource life = new(); readonly SemaphoreSlim writer = new(1, 1); readonly object gate = new();
     Task? reader; ReceptionFilter? filter; volatile bool faulted, sending; volatile bool paused; volatile bool flowSeen; string? faultMessage;
     DateTime lastReceived; int receivedLength; CancellationTokenSource? sendCancel;
+    TransmissionStatus transmission = new(TransmissionPhase.Idle);
     public bool Receiving { get { lock (gate) return filter is not null; } }
     public bool Sending => sending; public bool Faulted => faulted;
     public string? FaultMessage { get { lock (gate) return faultMessage; } }
+    public TransmissionStatus GetTransmissionStatus()
+    {
+        TransmissionStatus current; lock (gate) current = transmission;
+        if (current.Phase != TransmissionPhase.Sending) return current;
+        if (paused) return current with { Phase = TransmissionPhase.PausedByXoff };
+        if (settings.Transmit.WaitForXon && !flowSeen) return current with { Phase = TransmissionPhase.WaitingForXon };
+        try { if (!device.HardwareReady) return current with { Phase = TransmissionPhase.WaitingForCts }; }
+        catch (Exception e) { Fault(e.Message); lock (gate) return transmission; }
+        return current;
+    }
     public event Action<string>? Received; public event Action<string>? Log; public event Action<string>? Error; public event Action<string>? ReceptionEnded;
     public SerialSession(ISerialDevice device, SerialSettings settings) { settings.Validate(); this.device = device; this.settings = Storage.Clone(settings); }
     public void Start()
@@ -129,6 +140,7 @@ public sealed class SerialSession : IAsyncDisposable
             if (faulted) return;
             faulted = true; filter = null;
             faultMessage = detail = message + " I dati ricevuti sono conservati. Ricollega la porta prima di continuare.";
+            if (sending) transmission = transmission with { Phase = TransmissionPhase.Failed, Error = detail };
             sendCancel?.Cancel();
         }
         Trace(detail); Error?.Invoke(detail);
@@ -201,7 +213,7 @@ public sealed class SerialSession : IAsyncDisposable
     {
         var plan = SerialText.Prepare(source, settings);
         CancellationTokenSource cancellation;
-        lock (gate) { if (faulted || sending || filter is not null) throw new InvalidOperationException("Porta occupata o in errore."); sending = true; sendCancel = cancellation = CancellationTokenSource.CreateLinkedTokenSource(life.Token); }
+        lock (gate) { if (faulted || sending || filter is not null) throw new InvalidOperationException("Porta occupata o in errore."); sending = true; transmission = new(TransmissionPhase.Sending, 0, plan.Total); sendCancel = cancellation = CancellationTokenSource.CreateLinkedTokenSource(life.Token); }
         var token = cancellation.Token;
         try
         {
@@ -232,13 +244,20 @@ public sealed class SerialSession : IAsyncDisposable
                         token.ThrowIfCancellationRequested();
                     }
                     finally { writer.Release(); }
-                    sent += size; waiting = DateTime.UtcNow; progress?.Report(100d * sent / plan.Total);
+                    sent += size; waiting = DateTime.UtcNow;
+                    lock (gate) if (!faulted) transmission = transmission with { SentBytes = sent };
+                    progress?.Report(100d * sent / plan.Total);
                 }
             }
             token.ThrowIfCancellationRequested();
+            lock (gate)
+            {
+                token.ThrowIfCancellationRequested();
+                transmission = transmission with { Phase = plan.Limited ? TransmissionPhase.Limited : TransmissionPhase.Completed };
+            }
             Trace("Invio terminato: coda di uscita svuotata. Verificare la ricezione sulla CNC."); return plan.Limited;
         }
-        catch (OperationCanceledException) { device.DiscardOutput(); Trace("Invio interrotto; coda di uscita annullata. Verificare il programma parziale sulla CNC."); throw; }
+        catch (OperationCanceledException) { device.DiscardOutput(); lock (gate) if (!faulted) transmission = transmission with { Phase = TransmissionPhase.Cancelled }; Trace("Invio interrotto; coda di uscita annullata. Verificare il programma parziale sulla CNC."); throw; }
         catch (Exception e) { device.DiscardOutput(); Fault(e.Message); throw; }
         finally { lock (gate) { sending = false; sendCancel = null; cancellation.Dispose(); } }
     }

@@ -1,0 +1,112 @@
+using System.IO;
+using System.Text;
+using System.Threading.Channels;
+using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Threading;
+using RamaEdit.Core;
+
+namespace RamaEdit.Windows;
+
+internal static class TransmissionSmoke
+{
+    internal static async Task Run(MainWindow window, Action<bool, string> check, Action<FrameworkElement, string> shot)
+    {
+        var machine = Storage.Defaults().Single(m => m.Id == "mch-mazakhtc400");
+        string text = "%\nO0001 (PROVA TRASMISSIONE)\nG0 X10 Z2\nM30\n%";
+        window.Navigate("send"); window.SelectTransferMachine(machine.Id);
+        var panel = window.TransmissionDetails;
+        await using (var device = new TestDevice { HardwareReady = false, HoldDrain = true })
+        {
+            var session = new SerialSession(device, machine.Settings); window.AttachSerialSession(session, machine); session.Start();
+            try
+            {
+                var send = window.SendProgram(session, text, "prova_mazak.txt", machine, machine.PortName);
+                await Task.Delay(150); panel.RefreshStatus();
+                check(panel.IsExpanded && panel.IsVisible && panel.StatusText.Contains("CTS") && panel.ProgressPercent == 0,
+                    "Invia programma apre automaticamente il pannello con attesa CTS e avanzamento reale");
+                device.HardwareReady = true; await device.DrainEntered.Task.WaitAsync(TimeSpan.FromSeconds(3));
+                device.Inject("\x13"); await Task.Delay(150); device.DrainRelease.TrySetResult(); await Task.Delay(150); panel.RefreshStatus();
+                check(panel.StatusText.Contains("XOFF") && panel.ProgressPercent > 0 && panel.ProgressPercent < 100 && panel.CanStop,
+                    "Pannello: pausa XOFF, byte confermati e pulsante Interrompi disponibili durante l’invio");
+                shot(window, "stato-trasmissione-pausa"); panel.IsExpanded = false;
+                session.ReportFault("Errore seriale Frame. Verificare bit dati, parità e cablaggio.");
+                try { await send; } catch (IOException) { }
+                await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                string report = panel.Report();
+                check(panel.IsExpanded && !panel.CanStop && panel.StatusText.Contains("Errore") && report.Contains("Frame")
+                    && report.Contains("MAZAK HTC 400") && report.Contains(machine.PortName) && report.Contains("prova_mazak.txt") && report.Contains("XOFF ricevuto"),
+                    "Errore: pannello riaperto, causa originale e registro conservati con file, macchina e porta");
+                var copy = FindButton(panel, "Copia dettagli")!; copy.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                check(Clipboard.GetText() == report, "Copia dettagli copia il resoconto completo con la causa dell’errore");
+                shot(window, "stato-trasmissione-errore");
+            }
+            finally { await window.Connect(); }
+        }
+        await using (var device = new TestDevice { HardwareReady = false })
+        {
+            var session = new SerialSession(device, machine.Settings); window.AttachSerialSession(session, machine); session.Start();
+            try
+            {
+                var send = window.SendProgram(session, text, "prova_annullamento.txt", machine, machine.PortName); await Task.Delay(80);
+                panel.Append(session, new string('x', 100000));
+                string bounded = panel.Report();
+                check(bounded.Length < 70000 && bounded.Contains("ultimi 64.000") && bounded.Contains("MAZAK HTC 400"),
+                    "Registro lungo limitato senza perdere il riepilogo della connessione");
+                FindButton(panel, "■ Interrompi invio")!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                bool cancelled = false; try { await send; } catch (OperationCanceledException) { cancelled = true; }
+                check(cancelled && panel.StatusText.Contains("interrotto") && !panel.CanStop && panel.ProgressPercent == 0,
+                    "Interrompi dal pannello annulla l’attesa CTS e conserva lo stato interrotto senza falso 100%");
+            }
+            finally { await window.Connect(); }
+        }
+        await using (var device = new TestDevice())
+        {
+            var session = new SerialSession(device, machine.Settings); window.AttachSerialSession(session, machine); session.Start();
+            try
+            {
+                await window.SendProgram(session, text, "prova_completata.txt", machine, machine.PortName);
+                check(panel.IsExpanded && panel.StatusText.Contains("terminato") && panel.ProgressPercent == 100 && !panel.CanStop
+                    && !panel.Report().Contains("Frame"), "Nuovo invio: registro precedente azzerato e completamento conservato al 100%");
+                shot(window, "stato-trasmissione-completata");
+                bool invalid = false;
+                try { await window.SendProgram(session, "O1 (perché)\nM30", "prova_non_ascii.txt", machine, machine.PortName); } catch (ArgumentException) { invalid = true; }
+                check(invalid && panel.StatusText.Contains("Errore") && panel.ProgressPercent == 0 && panel.Report().Contains("ASCII"),
+                    "Errore prima dell’invio visibile nel pannello senza riutilizzare il 100% del file precedente");
+            }
+            finally { await window.Connect(); }
+        }
+        window.Navigate("workspace");
+        check(!panel.IsVisible, "Pannello di trasmissione nascosto in Scrittura / Simulazione");
+    }
+    static Button? FindButton(DependencyObject root, string name)
+    {
+        if (root is Button button && AutomationProperties.GetName(button) == name) return button;
+        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+            if (FindButton(VisualTreeHelper.GetChild(root, i), name) is { } found) return found;
+        return null;
+    }
+    sealed class TestDevice : ISerialDevice
+    {
+        readonly Channel<byte[]> input = Channel.CreateUnbounded<byte[]>();
+        volatile bool ready = true;
+        public bool HardwareReady { get => ready; set => ready = value; }
+        public bool HoldDrain { get; init; }
+        public TaskCompletionSource DrainEntered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource DrainRelease { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public void Inject(string text) => input.Writer.TryWrite(Encoding.ASCII.GetBytes(text));
+        public async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken token)
+        {
+            var bytes = await input.Reader.ReadAsync(token); bytes.CopyTo(buffer); return bytes.Length;
+        }
+        public ValueTask WriteAsync(ReadOnlyMemory<byte> bytes, CancellationToken token) { token.ThrowIfCancellationRequested(); return ValueTask.CompletedTask; }
+        public async ValueTask DrainAsync(CancellationToken token)
+        {
+            DrainEntered.TrySetResult(); if (HoldDrain) await DrainRelease.Task.WaitAsync(token); token.ThrowIfCancellationRequested();
+        }
+        public void DiscardOutput() { }
+        public ValueTask DisposeAsync() { input.Writer.TryComplete(); return ValueTask.CompletedTask; }
+    }
+}

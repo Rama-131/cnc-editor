@@ -137,6 +137,7 @@ await using (var device = new FakeDevice())
     var s = new SerialSettings { Delay = 0 }; s.Transmit.WaitForXon = true; s.Transmit.HandshakeTimeout = 1;
     await using var session = new SerialSession(device, s); session.Start();
     var send = session.SendAsync("O1\nM30"); await Task.Delay(50); Check(device.Bytes.Count == 0, "Attesa XON");
+    Check(session.GetTransmissionStatus().Phase == TransmissionPhase.WaitingForXon, "Monitor distingue l’attesa XON iniziale dalle altre pause");
     device.Inject("\x11"); await send.WaitAsync(TimeSpan.FromSeconds(3)); Check(device.Bytes.Count > 0, "Riprende dopo XON");
 }
 await using (var device = new FakeDevice())
