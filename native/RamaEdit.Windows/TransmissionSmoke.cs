@@ -26,10 +26,14 @@ internal static class TransmissionSmoke
             {
                 var sendButton = FindButton(window, "⇧ INVIA PROGRAMMA")!; var refresh = FindButton(window, "Aggiorna porte")!;
                 window.UpdateLayout();
+                var row = (Panel)sendButton.Parent; var commands = row.Children.OfType<FrameworkElement>().Where(e => e.IsVisible).ToArray();
                 check(sendButton.IsEnabled && sendButton.Background is SolidColorBrush blue && blue.Color.B > 230 && blue.Color.R < 30
-                    && ((Panel)sendButton.Parent).Children[0] == sendButton
-                    && ((Panel)refresh.Parent).Children[((Panel)refresh.Parent).Children.Count - 1] == refresh,
-                    "INVIA PROGRAMMA maiuscolo, blu acceso e primo a sinistra; Aggiorna porte all’estremità destra");
+                    && commands.Length == 8 && commands[0] is Border && commands[1] is Border && commands[2] == sendButton
+                    && commands[3] is Button { Content: "Disconnetti porta" } && commands[4] is Button { Content: "Dati ricevuti" }
+                    && commands[5] == FindButton(window, "Aggiungi spazi") && commands[6] == FindButton(window, "Crea lista utensili") && commands[7] == refresh,
+                    "Trasmissione: Macchina, COM, INVIA PROGRAMMA, Disconnetti, Dati ricevuti, Aggiungi spazi, Lista utensili, Aggiorna nello stesso gruppo");
+                check(commands.Zip(commands.Skip(1), (left, right) => right.TranslatePoint(new Point(), row).X - left.TranslatePoint(new Point(left.ActualWidth, 0), row).X).All(gap => gap >= -.5 && gap <= 8),
+                    "Comandi di trasmissione adiacenti senza spazio elastico tra invio, strumenti e aggiornamento porte");
                 shot(window, "trasmissione-pronta");
                 var send = window.SendProgram(session, text, "prova_mazak.txt", machine, machine.PortName);
                 await Task.Delay(150); panel.RefreshStatus();

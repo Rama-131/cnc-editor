@@ -121,7 +121,7 @@ public class MainWindow : Window
         connectButton = BA("Collega porta", Connect); sendButton = BA("⇧ INVIA PROGRAMMA", Send); receiveButton = BA("⇩ AVVIA RICEZIONE", Receive);
         sendButton.Background = new SolidColorBrush(Color.FromRgb(8, 126, 255)); sendButton.Foreground = Brushes.White; sendButton.BorderBrush = new SolidColorBrush(Color.FromRgb(77, 163, 255)); sendButton.FontWeight = FontWeights.SemiBold;
         receiveButton.Background = new SolidColorBrush(Color.FromRgb(33, 220, 130)); receiveButton.Foreground = new SolidColorBrush(Color.FromRgb(8, 37, 24)); receiveButton.BorderBrush = new SolidColorBrush(Color.FromRgb(97, 247, 182)); receiveButton.FontWeight = FontWeights.SemiBold;
-        transferTools.Children.Insert(0, sendButton); transferTools.Children.Insert(1, receiveButton); transferTools.Children.Add(connectButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
+        transferTools.Children.Add(sendButton); transferTools.Children.Insert(0, receiveButton); transferTools.Children.Add(connectButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
         BuildFind(); DockPanel.SetDock(findPanel, Dock.Top); main.Children.Add(findPanel);
         DockPanel.SetDock(transmissionPanel, Dock.Top); main.Children.Add(transmissionPanel);
         DockPanel.SetDock(message, Dock.Top); main.Children.Add(message);
@@ -618,19 +618,20 @@ public class MainWindow : Window
     {
         toolbarRight.Children.Clear();
         editTools.Children.Remove(spacingButton); editTools.Children.Remove(toolListButton);
+        transferTools.Children.Remove(spacingButton); transferTools.Children.Remove(toolListButton);
         transferTools.Children.Remove(transferSettingsButton);
         transferTools.Children.Remove(refreshPortsButton);
         if (page == "send")
         {
-            toolbarRight.Children.Add(spacingButton); toolbarRight.Children.Add(toolListButton);
+            transferTools.Children.Add(spacingButton); transferTools.Children.Add(toolListButton);
         }
         else
         {
             editTools.Children.Add(spacingButton); editTools.Children.Add(toolListButton);
         }
         if (page == "receive") toolbarRight.Children.Add(transferSettingsButton);
-        else if (page == "workspace") transferTools.Children.Insert(3, transferSettingsButton);
-        if (page is "send" or "receive") toolbarRight.Children.Add(refreshPortsButton);
+        else if (page == "workspace") transferTools.Children.Insert(2, transferSettingsButton);
+        if (page == "receive") toolbarRight.Children.Add(refreshPortsButton);
         else transferTools.Children.Add(refreshPortsButton);
     }
     void Examples()

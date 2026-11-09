@@ -1,10 +1,11 @@
-Aggiornamento **Rama Edit 0.2.20 per Windows**.
+Aggiornamento **Rama Edit 0.2.21 per Windows**.
 
-- Il nome del programma mostra ora la versione installata, sia nell’intestazione sia nella barra del titolo: **Rama Edit 0.2.20**. Il valore viene ricavato automaticamente dall’eseguibile e comparirà correttamente anche negli aggiornamenti successivi. Allineate anche Info versione e copia dei dettagli di trasmissione.
-- **INVIA PROGRAMMA** è il primo comando a sinistra nella pagina Trasmissione, con sfondo blu acceso, scritta bianca e maiuscola.
-- **AVVIA RICEZIONE** è il primo comando a sinistra nella pagina Ricezione, con sfondo verde acceso e scritta maiuscola. Anche Riprendi/Termina ricezione usano le maiuscole.
-- **Aggiorna porte** è spostato all’estremità destra della barra, nelle pagine Trasmissione e Ricezione.
+Riordinata la barra della pagina **Trasmissione**, con tutti i comandi vicini nell’ordine richiesto:
 
-Scaricare **RamaEdit-Setup-0.2.20-x64.exe**, chiudere Rama Edit e installare sopra la versione precedente. Programmi e impostazioni vengono conservati.
+**Macchina → COM → INVIA PROGRAMMA → Collega/Disconnetti porta → Dati ricevuti → Aggiungi spazi → Crea lista utensili → Aggiorna porte**.
+
+Eliminato lo spazio che separava gli ultimi tre pulsanti dal resto dei comandi. Il pulsante INVIA PROGRAMMA mantiene sfondo blu acceso e scritta maiuscola. Verificati l’ordine e la distanza tra i comandi anche su Windows.
+
+Scaricare **RamaEdit-Setup-0.2.21-x64.exe**, chiudere Rama Edit e installare sopra la versione precedente. Programmi e impostazioni vengono conservati.
 
 Versione di prova non firmata digitalmente.
