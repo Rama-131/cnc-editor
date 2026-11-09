@@ -17,7 +17,7 @@ internal static class RecentFilesSmoke
         string first = Path.Combine(folder, "Tornio", "SETUP1.txt"), second = Path.Combine(folder, "Fresa", "SETUP1.txt"), third = Path.Combine(folder, "PROVA_MAZAK.txt");
         try
         {
-            window.Navigate("workspace");
+            window.Navigate("workspace"); window.Activate();
             File.WriteAllText(first, "G0 X10\nM30"); File.WriteAllText(second, "G0 X20\nM30"); File.WriteAllText(third, "G0 X30\nM30");
             window.RestoreRecentFiles([]);
             window.OpenPath(first); var dirty = window.Documents[^1]; window.Editor.Document.Insert(0, "(MODIFICHE NON SALVATE)\n");
@@ -25,9 +25,11 @@ internal static class RecentFilesSmoke
             var arrow = FindButton(window, "File recenti")!; arrow.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
             var menu = window.RecentFilesMenu;
+            for (int i = 0; i < 100 && (!menu.IsVisible || menu.ActualWidth <= 0 || menu.ActualHeight <= 0); i++) await Task.Delay(20);
             check(menu.IsOpen && menu.Items.OfType<MenuItem>().Where(i => i.Tag is string).Select(i => (string)i.Tag).SequenceEqual(new[] { third, second, first }),
                 "Freccia Apri apre il menu con i file dal più recente e percorsi distinti per nomi uguali");
-            shot(window, "apri-file-recenti"); shot(menu, "file-recenti-menu");
+            check(menu.IsVisible && menu.ActualWidth > 0 && menu.ActualHeight > 0, $"Menu recenti caricato e visibile ({menu.IsOpen}, {menu.IsLoaded}, {menu.ActualWidth:0}x{menu.ActualHeight:0})");
+            shot(menu, "file-recenti-menu"); shot(window, "apri-file-recenti");
             int before = window.Documents.Count;
             menu.IsOpen = false;
             menu.Items.OfType<MenuItem>().Single(i => Equals(i.Tag, first)).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
