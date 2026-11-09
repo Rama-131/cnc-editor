@@ -65,7 +65,7 @@ public class MainWindow : Window
     internal TransmissionPanel TransmissionDetails => transmissionPanel;
     readonly List<string> recentFiles = [];
     internal IReadOnlyList<string> RecentFilePaths => recentFiles;
-    readonly ContextMenu recentMenu = new() { MinWidth = 340, MaxWidth = 600, Background = new SolidColorBrush(Color.FromRgb(26, 41, 53)), Foreground = new SolidColorBrush(Color.FromRgb(215, 226, 235)), BorderBrush = new SolidColorBrush(Color.FromRgb(61, 80, 96)), BorderThickness = new(1), Padding = new(4) };
+    readonly RecentFilesPopup recentMenu = new();
     public MainWindow(bool testMode = false)
     {
         Style = (Style)Application.Current.FindResource(typeof(Window));
@@ -272,14 +272,7 @@ public class MainWindow : Window
         }
         hover.Style = hoverStyle; group.Children.Add(hover);
         recentMenu.PlacementTarget = group; recentMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
-        recentMenu.Style = (Style)FindResource("RecentFilesMenu");
-        recentMenu.ItemContainerStyle = (Style)FindResource("RecentFileMenuItem");
-        recentMenu.Opened += (_, _) =>
-        {
-            recentMenu.ApplyTemplate(); recentMenu.Measure(new Size(recentMenu.MaxWidth, recentMenu.MaxHeight));
-            recentMenu.Arrange(new Rect(recentMenu.DesiredSize)); recentMenu.UpdateLayout();
-            if (PresentationSource.FromVisual(recentMenu)?.RootVisual is UIElement popupRoot) { popupRoot.InvalidateMeasure(); popupRoot.UpdateLayout(); }
-        };
+        recentMenu.Opener = arrow;
         return group;
     }
     void RememberRecentFile(string path, bool persist = true)
@@ -297,16 +290,17 @@ public class MainWindow : Window
     }
     internal void ShowRecentFiles()
     {
-        recentMenu.Items.Clear(); recentMenu.MaxHeight = Math.Min(520, SystemParameters.WorkArea.Height * .75);
-        if (recentFiles.Count == 0) recentMenu.Items.Add(new MenuItem { Header = "Nessun file recente", IsEnabled = false });
+        recentMenu.Items.Clear(); recentMenu.Frame.MaxHeight = Math.Min(520, SystemParameters.WorkArea.Height * .75);
+        if (recentFiles.Count == 0) recentMenu.Items.Add(new Button { Content = "Nessun file recente", IsEnabled = false, Style = (Style)FindResource("RecentFileButton") });
         foreach (string path in recentFiles)
         {
             var header = new StackPanel { MaxWidth = 520 };
             header.Children.Add(new TextBlock { Text = Path.GetFileName(path), FontWeight = FontWeights.SemiBold, TextTrimming = TextTrimming.CharacterEllipsis });
             header.Children.Add(new TextBlock { Text = Path.GetDirectoryName(path), FontSize = 11, Opacity = .75, TextTrimming = TextTrimming.CharacterEllipsis });
-            var item = new MenuItem { Header = header, ToolTip = path, Tag = path }; AutomationProperties.SetName(item, "Apri " + Path.GetFileName(path));
+            var item = new Button { Content = header, ToolTip = path, Tag = path, Style = (Style)FindResource("RecentFileButton") }; AutomationProperties.SetName(item, "Apri " + Path.GetFileName(path));
             item.Click += (_, _) =>
             {
+                recentMenu.IsOpen = false;
                 try { OpenPath(path); }
                 catch (Exception e) when (e is FileNotFoundException or DirectoryNotFoundException) { Error("File non disponibile: " + path); }
                 catch (Exception e) { Error(e.Message); }
@@ -316,11 +310,11 @@ public class MainWindow : Window
         if (recentFiles.Count > 0)
         {
             recentMenu.Items.Add(new Separator());
-            var clear = new MenuItem { Header = "Svuota lista" }; clear.Click += (_, _) => { recentFiles.Clear(); Persist(); }; recentMenu.Items.Add(clear);
+            var clear = new Button { Content = "Svuota lista", Style = (Style)FindResource("RecentFileButton") }; clear.Click += (_, _) => { recentMenu.IsOpen = false; recentFiles.Clear(); Persist(); }; recentMenu.Items.Add(clear);
         }
-        recentMenu.Visibility = Visibility.Visible; recentMenu.IsOpen = true;
+        recentMenu.IsOpen = true;
     }
-    internal ContextMenu RecentFilesMenu => recentMenu;
+    internal RecentFilesPopup RecentFilesMenu => recentMenu;
     Task OpenFiles()
     {
         // The Windows shell namespace opens This PC, including when Documents is redirected to OneDrive.

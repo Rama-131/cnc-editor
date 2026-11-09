@@ -5,6 +5,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Interop;
+using System.Windows.Input;
 using System.Windows.Threading;
 using RamaEdit.Core;
 
@@ -27,28 +28,29 @@ internal static class RecentFilesSmoke
             var arrow = FindButton(window, "File recenti")!; arrow.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
             var menu = window.RecentFilesMenu;
-            for (int i = 0; i < 100 && (!menu.IsVisible || menu.ActualWidth <= 0 || menu.ActualHeight <= 0); i++) await Task.Delay(20);
-            check(menu.IsOpen && menu.Items.OfType<MenuItem>().Where(i => i.Tag is string).Select(i => (string)i.Tag).SequenceEqual(new[] { third, second, first }),
+            for (int i = 0; i < 100 && (!menu.Frame.IsVisible || menu.Frame.ActualWidth <= 0 || menu.Frame.ActualHeight <= 0); i++) await Task.Delay(20);
+            check(menu.IsOpen && menu.Items.OfType<Button>().Where(i => i.Tag is string).Select(i => (string)i.Tag).SequenceEqual(new[] { third, second, first }),
                 "Freccia Apri apre il menu con i file dal più recente e percorsi distinti per nomi uguali");
-            check(menu.IsVisible && menu.ActualWidth > 0 && menu.ActualHeight > 0, $"Menu recenti caricato e visibile (aperto {menu.IsOpen}, caricato {menu.IsLoaded}, visibile {menu.IsVisible}, template {menu.Template is not null}, {menu.ActualWidth:0}x{menu.ActualHeight:0}, previsto {menu.DesiredSize})");
-            var popup = PresentationSource.FromVisual(menu) as HwndSource;
+            check(menu.Frame.IsVisible && menu.Frame.ActualWidth > 0 && menu.Frame.ActualHeight > 0, $"Menu recenti caricato e visibile (aperto {menu.IsOpen}, caricato {menu.Frame.IsLoaded}, visibile {menu.Frame.IsVisible}, template {menu.Frame.Child is not null}, {menu.Frame.ActualWidth:0}x{menu.Frame.ActualHeight:0}, previsto {menu.Frame.DesiredSize})");
+            var popup = PresentationSource.FromVisual(menu.Frame) as HwndSource;
             double scale = popup?.CompositionTarget?.TransformToDevice.M11 ?? 1;
-            check(popup is not null && GetWindowRect(popup.Handle, out var bounds) && bounds.Right - bounds.Left >= menu.ActualWidth * scale - 1 && bounds.Bottom - bounds.Top >= menu.ActualHeight * scale - 1,
+            check(popup is not null && GetWindowRect(popup.Handle, out var bounds) && bounds.Right - bounds.Left >= menu.Frame.ActualWidth * scale - 1 && bounds.Bottom - bounds.Top >= menu.Frame.ActualHeight * scale - 1,
                 "Popup dei recenti ospitato in una finestra Windows con dimensioni reali positive");
-            shot(menu, "file-recenti-menu"); shot(window, "apri-file-recenti");
+            shot(menu.Frame, "file-recenti-menu"); shot(window, "apri-file-recenti");
             int before = window.Documents.Count;
-            menu.IsOpen = false;
-            menu.Items.OfType<MenuItem>().Single(i => Equals(i.Tag, first)).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            menu.Frame.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, popup!, 0, Key.Escape) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
+            check(!menu.IsOpen, "Escape chiude il menu dei recenti e restituisce il focus alla freccia Apri");
+            menu.Items.OfType<Button>().Single(i => Equals(i.Tag, first)).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             check(window.Documents.Count == before && window.Editor.Document == dirty.Text && window.Editor.Text.StartsWith("(MODIFICHE NON SALVATE)")
                 && window.RecentFilePaths[0] == first && window.RecentFilePaths.Count(p => string.Equals(p, first, StringComparison.OrdinalIgnoreCase)) == 1,
                 "File già aperto riattivato dal menu senza duplicati e senza perdere modifiche non salvate");
             await window.CloseDocument(closed); window.ShowRecentFiles(); menu.IsOpen = false;
-            menu.Items.OfType<MenuItem>().Single(i => Equals(i.Tag, second)).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            menu.Items.OfType<Button>().Single(i => Equals(i.Tag, second)).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             check(window.Editor.Text.Contains("X20") && window.Documents.Any(d => d.Model.Path == second) && window.RecentFilePaths[0] == second,
                 "Selezione di un file recente chiuso lo riapre dal disco");
             await window.CloseDocument(missing); File.Delete(third); before = window.Documents.Count;
             window.ShowRecentFiles(); menu.IsOpen = false;
-            menu.Items.OfType<MenuItem>().Single(i => Equals(i.Tag, third)).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            menu.Items.OfType<Button>().Single(i => Equals(i.Tag, third)).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             check(window.Documents.Count == before && window.RecentFilePaths.Contains(third), "File non disponibile segnalato senza aprire schede vuote o perdere il riferimento");
             window.RestoreRecentFiles(Enumerable.Range(0, 25).Select(i => Path.Combine(folder, $"programma_{i}.txt")));
             window.OpenPath(first); var saved = Storage.Clone(new WorkspaceState { RecentFiles = window.RecentFilePaths.ToList() });
@@ -56,10 +58,10 @@ internal static class RecentFilesSmoke
             check(window.RecentFilePaths.Count == 20 && window.RecentFilePaths.SequenceEqual(expected) && window.RecentFilePaths[0] == first,
                 "Ultimi venti file conservati nello stato della sessione con ordine e riapertura corretti");
             window.ShowRecentFiles(); menu.IsOpen = false;
-            menu.Items.OfType<MenuItem>().Single(i => Equals(i.Header, "Svuota lista")).RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            menu.Items.OfType<Button>().Single(i => Equals(i.Content, "Svuota lista")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             saved = Storage.Clone(new WorkspaceState { RecentFiles = window.RecentFilePaths.ToList() });
             window.RestoreRecentFiles(saved.RecentFiles!); window.ShowRecentFiles();
-            check(window.RecentFilePaths.Count == 0 && saved.RecentFiles is { Count: 0 } && menu.Items.OfType<MenuItem>().All(i => !i.IsEnabled),
+            check(window.RecentFilePaths.Count == 0 && saved.RecentFiles is { Count: 0 } && menu.Items.OfType<Button>().All(i => !i.IsEnabled),
                 "Svuota lista resta vuoto al ripristino e mostra Nessun file recente");
             menu.IsOpen = false;
         }
