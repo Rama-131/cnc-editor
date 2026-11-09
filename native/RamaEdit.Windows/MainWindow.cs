@@ -272,6 +272,7 @@ public class MainWindow : Window
         }
         hover.Style = hoverStyle; group.Children.Add(hover);
         recentMenu.PlacementTarget = group; recentMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        recentMenu.Style = (Style)FindResource("RecentFilesMenu");
         recentMenu.ItemContainerStyle = (Style)FindResource("RecentFileMenuItem");
         return group;
     }
@@ -311,7 +312,7 @@ public class MainWindow : Window
             recentMenu.Items.Add(new Separator());
             var clear = new MenuItem { Header = "Svuota lista" }; clear.Click += (_, _) => { recentFiles.Clear(); Persist(); }; recentMenu.Items.Add(clear);
         }
-        recentMenu.IsOpen = true;
+        recentMenu.Visibility = Visibility.Visible; recentMenu.IsOpen = true;
     }
     internal ContextMenu RecentFilesMenu => recentMenu;
     Task OpenFiles()

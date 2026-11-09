@@ -1,5 +1,8 @@
 <Application x:Class="RamaEdit.Windows.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Application.Resources>
+    <Style x:Key="RecentFilesMenu" TargetType="ContextMenu">
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ContextMenu"><Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" CornerRadius="4"><ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="True"><ItemsPresenter/></ScrollViewer></Border></ControlTemplate></Setter.Value></Setter>
+    </Style>
     <Style x:Key="RecentFileMenuItem" TargetType="MenuItem">
       <Setter Property="Foreground" Value="#D7E2EB"/><Setter Property="Background" Value="Transparent"/><Setter Property="Padding" Value="10,7"/>
       <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="MenuItem"><Border Background="{TemplateBinding Background}" CornerRadius="3" Padding="{TemplateBinding Padding}"><ContentPresenter ContentSource="Header" RecognizesAccessKey="False"/></Border><ControlTemplate.Triggers><Trigger Property="IsHighlighted" Value="True"><Setter Property="Background" Value="#164B73"/><Setter Property="Foreground" Value="White"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".55"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>

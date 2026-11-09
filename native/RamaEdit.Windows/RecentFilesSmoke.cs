@@ -28,7 +28,7 @@ internal static class RecentFilesSmoke
             for (int i = 0; i < 100 && (!menu.IsVisible || menu.ActualWidth <= 0 || menu.ActualHeight <= 0); i++) await Task.Delay(20);
             check(menu.IsOpen && menu.Items.OfType<MenuItem>().Where(i => i.Tag is string).Select(i => (string)i.Tag).SequenceEqual(new[] { third, second, first }),
                 "Freccia Apri apre il menu con i file dal più recente e percorsi distinti per nomi uguali");
-            check(menu.IsVisible && menu.ActualWidth > 0 && menu.ActualHeight > 0, $"Menu recenti caricato e visibile ({menu.IsOpen}, {menu.IsLoaded}, {menu.ActualWidth:0}x{menu.ActualHeight:0})");
+            check(menu.IsVisible && menu.ActualWidth > 0 && menu.ActualHeight > 0, $"Menu recenti caricato e visibile (aperto {menu.IsOpen}, caricato {menu.IsLoaded}, visibile {menu.IsVisible}, template {menu.Template is not null}, {menu.ActualWidth:0}x{menu.ActualHeight:0}, previsto {menu.DesiredSize})");
             shot(menu, "file-recenti-menu"); shot(window, "apri-file-recenti");
             int before = window.Documents.Count;
             menu.IsOpen = false;
