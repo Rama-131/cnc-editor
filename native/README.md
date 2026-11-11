@@ -6,9 +6,11 @@ Applicazione nativa in C#/.NET 10 e WPF, con editor AvalonEdit e porte COM gesti
 
 La versione EXE 0.2.2 non è firmata. Su Windows 11 con **Controllo intelligente delle app** attivo, Windows può impedirne completamente l'avvio. Anche lo ZIP contiene un eseguibile non firmato: non costituisce una soluzione al blocco.
 
-Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.25](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.25). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
+Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.26](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.26). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
 
 ## Funzioni
+
+- Menu del clic destro sul testo con Seleziona tutto, Copia e Incolla. La selezione viene conservata per Copia; Incolla usa la cronologia Annulla/Ripristina ed è disabilitato in ricezione e senza documenti aperti.
 
 - Icona Apri con cartella gialla e icone Salva/Salva con nome con dischetto blu classico, mantenendo le etichette dei pulsanti.
 - Intestazione a tutta larghezza, con Rama Edit, versione, pagina e comandi file allineati verso il bordo sinistro della finestra.

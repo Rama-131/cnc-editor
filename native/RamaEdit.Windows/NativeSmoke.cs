@@ -178,6 +178,7 @@ public static class NativeSmoke
                 Shot(settings, "impostazioni"); settings.Close();
                 await TransmissionSmoke.Run(w, Check, Shot);
                 await RecentFilesSmoke.Run(w, Check, Shot);
+                await EditorContextMenuSmoke.Run(Check, Shot);
             }
             finally { File.Delete(path); }
             File.WriteAllText(Path.Combine(folder, "result.json"), JsonSerializer.Serialize(new { success = true, checks }, Storage.Json)); w.Close(); app.Shutdown(0);

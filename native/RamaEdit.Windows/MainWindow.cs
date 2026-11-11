@@ -146,6 +146,7 @@ public class MainWindow : Window
         tabScroll.SizeChanged += (_, _) => AlignNavigation(); toolListButton.SizeChanged += (_, _) => AlignNavigation();
         tabScroll.IsVisibleChanged += (_, _) => AlignNavigation(); Loaded += (_, _) => AlignNavigation();
         Editor.Options.EnableHyperlinks = false; Editor.Options.EnableEmailHyperlinks = false; Editor.Options.ConvertTabsToSpaces = true;
+        Editor.ContextMenu = EditorContextMenu.Create(Editor);
         Editor.TextChanged += (_, _) => { if (syncing || page == "receive" || active is null) return; active.Model.Dirty = true; RefreshTabs(); debounce.Stop(); debounce.Start(); Status(); };
         Editor.TextArea.Caret.PositionChanged += (_, _) => Status();
         Editor.MouseHover += Hover; Editor.MouseHoverStopped += (_, _) => { if (Editor.ToolTip is ToolTip t) t.IsOpen = false; };
