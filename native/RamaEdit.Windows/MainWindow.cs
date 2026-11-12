@@ -114,6 +114,8 @@ public class MainWindow : Window
         toolbar.Children.Add(toolbarLeft); Grid.SetColumn(toolbarRight, 2); toolbar.Children.Add(toolbarRight);
         toolbarScroll = new() { Content = toolbar, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Background = new SolidColorBrush(Color.FromRgb(27, 40, 52)), Padding = new(5, 3, 5, 3) }; toolbar.SetBinding(MinWidthProperty, new Binding(nameof(ScrollViewer.ViewportWidth)) { Source = toolbarScroll }); DockPanel.SetDock(toolbarScroll, Dock.Top); main.Children.Add(toolbarScroll);
         undoButton = Tool("↶", "Annulla", () => Editor.Undo()); redoButton = Tool("↷", "Ripristina", () => Editor.Redo()); editTools.Children.Add(undoButton); editTools.Children.Add(redoButton); spacingButton = Tool("␣", "Aggiungi spazi", () => ReplaceSource(CoreTools.AddSpaces(Editor.Text))); editTools.Children.Add(spacingButton);
+        undoButton.SetBinding(IsEnabledProperty, new Binding("Document.UndoStack.CanUndo") { Source = Editor, Mode = BindingMode.OneWay });
+        redoButton.SetBinding(IsEnabledProperty, new Binding("Document.UndoStack.CanRedo") { Source = Editor, Mode = BindingMode.OneWay });
         toolListButton = Tool("☷", "Crea lista utensili", ToolList); editTools.Children.Add(toolListButton);
         extraTools.Children.Add(Tool("F", "Avanzamento", () => Adjust("F"))); extraTools.Children.Add(Tool("S", "Giri mandrino", () => Adjust("S")));
         findButton = Tool("⌕", "Trova / sostituisci", ToggleFind); extraTools.Children.Add(findButton);

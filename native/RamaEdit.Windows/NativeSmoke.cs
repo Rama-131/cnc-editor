@@ -82,8 +82,32 @@ public static class NativeSmoke
             Check(Math.Abs(sendNav.TranslatePoint(new Point(), w).Y - undo.TranslatePoint(new Point(), w).Y) <= 1
                 && Math.Abs(sendNav.ActualHeight - undo.ActualHeight) <= 1 && Math.Abs(sendNav.ActualHeight - receiveNav.ActualHeight) <= .5,
                 "INVIA laterale allineato ai tasti funzione; INVIA e RICEVI della stessa altezza dei tasti funzione");
+            var redo = NamedButton(w, "Ripristina")!;
+            await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            Check(!undo.IsEnabled && !redo.IsEnabled, "Annulla e Ripristina disabilitati sul nuovo file senza cronologia");
             w.NewDocument(); w.Editor.Document.Insert(0, "G1 X12\nM30"); w.RebuildSimulation(); Check(w.Documents.Count == 2 && w.CurrentSimulation.Segments[^1].To.X == 12, "Schede e aggiornamento simulazione");
-            w.Editor.Undo(); Check(w.Editor.Text.Length == 0, "Annulla dell’editor nativo"); w.Editor.Redo(); Check(w.Editor.Text.Contains("X12"), "Ripristina dell’editor nativo");
+            await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            Check(undo.IsEnabled && !redo.IsEnabled, "Una modifica abilita Annulla e lascia Ripristina disabilitato");
+            undo.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            Check(w.Editor.Text.Length == 0 && !undo.IsEnabled && redo.IsEnabled, "Ultimo Annulla: testo ripristinato e pulsante disabilitato, Ripristina disponibile");
+            Shot(w, "annulla-esaurito");
+            NamedButton(w, w.Documents[0].Model.Name)!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            Check(!undo.IsEnabled && !redo.IsEnabled, "Cambio scheda: i pulsanti seguono la cronologia del file selezionato");
+            NamedButton(w, w.Documents[1].Model.Name + " ●")!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            Check(!undo.IsEnabled && redo.IsEnabled, "Ritorno alla scheda: cronologia di Ripristina conservata");
+            redo.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            Check(w.Editor.Text.Contains("X12") && undo.IsEnabled && !redo.IsEnabled, "Ultimo Ripristina: testo recuperato e pulsante disabilitato, Annulla disponibile");
+            Shot(w, "ripristina-esaurito");
+            w.Editor.Undo(); w.Editor.Document.Insert(0, "M30");
+            await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            Check(undo.IsEnabled && !redo.IsEnabled, "Nuova modifica dopo Annulla elimina e disabilita Ripristina");
+            w.Editor.Document.UndoStack.ClearAll();
+            await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            Check(!undo.IsEnabled && !redo.IsEnabled, "Azzeramento cronologia disabilita entrambi i pulsanti");
             string path = Path.Combine(Path.GetTempPath(), "rama-smoke-" + Guid.NewGuid().ToString("N") + ".txt");
             try
             {
