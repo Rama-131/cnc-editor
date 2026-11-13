@@ -203,7 +203,7 @@ public class MainWindow : Window
         try
         {
             var state = Storage.Read<WorkspaceState>("workspace.json"); if (state is null) return; restoredIndex = state.ActiveIndex; restoredMachineId = state.SelectedMachineId; simulationVisible = state.SimulationVisible;
-            foreach (var d in state.Documents.Where(d => d.Text.Length <= SerialText.MaxReceived)) { documents.Add(new() { Model = d, Text = new(d.Text) }); }
+            foreach (var d in state.Documents.Where(d => d.Text.Length <= DocumentLimits.MaxFileBytes)) { documents.Add(new() { Model = d, Text = new(d.Text) }); }
             RestoreRecentFiles(state.RecentFiles ?? state.Documents.Where(d => d.Path is not null).Select(d => d.Path!).Reverse().ToList());
             received.Append(state.Received); receivedDocument.Text = state.Received; receivedName.Text = state.ReceivedName; receivedDirty = state.ReceivedDirty;
         }
@@ -270,7 +270,7 @@ public class MainWindow : Window
     {
         path = Path.GetFullPath(path);
         var existing = documents.FirstOrDefault(d => string.Equals(d.Model.Path, path, StringComparison.OrdinalIgnoreCase)); if (existing is not null) { Activate(existing); RememberRecentFile(path); return; }
-        if (new FileInfo(path).Length > SerialText.MaxReceived) throw new InvalidDataException("Il file supera 2 MB.");
+        if (new FileInfo(path).Length > DocumentLimits.MaxFileBytes) throw new InvalidDataException("Il file supera 64 MB.");
         byte[] bytes = File.ReadAllBytes(path); string text;
         try { text = new UTF8Encoding(false, true).GetString(bytes).TrimStart('\uFEFF'); }
         catch (DecoderFallbackException) { Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); text = Encoding.GetEncoding(1252).GetString(bytes); }
@@ -707,13 +707,15 @@ public class MainWindow : Window
     {
         Pause(); if (active is null) return;
         colorizer.Machine = active.Model.Machine; colorizer.LatheSystem = active.Model.LatheSystem; colorizer.Invalidate(); Editor.TextArea.TextView.Redraw();
-        CurrentSimulation = Simulator.Simulate(active.Text.Text, active.Model.Machine, active.Model.Diameter, active.Model.LatheSystem); cumulative = new double[CurrentSimulation.Segments.Count + 1]; for (int i = 0; i < CurrentSimulation.Segments.Count; i++) cumulative[i + 1] = cumulative[i] + CurrentSimulation.Segments[i].From.Distance(CurrentSimulation.Segments[i].To); Preview.Result = CurrentSimulation;
+        bool large = active.Text.TextLength > DocumentLimits.FullAnalysisCharacters;
+        CurrentSimulation = Simulator.Simulate(large ? "" : active.Text.Text, active.Model.Machine, active.Model.Diameter, active.Model.LatheSystem); cumulative = new double[CurrentSimulation.Segments.Count + 1]; for (int i = 0; i < CurrentSimulation.Segments.Count; i++) cumulative[i + 1] = cumulative[i] + CurrentSimulation.Segments[i].From.Distance(CurrentSimulation.Segments[i].To); Preview.Result = CurrentSimulation;
         syncing = true; timeline.Maximum = Math.Max(0, CurrentSimulation.Steps.Count - 1); timeline.Value = timeline.Maximum; syncing = false;
         simulationStatus.Foreground = CurrentSimulation.Complete && CurrentSimulation.OmittedMoves == 0 ? Brushes.MediumAquamarine : Brushes.Orange;
         simulationStatus.Text = CurrentSimulation.Complete ? $"Anteprima geometrica · {CurrentSimulation.Segments.Count} segmenti" : $"Anteprima parziale · riga {CurrentSimulation.Issues[0].Line}\n{CurrentSimulation.Issues[0].Message}";
         if (CurrentSimulation.OmittedMoves > 0) simulationStatus.Text += $"\n{CurrentSimulation.OmittedMoves} tratti macchina omessi: coordinate di riferimento non definite.";
         if (CurrentSimulation.Notes.Count > 0) simulationStatus.Text += $"\n{CurrentSimulation.Notes.Count} note: pulsante Dettagli.";
         simulationStatus.Text += "\nGeometria programmata · Nessuna verifica di collisione o asportazione.";
+        if (large) simulationStatus.Text = "Programma grande: anteprima e colorazione automatica sospese. Scrittura, salvataggio e invio disponibili.";
         DrawStep();
     }
     void SimulationDetails()

@@ -203,6 +203,23 @@ public static class NativeSmoke
                 await TransmissionSmoke.Run(w, Check, Shot);
                 await RecentFilesSmoke.Run(w, Check, Shot);
                 await EditorContextMenuSmoke.Run(Check, Shot);
+                string largePath = Path.Combine(folder, "programma-grande.txt");
+                string largeText = "%\r\nO9000\r\n" + string.Concat(Enumerable.Repeat("G1 X1 Y2 Z3 F100\r\n", 180000)) + "M30\r\n%\r\n";
+                File.WriteAllText(largePath, largeText, new System.Text.UTF8Encoding(false));
+                Check(new FileInfo(largePath).Length > 2 * 1024 * 1024, "Prova con file reale oltre 2 MB");
+                w.Navigate("workspace"); w.OpenPath(largePath);
+                await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                Check(w.Editor.Text == largeText && !w.Editor.IsReadOnly && w.CurrentSimulation.Segments.Count == 0, "File oltre 2 MB aperto integralmente e modificabile, senza anteprima automatica");
+                w.Editor.Document.Insert(largeText.Length, "(FINE)\r\n");
+                NamedButton(w, "Salva")!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                Check(File.ReadAllText(largePath) == largeText + "(FINE)\r\n", "Salvataggio del file grande senza perdita di testo o CR/LF");
+                w.Navigate("send");
+                Check(w.Editor.Text == largeText + "(FINE)\r\n" && !w.Editor.IsReadOnly, "File grande disponibile integralmente nella pagina Trasmissione");
+                Shot(w, "programma-grande");
+                await w.CloseDocument(w.Documents[^1]); w.OpenPath(largePath);
+                Check(w.Editor.Text == largeText + "(FINE)\r\n", "Riapertura del file grande salvato");
+                await w.CloseDocument(w.Documents[^1]); File.Delete(largePath);
             }
             finally { File.Delete(path); }
             File.WriteAllText(Path.Combine(folder, "result.json"), JsonSerializer.Serialize(new { success = true, checks }, Storage.Json)); w.Close(); app.Shutdown(0);

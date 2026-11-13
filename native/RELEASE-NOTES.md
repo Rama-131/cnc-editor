@@ -1,8 +1,9 @@
-Aggiornamento **Rama Edit 0.2.27 per Windows**.
+Aggiornamento **Rama Edit 0.2.28 per Windows**.
 
-- **Annulla** e **Ripristina** diventano disabilitati e attenuati quando non ci sono più operazioni disponibili.
-- I pulsanti si riattivano quando torna disponibile una modifica da annullare o ripristinare e seguono la cronologia separata di ogni file aperto.
+- Apertura dei programmi fino a **64 MB**, superando il precedente blocco a 2 MB.
+- Per programmi oltre 2 milioni di caratteri, modalità leggera con scrittura, salvataggio e invio; colorazione e anteprima automatica sospese.
+- I documenti grandi restano inclusi nel ripristino della sessione. Il limite della ricezione seriale resta separato.
 
-Scaricare **RamaEdit-Setup-0.2.27-x64.exe**, chiudere Rama Edit e installare sopra la versione precedente. Programmi e impostazioni vengono conservati.
+Chiudere Rama Edit e installare RamaEdit-Setup-0.2.28-x64.exe sopra la versione precedente. Impostazioni conservate.
 
 Versione di prova non firmata digitalmente.
