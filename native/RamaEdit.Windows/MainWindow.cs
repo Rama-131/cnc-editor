@@ -377,7 +377,11 @@ public class MainWindow : Window
         if (target == page) return; Pause(); Capture(); page = target;
         syncing = true;
         if (page == "receive") Editor.Document = receivedDocument;
-        syncing = false; ApplyPage(); if (page != "receive" && active is not null) Activate(active, false);
+        syncing = false;
+        // Workspace and transmission share the same document. Keep its analysis,
+        // caret and selection when only the page changes.
+        if (page != "receive" && active is not null && Editor.Document != active.Text) Activate(active, false);
+        else ApplyPage();
     }
     void ApplyPage()
     {

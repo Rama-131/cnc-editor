@@ -1,10 +1,9 @@
-Aggiornamento **Rama Edit 0.2.30 per Windows**.
+Aggiornamento **Rama Edit 0.2.31 per Windows**.
 
-- Nuovo pulsante **Invia intervallo** accanto a INVIA PROGRAMMA.
-- Scegli **Da riga** e **A riga**, usando i numeri sul margine dell'editor. Entrambe le righe sono comprese.
-- Anteprima del testo prima di confermare; intervalli non validi bloccati. Il file originale resta completo.
-- La trasmissione usa i parametri della macchina e riporta le righe scelte nello stato. Le istruzioni precedenti escluse non vengono aggiunte automaticamente.
+- Eliminato il ricalcolo inutile di simulazione e colorazione passando tra Scrittura / Simulazione e Trasmissione sullo stesso file.
+- Cursore e selezione vengono conservati nel cambio pagina. Le modifiche al programma continuano ad aggiornare la simulazione.
+- Restano disponibili colori, simulazione, file grandi e invio per intervallo di righe.
 
-Chiudere Rama Edit e installare RamaEdit-Setup-0.2.30-x64.exe sopra la versione precedente. Impostazioni conservate.
+Chiudere Rama Edit e installare RamaEdit-Setup-0.2.31-x64.exe sopra la versione precedente. Impostazioni conservate.
 
 Versione di prova non firmata digitalmente.

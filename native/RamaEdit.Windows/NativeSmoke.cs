@@ -212,6 +212,20 @@ public static class NativeSmoke
                 Check(w.Editor.Text == largeText && !w.Editor.IsReadOnly && w.CurrentSimulation.Complete && w.CurrentSimulation.Segments.Count >= 3, "File oltre 2 MB aperto integralmente, modificabile e con simulazione attiva");
                 Check(LineHasColor(w.Editor, 3, "#60F340") && LineHasColor(w.Editor, 4, "#FFB347") && LineHasColor(w.Editor, 5, "#B38CFF") && LineHasColor(w.Editor, 6, "#B38CFF"), "File grande: commenti, rapidi, lavorazione e quote modali mantengono i colori personalizzati");
                 Shot(w, "programma-grande-colori");
+                var previousSimulation = w.CurrentSimulation;
+                w.Editor.Select(largeText.IndexOf("G1 X1", StringComparison.Ordinal), 5);
+                int selectedOffset = w.Editor.SelectionStart;
+                var switchTimer = System.Diagnostics.Stopwatch.StartNew();
+                w.Navigate("send"); w.Navigate("workspace"); switchTimer.Stop();
+                Check(ReferenceEquals(previousSimulation, w.CurrentSimulation) && w.Editor.SelectionStart == selectedOffset && w.Editor.SelectedText == "G1 X1",
+                    $"Cambio pagina su file grande senza rigenerare simulazione, conserva selezione ({switchTimer.ElapsedMilliseconds} ms per andata e ritorno)");
+                await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                Check(LineHasColor(w.Editor, 3, "#60F340") && LineHasColor(w.Editor, 4, "#FFB347"), "Il cambio rapido di pagina conserva i colori del programma grande");
+                w.Editor.Document.Replace(largeText.IndexOf("G1 X1", StringComparison.Ordinal), 5, "G1 X3");
+                w.RebuildSimulation();
+                Check(!ReferenceEquals(previousSimulation, w.CurrentSimulation) && w.CurrentSimulation.Segments.Any(s => s.To.X == 3), "Le modifiche continuano ad aggiornare realmente la simulazione");
+                w.Editor.Undo(); w.RebuildSimulation();
+                Check(w.Editor.Text == largeText && !w.CurrentSimulation.Segments.Any(s => s.To.X == 3), "Annulla aggiorna la simulazione dopo il cambio pagina");
                 w.Editor.Document.Insert(largeText.Length, "(FINE)\r\n");
                 NamedButton(w, "Salva")!.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
