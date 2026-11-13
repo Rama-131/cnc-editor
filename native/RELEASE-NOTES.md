@@ -1,9 +1,9 @@
-Aggiornamento **Rama Edit 0.2.28 per Windows**.
+Aggiornamento **Rama Edit 0.2.29 per Windows**.
 
-- Apertura dei programmi fino a **64 MB**, superando il precedente blocco a 2 MB.
-- Per programmi oltre 2 milioni di caratteri, modalità leggera con scrittura, salvataggio e invio; colorazione e anteprima automatica sospese.
-- I documenti grandi restano inclusi nel ripristino della sessione. Il limite della ricezione seriale resta separato.
+- Ripristinati colori e simulazione anche nei programmi oltre 2 MB, mantenendo apertura fino a 64 MB.
+- Stesse funzioni e palette degli altri documenti: commenti, codici, rapidi e lavorazione restano distinti.
+- Rimossa la modalità leggera introdotta nella 0.2.28.
 
-Chiudere Rama Edit e installare RamaEdit-Setup-0.2.28-x64.exe sopra la versione precedente. Impostazioni conservate.
+Chiudere Rama Edit e installare RamaEdit-Setup-0.2.29-x64.exe sopra la versione precedente. Impostazioni conservate.
 
 Versione di prova non firmata digitalmente.

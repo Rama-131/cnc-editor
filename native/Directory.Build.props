@@ -4,7 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <Deterministic>true</Deterministic>
-    <Version>0.2.28</Version>
+    <Version>0.2.29</Version>
     <Authors>Rama</Authors>
     <Product>Rama Edit</Product>
   </PropertyGroup>

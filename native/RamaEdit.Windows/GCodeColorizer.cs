@@ -15,7 +15,6 @@ public class GCodeColorizer : DocumentColorizingTransformer
     void Build(TextDocument document)
     {
         if (ReferenceEquals(cachedVersion, document.Version)) return; cachedVersion = document.Version; spans.Clear();
-        if (document.TextLength > DocumentLimits.FullAnalysisCharacters) return;
         var text = document.Text;
         var kinds = UseMotionColors ? EditorMotion.Classify(text, Machine, LatheSystem) : null;
         var lineStarts = new List<int> { 0 };

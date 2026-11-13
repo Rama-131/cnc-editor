@@ -707,15 +707,13 @@ public class MainWindow : Window
     {
         Pause(); if (active is null) return;
         colorizer.Machine = active.Model.Machine; colorizer.LatheSystem = active.Model.LatheSystem; colorizer.Invalidate(); Editor.TextArea.TextView.Redraw();
-        bool large = active.Text.TextLength > DocumentLimits.FullAnalysisCharacters;
-        CurrentSimulation = Simulator.Simulate(large ? "" : active.Text.Text, active.Model.Machine, active.Model.Diameter, active.Model.LatheSystem); cumulative = new double[CurrentSimulation.Segments.Count + 1]; for (int i = 0; i < CurrentSimulation.Segments.Count; i++) cumulative[i + 1] = cumulative[i] + CurrentSimulation.Segments[i].From.Distance(CurrentSimulation.Segments[i].To); Preview.Result = CurrentSimulation;
+        CurrentSimulation = Simulator.Simulate(active.Text.Text, active.Model.Machine, active.Model.Diameter, active.Model.LatheSystem); cumulative = new double[CurrentSimulation.Segments.Count + 1]; for (int i = 0; i < CurrentSimulation.Segments.Count; i++) cumulative[i + 1] = cumulative[i] + CurrentSimulation.Segments[i].From.Distance(CurrentSimulation.Segments[i].To); Preview.Result = CurrentSimulation;
         syncing = true; timeline.Maximum = Math.Max(0, CurrentSimulation.Steps.Count - 1); timeline.Value = timeline.Maximum; syncing = false;
         simulationStatus.Foreground = CurrentSimulation.Complete && CurrentSimulation.OmittedMoves == 0 ? Brushes.MediumAquamarine : Brushes.Orange;
         simulationStatus.Text = CurrentSimulation.Complete ? $"Anteprima geometrica · {CurrentSimulation.Segments.Count} segmenti" : $"Anteprima parziale · riga {CurrentSimulation.Issues[0].Line}\n{CurrentSimulation.Issues[0].Message}";
         if (CurrentSimulation.OmittedMoves > 0) simulationStatus.Text += $"\n{CurrentSimulation.OmittedMoves} tratti macchina omessi: coordinate di riferimento non definite.";
         if (CurrentSimulation.Notes.Count > 0) simulationStatus.Text += $"\n{CurrentSimulation.Notes.Count} note: pulsante Dettagli.";
         simulationStatus.Text += "\nGeometria programmata · Nessuna verifica di collisione o asportazione.";
-        if (large) simulationStatus.Text = "Programma grande: anteprima e colorazione automatica sospese. Scrittura, salvataggio e invio disponibili.";
         DrawStep();
     }
     void SimulationDetails()
