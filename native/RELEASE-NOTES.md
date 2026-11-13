@@ -1,9 +1,10 @@
-Aggiornamento **Rama Edit 0.2.29 per Windows**.
+Aggiornamento **Rama Edit 0.2.30 per Windows**.
 
-- Ripristinati colori e simulazione anche nei programmi oltre 2 MB, mantenendo apertura fino a 64 MB.
-- Stesse funzioni e palette degli altri documenti: commenti, codici, rapidi e lavorazione restano distinti.
-- Rimossa la modalità leggera introdotta nella 0.2.28.
+- Nuovo pulsante **Invia intervallo** accanto a INVIA PROGRAMMA.
+- Scegli **Da riga** e **A riga**, usando i numeri sul margine dell'editor. Entrambe le righe sono comprese.
+- Anteprima del testo prima di confermare; intervalli non validi bloccati. Il file originale resta completo.
+- La trasmissione usa i parametri della macchina e riporta le righe scelte nello stato. Le istruzioni precedenti escluse non vengono aggiunte automaticamente.
 
-Chiudere Rama Edit e installare RamaEdit-Setup-0.2.29-x64.exe sopra la versione precedente. Impostazioni conservate.
+Chiudere Rama Edit e installare RamaEdit-Setup-0.2.30-x64.exe sopra la versione precedente. Impostazioni conservate.
 
 Versione di prova non firmata digitalmente.

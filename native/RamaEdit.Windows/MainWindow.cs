@@ -56,7 +56,7 @@ public class MainWindow : Window
     readonly GCodeColorizer colorizer = new(); readonly ExecutionLine execution = new(); readonly TextDocument receivedDocument = new();
     readonly StringBuilder received = new(); readonly object rxGate = new(); bool receivedDirty;
     readonly DispatcherTimer debounce = new() { Interval = TimeSpan.FromMilliseconds(350) }, autosave = new() { Interval = TimeSpan.FromSeconds(2) }, playback = new() { Interval = TimeSpan.FromMilliseconds(40) };
-    Button spacingButton = null!, toolListButton = null!;
+    Button spacingButton = null!, toolListButton = null!, sendRangeButton = null!;
     Button undoButton = null!, redoButton = null!, colorsButton = null!, transferSettingsButton = null!;
     Button connectButton = null!, sendButton = null!, receiveButton = null!, refreshPortsButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, examplesButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!, openReceivedButton = null!;
     SerialSession? serial; string page = "workspace"; bool syncing, simulationVisible = true, busy, closing, preparingClose, persistenceFailed;
@@ -127,7 +127,7 @@ public class MainWindow : Window
         connectButton = BA("Collega porta", Connect); sendButton = BA("⇧ INVIA PROGRAMMA", Send); receiveButton = BA("⇩ AVVIA RICEZIONE", Receive);
         sendButton.Background = new SolidColorBrush(Color.FromRgb(8, 126, 255)); sendButton.Foreground = Brushes.White; sendButton.BorderBrush = new SolidColorBrush(Color.FromRgb(77, 163, 255)); sendButton.FontWeight = FontWeights.SemiBold;
         receiveButton.Background = new SolidColorBrush(Color.FromRgb(33, 220, 130)); receiveButton.Foreground = new SolidColorBrush(Color.FromRgb(8, 37, 24)); receiveButton.BorderBrush = new SolidColorBrush(Color.FromRgb(97, 247, 182)); receiveButton.FontWeight = FontWeights.SemiBold;
-        transferTools.Children.Add(sendButton); transferTools.Children.Insert(0, receiveButton); transferTools.Children.Add(connectButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
+        transferTools.Children.Add(sendButton); sendRangeButton = BA("Invia intervallo", SendRange); transferTools.Children.Add(sendRangeButton); transferTools.Children.Insert(0, receiveButton); transferTools.Children.Add(connectButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
         BuildFind(); DockPanel.SetDock(findPanel, Dock.Top); main.Children.Add(findPanel);
         DockPanel.SetDock(transmissionPanel, Dock.Top); main.Children.Add(transmissionPanel);
         DockPanel.SetDock(message, Dock.Top); main.Children.Add(message);
@@ -404,6 +404,8 @@ public class MainWindow : Window
         connectButton.Content = connected ? "Disconnetti porta" : "Collega porta"; connectButton.IsEnabled = !busy && !tx && (connected || SelectedMachine is not null);
         sendButton.Visibility = page == "receive" ? Visibility.Collapsed : Visibility.Visible; receiveButton.Visibility = page == "receive" ? Visibility.Visible : Visibility.Collapsed;
         sendButton.Content = tx ? "■ INTERROMPI INVIO" : "⇧ INVIA PROGRAMMA"; sendButton.IsEnabled = connected && !busy && !rx && serial?.Faulted == false && (tx || !string.IsNullOrWhiteSpace(active?.Text.Text));
+        sendRangeButton.Visibility = page == "send" ? Visibility.Visible : Visibility.Collapsed;
+        sendRangeButton.IsEnabled = connected && !busy && !rx && !tx && serial?.Faulted == false && active is not null && active.Text.TextLength > 0;
         receiveButton.Content = rx ? "■ TERMINA RICEZIONE" : received.Length > 0 ? "⇩ RIPRENDI RICEZIONE" : "⇩ AVVIA RICEZIONE"; receiveButton.IsEnabled = connected && !busy && !tx && serial?.Faulted == false;
         openReceivedButton.IsEnabled = !rx && received.Length > 0;
         newReceiveButton.IsEnabled = !rx; printButton.IsEnabled = !rx && !tx && (page == "receive" ? received.Length > 0 : active is not null);
@@ -443,6 +445,14 @@ public class MainWindow : Window
     {
         if (serial is null) return; if (serial.Sending) { serial.CancelSend(); return; }
         await SendProgram(serial, active?.Text.Text ?? "", active?.Model.Name ?? "Programma", SelectedMachine!, portSelect.Text);
+    }
+    async Task SendRange()
+    {
+        if (serial is null || serial.Sending || serial.Receiving || active is null) return;
+        string file = active.Model.Name;
+        var dialog = new LineRangeWindow(active.Text.Text, file) { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+        await SendProgram(serial, dialog.SelectedSource, $"{file} · righe {dialog.FirstLine}–{dialog.LastLine}", SelectedMachine!, portSelect.Text);
     }
     internal async Task<bool> SendProgram(SerialSession session, string source, string file, MachineProfile machine, string port)
     {

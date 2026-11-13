@@ -28,9 +28,9 @@ internal static class TransmissionSmoke
                 window.UpdateLayout();
                 var row = (Panel)sendButton.Parent; var commands = row.Children.OfType<FrameworkElement>().Where(e => e.IsVisible).ToArray();
                 check(sendButton.IsEnabled && sendButton.Background is SolidColorBrush blue && blue.Color.B > 230 && blue.Color.R < 30
-                    && commands.Length == 8 && commands[0] is Border && commands[1] is Border && commands[2] == sendButton
-                    && commands[3] is Button { Content: "Disconnetti porta" } && commands[4] is Button { Content: "Dati ricevuti" }
-                    && commands[5] == FindButton(window, "Aggiungi spazi") && commands[6] == FindButton(window, "Crea lista utensili") && commands[7] == refresh,
+                    && commands.Length == 9 && commands[0] is Border && commands[1] is Border && commands[2] == sendButton
+                    && commands[3] == FindButton(window, "Invia intervallo") && commands[4] is Button { Content: "Disconnetti porta" } && commands[5] is Button { Content: "Dati ricevuti" }
+                    && commands[6] == FindButton(window, "Aggiungi spazi") && commands[7] == FindButton(window, "Crea lista utensili") && commands[8] == refresh,
                     "Trasmissione: Macchina, COM, INVIA PROGRAMMA, Disconnetti, Dati ricevuti, Aggiungi spazi, Lista utensili, Aggiorna nello stesso gruppo");
                 check(commands.Zip(commands.Skip(1), (left, right) => right.TranslatePoint(new Point(), row).X - left.TranslatePoint(new Point(left.ActualWidth, 0), row).X).All(gap => gap >= -.5 && gap <= 8),
                     "Comandi di trasmissione adiacenti senza spazio elastico tra invio, strumenti e aggiornamento porte");
@@ -91,6 +91,27 @@ internal static class TransmissionSmoke
                 check(panel.IsExpanded && panel.StatusText.Contains("terminato") && panel.ProgressPercent == 100 && !panel.CanStop
                     && !panel.Report().Contains("Frame"), "Nuovo invio: registro precedente azzerato e completamento conservato al 100%");
                 shot(window, "stato-trasmissione-completata");
+                var originalDocument = window.Editor.Document; string originalText = window.Editor.Text;
+                var range = new LineRangeWindow(text, "prova_mazak.txt") { Owner = window }; range.Show();
+                try
+                {
+                    range.First.Text = "3"; range.Last.Text = "4";
+                    await window.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                    check(range.SendButton.IsEnabled && range.SelectedSource == "G0 X10 Z2\nM30\n" && range.PreviewText.Text == range.SelectedSource, "Intervallo: anteprima delle righe 3–4 comprese, senza intestazione e senza riga successiva");
+                    shot(range, "invia-intervallo");
+                    device.Output.SetLength(0);
+                    await window.SendProgram(session, range.SelectedSource, "prova_mazak.txt · righe 3–4", machine, machine.PortName);
+                    var expected = SerialText.Prepare(range.SelectedSource, machine.Settings).Packets.SelectMany(p => p).ToArray();
+                    check(device.Output.ToArray().SequenceEqual(expected) && panel.Report().Contains("righe 3–4"), "Invio intervallo: byte effettivi sulla porta simulata corrispondono alle sole righe scelte con i parametri macchina");
+                    check(window.Editor.Document == originalDocument && window.Editor.Text == originalText, "Invio intervallo conserva il documento originale completo");
+                    foreach (var invalidRange in new[] { ("0", "4"), ("4", "3"), ("1", "999"), ("abc", "4") })
+                    { range.First.Text = invalidRange.Item1; range.Last.Text = invalidRange.Item2; check(!range.SendButton.IsEnabled && range.SelectedSource == "", "Intervallo non valido bloccato: " + invalidRange); }
+                    range.First.Text = "3"; range.Last.Text = "3";
+                    check(range.SelectedSource == "G0 X10 Z2\n", "Invio di una sola riga");
+                    foreach (var eol in new[] { "\r\n", "\n", "\r" })
+                    { var doc = new ICSharpCode.AvalonEdit.Document.TextDocument("UNO" + eol + "DUE" + eol + "TRE"); check(LineRangeWindow.Extract(doc, 2, 3) == "DUE" + eol + "TRE", "Intervallo conserva fine riga e ultima riga senza terminatore"); }
+                }
+                finally { range.Close(); }
                 bool invalid = false;
                 try { await window.SendProgram(session, "O1 (perché)\nM30", "prova_non_ascii.txt", machine, machine.PortName); } catch (ArgumentException) { invalid = true; }
                 check(invalid && panel.StatusText.Contains("Errore") && panel.ProgressPercent == 0 && panel.Report().Contains("ASCII"),
@@ -127,6 +148,7 @@ internal static class TransmissionSmoke
     }
     sealed class TestDevice : ISerialDevice
     {
+        public MemoryStream Output { get; } = new();
         readonly Channel<byte[]> input = Channel.CreateUnbounded<byte[]>();
         volatile bool ready = true;
         public bool HardwareReady { get => ready; set => ready = value; }
@@ -138,7 +160,7 @@ internal static class TransmissionSmoke
         {
             var bytes = await input.Reader.ReadAsync(token); bytes.CopyTo(buffer); return bytes.Length;
         }
-        public ValueTask WriteAsync(ReadOnlyMemory<byte> bytes, CancellationToken token) { token.ThrowIfCancellationRequested(); return ValueTask.CompletedTask; }
+        public ValueTask WriteAsync(ReadOnlyMemory<byte> bytes, CancellationToken token) { token.ThrowIfCancellationRequested(); Output.Write(bytes.Span); return ValueTask.CompletedTask; }
         public async ValueTask DrainAsync(CancellationToken token)
         {
             DrainEntered.TrySetResult(); if (HoldDrain) await DrainRelease.Task.WaitAsync(token); token.ThrowIfCancellationRequested();

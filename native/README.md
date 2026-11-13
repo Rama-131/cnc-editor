@@ -6,9 +6,11 @@ Applicazione nativa in C#/.NET 10 e WPF, con editor AvalonEdit e porte COM gesti
 
 La versione EXE 0.2.2 non è firmata. Su Windows 11 con **Controllo intelligente delle app** attivo, Windows può impedirne completamente l'avvio. Anche lo ZIP contiene un eseguibile non firmato: non costituisce una soluzione al blocco.
 
-Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.29](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.29). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
+Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.30](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.30). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
 
 ## Funzioni
+
+- Invia intervallo: scelta delle righe iniziale e finale comprese, anteprima e invio con i parametri della macchina. Il documento originale resta intero; lo stato trasmissione riporta le righe scelte.
 
 - Apertura di file fino a 64 MB con colori e simulazione attivi anche oltre 2 MB. Le funzionalità e la palette personalizzata restano disponibili.
 
