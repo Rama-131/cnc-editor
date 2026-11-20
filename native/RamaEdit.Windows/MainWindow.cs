@@ -90,9 +90,14 @@ public class MainWindow : Window
             if (target is "send" or "receive")
             {
                 var content = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center };
-                content.Children.Add(new TextBlock { Text = target == "send" ? "INVIA" : "RICEVI", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center });
-                content.Children.Add(new TextBlock { Text = symbol, FontSize = 23, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center, Foreground = new SolidColorBrush(target == "send" ? Color.FromRgb(58, 168, 255) : Color.FromRgb(57, 237, 154)) });
                 content.Children.Add(new TextBlock { Text = target == "send" ? "CNC" : "PC", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center });
+                content.Children.Add(new System.Windows.Shapes.Path
+                {
+                    Data = Geometry.Parse(target == "send" ? "M 10,0 L 20,10 L 14,10 L 14,23 L 6,23 L 6,10 L 0,10 Z" : "M 6,0 L 14,0 L 14,13 L 20,13 L 10,23 L 0,13 L 6,13 Z"),
+                    Fill = new SolidColorBrush(target == "send" ? Color.FromRgb(58, 168, 255) : Color.FromRgb(57, 237, 154)),
+                    Width = 20, Height = 23, Stretch = Stretch.Uniform, Margin = new(0, 2, 0, 2), HorizontalAlignment = HorizontalAlignment.Center
+                });
+                content.Children.Add(new TextBlock { Text = target == "send" ? "INVIA" : "RICEVI", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center });
                 b.ToolTip = target == "send" ? "Invia programma alla CNC" : "Ricevi programma sul PC";
                 b.Content = content; b.Padding = new(4, 3, 4, 3); b.MinHeight = 60; b.Height = 70;
             }

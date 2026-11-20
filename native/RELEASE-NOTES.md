@@ -1,9 +1,8 @@
-Aggiornamento **Rama Edit 0.2.33 per Windows**.
+Aggiornamento **Rama Edit 0.2.34 per Windows**.
 
-- Pulsante laterale di trasmissione: **INVIA** sopra la freccia blu, **CNC** sotto.
-- Pulsante laterale di ricezione: **RICEVI** sopra la freccia verde, **PC** sotto.
-- Descrizioni al passaggio del mouse aggiornate per chiarire la destinazione.
+- Invertite le scritte laterali: **CNC** sopra la freccia blu e **INVIA** sotto; **PC** sopra la freccia verde e **RICEVI** sotto.
+- Frecce a colore pieno, blu verso alto e verde verso basso.
 
-Chiudere Rama Edit e installare RamaEdit-Setup-0.2.33-x64.exe sopra la versione precedente. Impostazioni conservate.
+Chiudere Rama Edit e installare RamaEdit-Setup-0.2.34-x64.exe sopra la versione precedente. Impostazioni conservate.
 
 Versione di prova non firmata digitalmente.
