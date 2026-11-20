@@ -1,9 +1,9 @@
-Aggiornamento **Rama Edit 0.2.32 per Windows**.
+Aggiornamento **Rama Edit 0.2.33 per Windows**.
 
-- In Trasmissione aggiunti **Utensile precedente** e **Prossimo utensile** tra Collega/Disconnetti porta e Dati ricevuti.
-- Frecce rossa e verde più spesse, anche in Scrittura / Simulazione.
-- I comandi navigano tra i cambi utensile del file aperto senza modificarlo.
+- Pulsante laterale di trasmissione: **INVIA** sopra la freccia blu, **CNC** sotto.
+- Pulsante laterale di ricezione: **RICEVI** sopra la freccia verde, **PC** sotto.
+- Descrizioni al passaggio del mouse aggiornate per chiarire la destinazione.
 
-Chiudere Rama Edit e installare RamaEdit-Setup-0.2.32-x64.exe sopra la versione precedente. Impostazioni conservate.
+Chiudere Rama Edit e installare RamaEdit-Setup-0.2.33-x64.exe sopra la versione precedente. Impostazioni conservate.
 
 Versione di prova non firmata digitalmente.

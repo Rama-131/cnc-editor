@@ -90,9 +90,11 @@ public class MainWindow : Window
             if (target is "send" or "receive")
             {
                 var content = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center };
+                content.Children.Add(new TextBlock { Text = target == "send" ? "INVIA" : "RICEVI", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center });
                 content.Children.Add(new TextBlock { Text = symbol, FontSize = 23, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center, Foreground = new SolidColorBrush(target == "send" ? Color.FromRgb(58, 168, 255) : Color.FromRgb(57, 237, 154)) });
-                content.Children.Add(new TextBlock { Text = target == "send" ? "INVIA" : "RICEVI", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center, Margin = new(0, 2, 0, 0) });
-                b.Content = content; b.Padding = new(4, 6, 4, 6); b.MinHeight = 60; b.Height = 70;
+                content.Children.Add(new TextBlock { Text = target == "send" ? "CNC" : "PC", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center });
+                b.ToolTip = target == "send" ? "Invia programma alla CNC" : "Ricevi programma sul PC";
+                b.Content = content; b.Padding = new(4, 3, 4, 3); b.MinHeight = 60; b.Height = 70;
             }
             if (target == "send") navigation.Children.Add(navigationGap);
             navigation.Children.Add(b);
