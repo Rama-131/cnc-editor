@@ -56,7 +56,7 @@ public class MainWindow : Window
     readonly GCodeColorizer colorizer = new(); readonly ExecutionLine execution = new(); readonly TextDocument receivedDocument = new();
     readonly StringBuilder received = new(); readonly object rxGate = new(); bool receivedDirty;
     readonly DispatcherTimer debounce = new() { Interval = TimeSpan.FromMilliseconds(350) }, autosave = new() { Interval = TimeSpan.FromSeconds(2) }, playback = new() { Interval = TimeSpan.FromMilliseconds(40) };
-    Button spacingButton = null!, toolListButton = null!, sendRangeButton = null!, previousToolButton = null!, nextToolButton = null!;
+    Button spacingButton = null!, toolListButton = null!, sendRangeButton = null!, previousToolButton = null!, nextToolButton = null!, receivedDataButton = null!;
     Button undoButton = null!, redoButton = null!, colorsButton = null!, transferSettingsButton = null!;
     Button connectButton = null!, sendButton = null!, receiveButton = null!, refreshPortsButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, examplesButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!, openReceivedButton = null!;
     SerialSession? serial; string page = "workspace"; bool syncing, simulationVisible = true, busy, closing, preparingClose, persistenceFailed;
@@ -90,14 +90,14 @@ public class MainWindow : Window
             if (target is "send" or "receive")
             {
                 var content = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center };
-                content.Children.Add(new TextBlock { Text = target == "send" ? "CNC" : "PC", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center });
+                content.Children.Add(new TextBlock { Text = target == "send" ? "CNC" : "RICEVI", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center });
                 content.Children.Add(new System.Windows.Shapes.Path
                 {
                     Data = Geometry.Parse(target == "send" ? "M 10,0 L 20,10 L 14,10 L 14,23 L 6,23 L 6,10 L 0,10 Z" : "M 6,0 L 14,0 L 14,13 L 20,13 L 10,23 L 0,13 L 6,13 Z"),
                     Fill = new SolidColorBrush(target == "send" ? Color.FromRgb(58, 168, 255) : Color.FromRgb(57, 237, 154)),
                     Width = 20, Height = 23, Stretch = Stretch.Uniform, Margin = new(0, 2, 0, 2), HorizontalAlignment = HorizontalAlignment.Center
                 });
-                content.Children.Add(new TextBlock { Text = target == "send" ? "INVIA" : "RICEVI", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center });
+                content.Children.Add(new TextBlock { Text = target == "send" ? "INVIA" : "PC", FontSize = 11, FontWeight = FontWeights.SemiBold, TextAlignment = TextAlignment.Center });
                 b.ToolTip = target == "send" ? "Invia programma alla CNC" : "Ricevi programma sul PC";
                 b.Content = content; b.Padding = new(4, 3, 4, 3); b.MinHeight = 60; b.Height = 70;
             }
@@ -134,7 +134,7 @@ public class MainWindow : Window
         connectButton = BA("Collega porta", Connect); sendButton = BA("⇧ INVIA PROGRAMMA", Send); receiveButton = BA("⇩ AVVIA RICEZIONE", Receive);
         sendButton.Background = new SolidColorBrush(Color.FromRgb(8, 126, 255)); sendButton.Foreground = Brushes.White; sendButton.BorderBrush = new SolidColorBrush(Color.FromRgb(77, 163, 255)); sendButton.FontWeight = FontWeights.SemiBold;
         receiveButton.Background = new SolidColorBrush(Color.FromRgb(33, 220, 130)); receiveButton.Foreground = new SolidColorBrush(Color.FromRgb(8, 37, 24)); receiveButton.BorderBrush = new SolidColorBrush(Color.FromRgb(97, 247, 182)); receiveButton.FontWeight = FontWeights.SemiBold;
-        transferTools.Children.Add(sendButton); sendRangeButton = BA("Invia intervallo", SendRange); transferTools.Children.Add(sendRangeButton); transferTools.Children.Insert(0, receiveButton); transferTools.Children.Add(connectButton); transferTools.Children.Add(B("Dati ricevuti", ShowLog));
+        transferTools.Children.Add(sendButton); sendRangeButton = BA("Invia intervallo", SendRange); transferTools.Children.Add(sendRangeButton); transferTools.Children.Insert(0, receiveButton); transferTools.Children.Add(connectButton); receivedDataButton = B("Dati ricevuti", ShowLog); transferTools.Children.Add(receivedDataButton);
         BuildFind(); DockPanel.SetDock(findPanel, Dock.Top); main.Children.Add(findPanel);
         DockPanel.SetDock(transmissionPanel, Dock.Top); main.Children.Add(transmissionPanel);
         DockPanel.SetDock(message, Dock.Top); main.Children.Add(message);
@@ -409,6 +409,7 @@ public class MainWindow : Window
     {
         pageTitle.Text = page switch { "send" => "Trasmissione", "receive" => "Ricezione", _ => "Scrittura / Simulazione" };
         ArrangeTransferToolbar();
+        receivedDataButton.Visibility = page == "send" ? Visibility.Collapsed : Visibility.Visible;
         spacingButton.IsEnabled = toolListButton.IsEnabled = active is not null;
         colorsButton.Visibility = page == "workspace" ? Visibility.Visible : Visibility.Collapsed;
         foreach (var button in new[] { undoButton, redoButton }) button.Visibility = page == "send" ? Visibility.Collapsed : Visibility.Visible;

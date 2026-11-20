@@ -1,8 +1,8 @@
-Aggiornamento **Rama Edit 0.2.34 per Windows**.
+Aggiornamento **Rama Edit 0.2.35 per Windows**.
 
-- Invertite le scritte laterali: **CNC** sopra la freccia blu e **INVIA** sotto; **PC** sopra la freccia verde e **RICEVI** sotto.
-- Frecce a colore pieno, blu verso alto e verde verso basso.
+- Invertite solo le scritte del pulsante di ricezione: **RICEVI** sopra la freccia verde piena, **PC** sotto.
+- Rimosso il pulsante **Dati ricevuti** dalla barra di Trasmissione.
 
-Chiudere Rama Edit e installare RamaEdit-Setup-0.2.34-x64.exe sopra la versione precedente. Impostazioni conservate.
+Chiudere Rama Edit e installare RamaEdit-Setup-0.2.35-x64.exe sopra la versione precedente. Impostazioni conservate.
 
 Versione di prova non firmata digitalmente.

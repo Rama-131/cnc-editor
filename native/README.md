@@ -6,13 +6,15 @@ Applicazione nativa in C#/.NET 10 e WPF, con editor AvalonEdit e porte COM gesti
 
 La versione EXE 0.2.2 non è firmata. Su Windows 11 con **Controllo intelligente delle app** attivo, Windows può impedirne completamente l'avvio. Anche lo ZIP contiene un eseguibile non firmato: non costituisce una soluzione al blocco.
 
-Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.34](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.34). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
+Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.35](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.35). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
 
 ## Funzioni
 
-- Pulsanti laterali su tre righe: CNC, freccia blu piena verso alto, INVIA; PC, freccia verde piena verso basso, RICEVI.
+- Dati ricevuti rimosso dalla barra di Trasmissione.
 
-- Utensile precedente e Prossimo utensile anche in Trasmissione, tra Collega/Disconnetti porta e Dati ricevuti. Frecce rosse e verdi con tratto più spesso in entrambe le pagine.
+- Pulsanti laterali su tre righe: CNC, freccia blu piena verso alto, INVIA; RICEVI, freccia verde piena verso basso, PC.
+
+- Utensile precedente e Prossimo utensile anche in Trasmissione, dopo Collega/Disconnetti porta. Frecce rosse e verdi con tratto più spesso in entrambe le pagine.
 
 - Passaggio diretto tra Scrittura / Simulazione e Trasmissione senza ricalcolare il programma invariato. Colori, simulazione, cursore e selezione vengono conservati.
 
