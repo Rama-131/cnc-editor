@@ -1,9 +1,9 @@
-Aggiornamento **Rama Edit 0.2.31 per Windows**.
+Aggiornamento **Rama Edit 0.2.32 per Windows**.
 
-- Eliminato il ricalcolo inutile di simulazione e colorazione passando tra Scrittura / Simulazione e Trasmissione sullo stesso file.
-- Cursore e selezione vengono conservati nel cambio pagina. Le modifiche al programma continuano ad aggiornare la simulazione.
-- Restano disponibili colori, simulazione, file grandi e invio per intervallo di righe.
+- In Trasmissione aggiunti **Utensile precedente** e **Prossimo utensile** tra Collega/Disconnetti porta e Dati ricevuti.
+- Frecce rossa e verde più spesse, anche in Scrittura / Simulazione.
+- I comandi navigano tra i cambi utensile del file aperto senza modificarlo.
 
-Chiudere Rama Edit e installare RamaEdit-Setup-0.2.31-x64.exe sopra la versione precedente. Impostazioni conservate.
+Chiudere Rama Edit e installare RamaEdit-Setup-0.2.32-x64.exe sopra la versione precedente. Impostazioni conservate.
 
 Versione di prova non firmata digitalmente.

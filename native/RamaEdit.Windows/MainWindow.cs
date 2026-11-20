@@ -56,7 +56,7 @@ public class MainWindow : Window
     readonly GCodeColorizer colorizer = new(); readonly ExecutionLine execution = new(); readonly TextDocument receivedDocument = new();
     readonly StringBuilder received = new(); readonly object rxGate = new(); bool receivedDirty;
     readonly DispatcherTimer debounce = new() { Interval = TimeSpan.FromMilliseconds(350) }, autosave = new() { Interval = TimeSpan.FromSeconds(2) }, playback = new() { Interval = TimeSpan.FromMilliseconds(40) };
-    Button spacingButton = null!, toolListButton = null!, sendRangeButton = null!;
+    Button spacingButton = null!, toolListButton = null!, sendRangeButton = null!, previousToolButton = null!, nextToolButton = null!;
     Button undoButton = null!, redoButton = null!, colorsButton = null!, transferSettingsButton = null!;
     Button connectButton = null!, sendButton = null!, receiveButton = null!, refreshPortsButton = null!, printButton = null!, saveButton = null!, saveAsButton = null!, previewButton = null!, examplesButton = null!, findButton = null!, playButton = null!, newReceiveButton = null!, openReceivedButton = null!;
     SerialSession? serial; string page = "workspace"; bool syncing, simulationVisible = true, busy, closing, preparingClose, persistenceFailed;
@@ -119,8 +119,8 @@ public class MainWindow : Window
         toolListButton = Tool("☷", "Crea lista utensili", ToolList); editTools.Children.Add(toolListButton);
         extraTools.Children.Add(Tool("F", "Avanzamento", () => Adjust("F"))); extraTools.Children.Add(Tool("S", "Giri mandrino", () => Adjust("S")));
         findButton = Tool("⌕", "Trova / sostituisci", ToggleFind); extraTools.Children.Add(findButton);
-        extraTools.Children.Add(Tool("◁", "Utensile precedente", () => ToolNavigate(false), new SolidColorBrush(Color.FromRgb(255, 98, 110))));
-        extraTools.Children.Add(Tool("▷", "Prossimo utensile", () => ToolNavigate(true), new SolidColorBrush(Color.FromRgb(57, 237, 154))));
+        previousToolButton = ToolNavigation(false); nextToolButton = ToolNavigation(true);
+        extraTools.Children.Add(previousToolButton); extraTools.Children.Add(nextToolButton);
         previewButton = Tool("◫", "Nascondi simulazione", () => { simulationVisible = !simulationVisible; ApplyPage(); }); extraTools.Children.Add(previewButton);
         transferTools.Children.Add(Labeled("Macchina", machineSelect)); transferSettingsButton = B("⚙ Impostazioni", Settings); transferTools.Children.Add(transferSettingsButton); transferTools.Children.Add(Labeled("Porta", portSelect));
         refreshPortsButton = B("⟳", RefreshPorts); refreshPortsButton.ToolTip = "Aggiorna porte"; AutomationProperties.SetName(refreshPortsButton, "Aggiorna porte");
@@ -195,6 +195,21 @@ public class MainWindow : Window
         b.Content = content; b.Width = 94; b.MinHeight = 60; b.Padding = new(5); b.ToolTip = text; return b;
     }
     void Notify(string text) { message.Foreground = Brushes.LightSteelBlue; message.Text = text; }
+    Button ToolNavigation(bool next)
+    {
+        string label = next ? "Prossimo utensile" : "Utensile precedente";
+        var button = Tool("", label, () => ToolNavigate(next));
+        var content = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center };
+        content.Children.Add(new System.Windows.Shapes.Path
+        {
+            Data = Geometry.Parse(next ? "M 2,1 L 12,7 L 2,13 Z" : "M 12,1 L 2,7 L 12,13 Z"),
+            Stroke = new SolidColorBrush(next ? Color.FromRgb(57, 237, 154) : Color.FromRgb(255, 98, 110)),
+            StrokeThickness = 2.2, StrokeLineJoin = PenLineJoin.Round,
+            Width = 16, Height = 16, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Center
+        });
+        content.Children.Add(new TextBlock { Text = label, TextAlignment = TextAlignment.Center, TextWrapping = TextWrapping.Wrap, Margin = new(0, 3, 0, 0) });
+        button.Content = content; return button;
+    }
     public void Error(string text) { message.Foreground = Brushes.LightSalmon; message.Text = text; }
     int restoredIndex; string? restoredMachineId;
     void LoadState()
@@ -649,16 +664,22 @@ public class MainWindow : Window
     void ArrangeTransferToolbar()
     {
         toolbarRight.Children.Clear();
+        extraTools.Children.Remove(previousToolButton); extraTools.Children.Remove(nextToolButton);
+        transferTools.Children.Remove(previousToolButton); transferTools.Children.Remove(nextToolButton);
         editTools.Children.Remove(spacingButton); editTools.Children.Remove(toolListButton);
         transferTools.Children.Remove(spacingButton); transferTools.Children.Remove(toolListButton);
         transferTools.Children.Remove(transferSettingsButton);
         transferTools.Children.Remove(refreshPortsButton);
         if (page == "send")
         {
+            int toolIndex = transferTools.Children.IndexOf(connectButton) + 1;
+            transferTools.Children.Insert(toolIndex, previousToolButton); transferTools.Children.Insert(toolIndex + 1, nextToolButton);
             transferTools.Children.Add(spacingButton); transferTools.Children.Add(toolListButton);
         }
         else
         {
+            int toolIndex = extraTools.Children.IndexOf(findButton) + 1;
+            extraTools.Children.Insert(toolIndex, previousToolButton); extraTools.Children.Insert(toolIndex + 1, nextToolButton);
             editTools.Children.Add(spacingButton); editTools.Children.Add(toolListButton);
         }
         if (page == "receive") toolbarRight.Children.Add(transferSettingsButton);

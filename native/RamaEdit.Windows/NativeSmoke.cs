@@ -239,6 +239,20 @@ public static class NativeSmoke
                 await w.CloseDocument(w.Documents[^1]); w.OpenPath(largePath);
                 Check(w.Editor.Text == largeText + "(FINE)\r\n", "Riapertura del file grande salvato");
                 await w.CloseDocument(w.Documents[^1]); File.Delete(largePath);
+                w.NewDocument(); w.Editor.Text = "T1 M6\nG0 X1\nT2 M6\nG0 X2\nT3 M6";
+                foreach (string target in new[] { "workspace", "send", "receive", "send", "workspace" })
+                {
+                    w.Navigate(target); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                    if (target == "receive") { Check(!VisibleButton(w, "Utensile precedente") && !VisibleButton(w, "Prossimo utensile"), "Navigazione utensili assente in Ricezione"); continue; }
+                    var previousTool = NamedButton(w, "Utensile precedente")!; var nextTool = NamedButton(w, "Prossimo utensile")!;
+                    w.Editor.CaretOffset = 0; nextTool.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    Check(w.Editor.TextArea.Caret.Line == 3, "Prossimo utensile porta al cambio T2 in " + target);
+                    previousTool.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    Check(w.Editor.TextArea.Caret.Line == 1 && w.Editor.Text.StartsWith("T1 M6"), "Utensile precedente torna a T1 senza modificare il testo in " + target);
+                    if (target == "send") Shot(w, "trasmissione-utensili");
+                    else Shot(w, "scrittura-frecce-utensili");
+                }
+                w.Documents[^1].Model.Dirty = false; await w.CloseDocument(w.Documents[^1]);
             }
             finally { File.Delete(path); }
             File.WriteAllText(Path.Combine(folder, "result.json"), JsonSerializer.Serialize(new { success = true, checks }, Storage.Json)); w.Close(); app.Shutdown(0);

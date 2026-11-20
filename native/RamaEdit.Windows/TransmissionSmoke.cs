@@ -28,9 +28,10 @@ internal static class TransmissionSmoke
                 window.UpdateLayout();
                 var row = (Panel)sendButton.Parent; var commands = row.Children.OfType<FrameworkElement>().Where(e => e.IsVisible).ToArray();
                 check(sendButton.IsEnabled && sendButton.Background is SolidColorBrush blue && blue.Color.B > 230 && blue.Color.R < 30
-                    && commands.Length == 9 && commands[0] is Border && commands[1] is Border && commands[2] == sendButton
-                    && commands[3] == FindButton(window, "Invia intervallo") && commands[4] is Button { Content: "Disconnetti porta" } && commands[5] is Button { Content: "Dati ricevuti" }
-                    && commands[6] == FindButton(window, "Aggiungi spazi") && commands[7] == FindButton(window, "Crea lista utensili") && commands[8] == refresh,
+                    && commands.Length == 11 && commands[0] is Border && commands[1] is Border && commands[2] == sendButton
+                    && commands[3] == FindButton(window, "Invia intervallo") && commands[4] is Button { Content: "Disconnetti porta" }
+                    && commands[5] == FindButton(window, "Utensile precedente") && commands[6] == FindButton(window, "Prossimo utensile") && commands[7] is Button { Content: "Dati ricevuti" }
+                    && commands[8] == FindButton(window, "Aggiungi spazi") && commands[9] == FindButton(window, "Crea lista utensili") && commands[10] == refresh,
                     "Trasmissione: Macchina, COM, INVIA PROGRAMMA, Disconnetti, Dati ricevuti, Aggiungi spazi, Lista utensili, Aggiorna nello stesso gruppo");
                 check(commands.Zip(commands.Skip(1), (left, right) => right.TranslatePoint(new Point(), row).X - left.TranslatePoint(new Point(left.ActualWidth, 0), row).X).All(gap => gap >= -.5 && gap <= 8),
                     "Comandi di trasmissione adiacenti senza spazio elastico tra invio, strumenti e aggiornamento porte");
