@@ -74,6 +74,22 @@ public static class NativeSmoke
             w.Left = work.Left - 350; w.Top = work.Top - 250; w.Width = Math.Max(w.MinWidth, work.Width + 300); w.Height = Math.Max(w.MinHeight, work.Height + 300);
             WindowPlacement.EnsureVisible(w); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
             Check(WindowPlacement.IsInsideWorkArea(w) && WindowPlacement.HasCaptionButtons(w), "Recupero della finestra troppo grande e fuori schermo");
+            double fullWidth = w.Width, fullHeight = w.Height, fullLeft = w.Left, fullTop = w.Top;
+            double halfWidth = work.Width / 2;
+            w.Width = halfWidth; w.Height = work.Height; w.Left = work.Left; w.Top = work.Top;
+            foreach (string target in new[] { "workspace", "send", "receive" })
+            {
+                w.Navigate(target); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                Check(w.ActualWidth <= halfWidth + 1 && w.Editor.ActualWidth > 100 && w.Editor.ActualHeight > 50 && WindowPlacement.HasCaptionButtons(w), "Finestra ridimensionabile a metà schermo con editor utilizzabile: " + target);
+                foreach (string name in new[] { "Apri", "Salva", "Salva con nome" })
+                {
+                    var command = NamedButton(w, name)!;
+                    Check(command.TranslatePoint(new Point(command.ActualWidth, 0), w).X <= w.ActualWidth, "Comando file rientra nella finestra stretta: " + name);
+                }
+                Shot(w, "meta-schermo-" + target);
+            }
+            w.Width = fullWidth; w.Height = fullHeight; w.Left = fullLeft; w.Top = fullTop; w.Navigate("workspace");
+            await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
 
             Check(w.Foreground is SolidColorBrush ink && ink.Color.R > 150 && w.Background is SolidColorBrush background && background.Color.R < 50, "Contrasto del tema scuro nella finestra principale");
             Check(w.CurrentSimulation.Complete && w.CurrentSimulation.Segments.Count > 10, "Simulazione fresatura iniziale");

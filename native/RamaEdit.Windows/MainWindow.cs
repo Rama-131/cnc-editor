@@ -70,7 +70,7 @@ public class MainWindow : Window
     public MainWindow(bool testMode = false)
     {
         Style = (Style)Application.Current.FindResource(typeof(Window));
-        this.testMode = testMode; Title = AppInfo.DisplayName; MinWidth = 900; MinHeight = 600;
+        this.testMode = testMode; Title = AppInfo.DisplayName; MinWidth = 420; MinHeight = 360;
         WindowStyle = WindowStyle.SingleBorderWindow; ResizeMode = ResizeMode.CanResize; ShowInTaskbar = true;
         WindowPlacement.SetInitialBounds(this, 1440, 920); AllowDrop = true;
         try { machines = testMode ? Storage.Defaults() : Storage.Read<List<MachineProfile>>("machines.json") ?? Storage.Defaults(); foreach (var m in machines) m.Settings.Validate(); }
@@ -78,7 +78,7 @@ public class MainWindow : Window
         try { if (Storage.UpgradeReceiveProfiles(machines) && !testMode) Storage.Save("machines.json", machines); }
         catch (Exception e) { Loaded += (_, _) => Error("Formato ricezione aggiornato, ma non salvato: " + e.Message); }
         var root = new DockPanel(); Content = root;
-        var header = new DockPanel { Background = new SolidColorBrush(Color.FromRgb(18, 25, 33)), LastChildFill = true };
+        var header = new WrapPanel { Background = new SolidColorBrush(Color.FromRgb(18, 25, 33)) };
         DockPanel.SetDock(header, Dock.Top); root.Children.Add(header);
         var rail = new DockPanel { Width = 65, Background = new SolidColorBrush(Color.FromRgb(17, 25, 32)) }; DockPanel.SetDock(rail, Dock.Left); root.Children.Add(rail);
         var navigation = new StackPanel(); DockPanel.SetDock(navigation, Dock.Top); rail.Children.Add(navigation);

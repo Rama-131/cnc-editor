@@ -6,9 +6,11 @@ Applicazione nativa in C#/.NET 10 e WPF, con editor AvalonEdit e porte COM gesti
 
 La versione EXE 0.2.2 non è firmata. Su Windows 11 con **Controllo intelligente delle app** attivo, Windows può impedirne completamente l'avvio. Anche lo ZIP contiene un eseguibile non firmato: non costituisce una soluzione al blocco.
 
-Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.36](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.36). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
+Le versioni di prova successive vengono pubblicate solo con un incremento esplicito della versione o una richiesta manuale; restano non firmate e non risolvono il blocco. L’aggiornamento corrente è [Rama Edit 0.2.37](https://github.com/Rama-131/cnc-editor/releases/tag/windows-v0.2.37). Per l'autore privato in Italia è predisposto il [percorso Microsoft Store](store/README.md): serve ancora registrare e verificare l'autore, ottenere l'identità dell'app e completare la certificazione Microsoft. Il pacchetto di sola verifica tecnica non è installabile e non risolve il problema. Nel frattempo rimane disponibile la versione web.
 
 ## Funzioni
+
+- Finestra ridimensionabile fino a 420 punti di larghezza, per affiancamento a metà schermo. Intestazione e comandi file vanno a capo nelle finestre strette.
 
 - Ricezione: attesa predefinita 10 secondi; tempi finiti inferiori vengono portati a 10, tempi più lunghi e modalità manuale conservati. Messaggio esplicito alla scadenza per inattività e dati acquisiti conservati.
 - Titolo Ricezione verde e Trasmissione blu, abbinati alle frecce laterali.
