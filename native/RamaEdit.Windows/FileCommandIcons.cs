@@ -9,6 +9,19 @@ internal static class FileCommandIcons
 {
     internal static FrameworkElement FolderLabel(string text) => Label(text, true);
     internal static FrameworkElement DiskLabel(string text) => Label(text, false);
+    internal static FrameworkElement ColorLabel()
+    {
+        var spectrum = new LinearGradientBrush { StartPoint = new(0, 0), EndPoint = new(1, 1) };
+        string[] colors = ["#FF5370", "#FF963F", "#FFE660", "#4FEC91", "#26D8FF", "#6481FF", "#D768FF"];
+        for (int i = 0; i < colors.Length; i++) spectrum.GradientStops.Add(new((Color)ColorConverter.ConvertFromString(colors[i]), i / (double)(colors.Length - 1)));
+        spectrum.Freeze();
+        var dot = new Grid { Width = 18, Height = 18, Margin = new(0, 0, 6, 0), VerticalAlignment = VerticalAlignment.Center };
+        dot.Children.Add(new Ellipse { Fill = spectrum, Stroke = new SolidColorBrush(Color.FromArgb(180, 225, 241, 255)), StrokeThickness = .8 });
+        dot.Children.Add(new Ellipse { Width = 11, Height = 7, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top, Margin = new(3, 2, 0, 0), Fill = new LinearGradientBrush(Color.FromArgb(160, 255, 255, 255), Colors.Transparent, 90) });
+        var label = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+        label.Children.Add(dot); label.Children.Add(new TextBlock { Text = "Colori", VerticalAlignment = VerticalAlignment.Center });
+        return label;
+    }
 
     static FrameworkElement Label(string text, bool folder)
     {

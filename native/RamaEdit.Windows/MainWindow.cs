@@ -116,6 +116,7 @@ public class MainWindow : Window
         fileActions.Children.Add(BuildOpenButton()); saveButton = BA("Salva", () => Save(false)); saveAsButton = BA("Salva con nome", () => Save(true)); printButton = B("▤ Stampa", Print);
         saveButton.Content = FileCommandIcons.DiskLabel("Salva"); saveAsButton.Content = FileCommandIcons.DiskLabel("Salva con nome");
         fileActions.Children.Add(saveButton); fileActions.Children.Add(saveAsButton); fileActions.Children.Add(printButton); examplesButton = B("▧ Esempi", Examples); fileActions.Children.Add(examplesButton); colorsButton = B("◉ Colori", Colors); fileActions.Children.Add(colorsButton); header.Children.Add(fileActions);
+        colorsButton.Content = FileCommandIcons.ColorLabel();
         tabScroll = new() { Content = tabs, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Background = new SolidColorBrush(Color.FromRgb(26, 34, 43)) }; DockPanel.SetDock(tabScroll, Dock.Top); main.Children.Add(tabScroll);
         toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto }); toolbar.ColumnDefinitions.Add(new() { Width = new(1, GridUnitType.Star) }); toolbar.ColumnDefinitions.Add(new() { Width = GridLength.Auto });
         toolbarLeft.Children.Add(editTools); toolbarLeft.Children.Add(extraTools); toolbarLeft.Children.Add(transferTools);
