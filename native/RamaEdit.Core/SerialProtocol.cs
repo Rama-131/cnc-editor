@@ -156,7 +156,7 @@ public sealed class SerialSession : IAsyncDisposable
                 if (count == 0)
                 {
                     bool timeout; lock (gate) timeout = filter is not null && settings.Receive.Timeout > 0 && (DateTime.UtcNow - lastReceived).TotalSeconds >= settings.Receive.Timeout;
-                    if (timeout) await StopReceivingAsync("Ricezione terminata per inattività."); continue;
+                    if (timeout) await StopReceivingAsync($"Tempo di ricezione scaduto: nessun nuovo dato da {settings.Receive.Timeout} secondi."); continue;
                 }
                 var text = new StringBuilder();
                 for (int i = 0; i < count; i++)

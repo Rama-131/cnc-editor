@@ -25,7 +25,7 @@ public class ReceiveOptions
     public bool RemoveControls { get; set; }
     public bool OmitEmpty { get; set; }
     public string StartTrigger { get; set; } = ""; public string EndTrigger { get; set; } = "";
-    public int Timeout { get; set; }
+    public int Timeout { get; set; } = 10;
     public bool SendXon { get; set; } = true; public string Initial { get; set; } = "";
 }
 public class DirectoryEntry { public string Extension { get; set; } = "txt"; public string AdditionalExtensions { get; set; } = "nc;cnc;tap;iso;mpf;gcode"; public string Path { get; set; } = ""; }
@@ -42,6 +42,7 @@ public class SerialSettings
         if (Port is null || Transmit is null || Receive is null || Directories is null || Directories.Send is null || Directories.Receive is null) throw new ArgumentException("Configurazione seriale incompleta.");
         if (!new[] { "CRLF", "CR", "LF" }.Contains(LineEnding) || !new[] { "auto", "CRLF", "CR", "LF" }.Contains(Receive.LineEnding)) throw new ArgumentException("Fine riga non valido.");
         if (Transmit.HandshakeTimeout is < 0 or > 3600 || Receive.Timeout is < 0 or > 3600 || Transmit.BeforeLineDelay is < 0 or > 60000 || Delay is < 0 or > 60000 || Transmit.StopAfter < 0) throw new ArgumentException("Tempi e limiti non validi.");
+        if (Receive.Timeout is > 0 and < 10) Receive.Timeout = 10;
         foreach (var model in new object[] { Port, Transmit, Receive })
             foreach (var p in model.GetType().GetProperties().Where(p => p.PropertyType == typeof(string))) SerialText.Control((string?)p.GetValue(model) ?? "");
         string xon = SerialText.Control(Port.Xon), xoff = SerialText.Control(Port.Xoff);

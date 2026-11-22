@@ -43,6 +43,13 @@ public static class NativeSmoke
                 if (FindCheckBox(VisualTreeHelper.GetChild(root, i), name) is { } match) return match;
             return null;
         }
+        TextBlock? FindText(DependencyObject root, string text)
+        {
+            if (root is TextBlock block && block.Text == text) return block;
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+                if (FindText(VisualTreeHelper.GetChild(root, i), text) is { } found) return found;
+            return null;
+        }
         bool LineHasColor(ICSharpCode.AvalonEdit.TextEditor editor, int lineNumber, string hex)
         {
             var line = editor.TextArea.TextView.VisualLines.FirstOrDefault(l => l.FirstDocumentLine.LineNumber == lineNumber);
@@ -243,7 +250,19 @@ public static class NativeSmoke
                 foreach (string target in new[] { "workspace", "send", "receive", "send", "workspace" })
                 {
                     w.Navigate(target); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
-                    if (target == "receive") { Check(!VisibleButton(w, "Utensile precedente") && !VisibleButton(w, "Prossimo utensile"), "Navigazione utensili assente in Ricezione"); continue; }
+                    w.Editor.Focus(); await w.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                    string activeName = target == "workspace" ? "Scrittura / Simulazione" : target == "send" ? "Trasmissione" : "Ricezione";
+                    if (target != "workspace")
+                    {
+                        var expectedTitleColor = target == "send" ? Color.FromRgb(58, 168, 255) : Color.FromRgb(57, 237, 154);
+                        Check(FindText(w, activeName)?.Foreground is SolidColorBrush titleBrush && titleBrush.Color == expectedTitleColor, "Titolo della pagina abbinato alla freccia: " + activeName);
+                    }
+                    foreach (string name in new[] { "Scrittura / Simulazione", "Trasmissione", "Ricezione" })
+                    {
+                        var nav = NamedButton(w, name)!; var outline = (Border)nav.Template.FindName("activeOutline", nav);
+                        Check(outline.IsVisible == (name == activeName) && outline.BorderThickness == new Thickness(3), "Cornice spessa persistente dopo il focus sul testo: " + name + " in " + target);
+                    }
+                    if (target == "receive") { Check(!VisibleButton(w, "Utensile precedente") && !VisibleButton(w, "Prossimo utensile"), "Navigazione utensili assente in Ricezione"); Shot(w, "ricezione-attiva"); continue; }
                     var previousTool = NamedButton(w, "Utensile precedente")!; var nextTool = NamedButton(w, "Prossimo utensile")!;
                     w.Editor.CaretOffset = 0; nextTool.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                     Check(w.Editor.TextArea.Caret.Line == 3, "Prossimo utensile porta al cambio T2 in " + target);

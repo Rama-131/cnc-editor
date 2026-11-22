@@ -8,6 +8,26 @@ static class SerialRegressionTests
     {
         var mazak = Storage.Defaults().Single(m => m.Id == "mch-mazakhtc400");
         var settings = mazak.Settings;
+        check(new ReceiveOptions().Timeout == 10, "Nuovi profili: attesa ricezione predefinita di 10 secondi");
+        foreach (int configured in new[] { 0, 1, 9, 10, 30 })
+        {
+            var configuredSettings = Storage.Clone(settings); configuredSettings.Receive.Timeout = configured; configuredSettings.Validate();
+            check(configuredSettings.Receive.Timeout == (configured > 0 && configured < 10 ? 10 : configured), "Attesa minima di 10 secondi, tempi più lunghi e modalità manuale conservati: " + configured);
+        }
+        await using (var timeoutDevice = new QueuedDevice())
+        {
+            var timeoutSettings = Storage.Clone(settings); timeoutSettings.Receive = new ReceiveOptions { Timeout = 1, SendXon = false };
+            await using var timeoutSession = new SerialSession(timeoutDevice, timeoutSettings);
+            var expired = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously); string received = "";
+            timeoutSession.ReceptionEnded += reason => expired.TrySetResult(reason); timeoutSession.Received += data => received += data;
+            timeoutSession.Start(); await timeoutSession.StartReceivingAsync(0);
+            await Task.Delay(1200); timeoutDevice.Inject(""); await Task.Delay(100);
+            check(timeoutSession.Receiving && !expired.Task.IsCompleted, "Ricezione ancora attiva dopo il vecchio timeout di un secondo");
+            timeoutDevice.Inject("G1 X1\r\n"); await Task.Delay(100);
+            await Task.Delay(10000); timeoutDevice.Inject("");
+            string reason = await expired.Task.WaitAsync(TimeSpan.FromSeconds(3));
+            check(!timeoutSession.Receiving && received == "G1 X1\r\n" && reason.Contains("Tempo di ricezione scaduto") && reason.Contains("10 secondi"), "Scadenza reale dopo 10 secondi senza nuovi dati: messaggio esplicito e testo ricevuto conservato");
+        }
         check(settings.BaudRate == 9600 && settings.DataBits == 7 && settings.StopBits == 2 && settings.Parity == "even"
             && settings.FlowControl == "both" && settings.Port.Dtr == true && settings.Port.Rts == true
             && !settings.Port.CheckParity && settings.Transmit.HandshakeTimeout == 0 && !settings.Transmit.WaitForXon,

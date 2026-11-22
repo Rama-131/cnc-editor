@@ -66,6 +66,7 @@ public class MainWindow : Window
     readonly List<string> recentFiles = [];
     internal IReadOnlyList<string> RecentFilePaths => recentFiles;
     readonly RecentFilesPopup recentMenu = new();
+    readonly Dictionary<string, Button> navigationButtons = new();
     public MainWindow(bool testMode = false)
     {
         Style = (Style)Application.Current.FindResource(typeof(Window));
@@ -82,10 +83,10 @@ public class MainWindow : Window
         var rail = new DockPanel { Width = 65, Background = new SolidColorBrush(Color.FromRgb(17, 25, 32)) }; DockPanel.SetDock(rail, Dock.Left); root.Children.Add(rail);
         var navigation = new StackPanel(); DockPanel.SetDock(navigation, Dock.Top); rail.Children.Add(navigation);
         var navigationGap = new Border();
-        var navigationButtons = new Dictionary<string, Button>();
         foreach (var (symbol, label, target) in new[] { ("⌨", "Scrittura / Simulazione", "workspace"), ("⇧", "Trasmissione", "send"), ("⇩", "Ricezione", "receive") })
         {
             var b = B(symbol, () => Navigate(target)); b.ToolTip = label; AutomationProperties.SetName(b, label);
+            b.Style = (Style)FindResource("NavigationButton");
             b.Margin = new(3, target == "receive" ? 6 : 0, 3, 0); navigationButtons.Add(target, b);
             if (target is "send" or "receive")
             {
@@ -407,7 +408,13 @@ public class MainWindow : Window
     }
     void ApplyPage()
     {
+        foreach (var (target, button) in navigationButtons)
+        {
+            button.Tag = target == page ? "active" : null;
+            AutomationProperties.SetItemStatus(button, target == page ? "Pagina attiva" : "");
+        }
         pageTitle.Text = page switch { "send" => "Trasmissione", "receive" => "Ricezione", _ => "Scrittura / Simulazione" };
+        pageTitle.Foreground = page switch { "send" => new SolidColorBrush(Color.FromRgb(58, 168, 255)), "receive" => new SolidColorBrush(Color.FromRgb(57, 237, 154)), _ => Foreground };
         ArrangeTransferToolbar();
         receivedDataButton.Visibility = page == "send" ? Visibility.Collapsed : Visibility.Visible;
         spacingButton.IsEnabled = toolListButton.IsEnabled = active is not null;
@@ -514,6 +521,8 @@ public class MainWindow : Window
     internal void CompleteReception(string reason, MachineProfile? source = null)
     {
         RenderReceived(); Notify(reason); TransferState();
+        if (reason.StartsWith("Tempo di ricezione scaduto", StringComparison.Ordinal) && received.Length == 0)
+            Notify(reason + " Premi AVVIA RICEZIONE per riprovare.");
         if (closing || preparingClose || serial?.Receiving == true) return;
         try
         {
