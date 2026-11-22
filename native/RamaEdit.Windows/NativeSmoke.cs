@@ -276,7 +276,7 @@ public static class NativeSmoke
                     foreach (string name in new[] { "Scrittura / Simulazione", "Trasmissione", "Ricezione" })
                     {
                         var nav = NamedButton(w, name)!; var outline = (Border)nav.Template.FindName("activeOutline", nav);
-                        Check(outline.IsVisible == (name == activeName) && outline.BorderThickness == new Thickness(3), "Cornice spessa persistente dopo il focus sul testo: " + name + " in " + target);
+                        Check(outline.IsVisible == (name == activeName) && outline.BorderThickness == new Thickness(2.5), "Cornice persistente dopo il focus sul testo: " + name + " in " + target);
                     }
                     if (target == "receive") { Check(!VisibleButton(w, "Utensile precedente") && !VisibleButton(w, "Prossimo utensile"), "Navigazione utensili assente in Ricezione"); Shot(w, "ricezione-attiva"); continue; }
                     var previousTool = NamedButton(w, "Utensile precedente")!; var nextTool = NamedButton(w, "Prossimo utensile")!;
